@@ -180,8 +180,7 @@ NexT.utils = {
         }
       }
     });
-
-
+    //网页失去焦点时，title和icon变化
     document.addEventListener('visibilitychange', function () {
       if (document.visibilityState == 'hidden') {
         normal_title = document.title;
@@ -200,7 +199,7 @@ NexT.utils = {
         document.title = normal_title;
       }
     });
-
+    //点击上吊小猫咪，回到顶部
     backToTop && backToTop.addEventListener('click', () => {
       window.anime({
         targets: document.scrollingElement,
@@ -209,6 +208,12 @@ NexT.utils = {
         scrollTop: 0
       });
     });
+
+    window.onload = function () {
+      console.warn('Loaded')
+      document.getElementById('live2d-widget').style["pointer-events"] = "auto";
+      document.getElementById('live2d-widget').classList.add("cursorC");
+    }
   },
 
   /**
