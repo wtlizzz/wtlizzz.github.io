@@ -1,0 +1,600 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=2">
+<meta name="theme-color" content="#222">
+<meta name="generator" content="Hexo 5.2.0">
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/my_boy.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/my_boy.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/my_boy.png">
+  <link rel="mask-icon" href="/images/my_boy.png" color="#222">
+
+<link rel="stylesheet" href="/css/main.css">
+
+
+<link rel="stylesheet" href="/lib/font-awesome/css/all.min.css">
+  <link rel="stylesheet" href="/lib/pace/pace-theme-minimal.min.css">
+  <script src="/lib/pace/pace.min.js"></script>
+
+<script id="hexo-configurations">
+    var NexT = window.NexT || {};
+    var CONFIG = {"hostname":"wtlizzz.github.io","root":"/","scheme":"Mist","version":"7.8.0","exturl":false,"sidebar":{"position":"left","display":"post","padding":18,"offset":12,"onmobile":false},"copycode":{"enable":true,"show_result":true,"style":"flat"},"back2top":{"enable":true,"sidebar":false,"scrollpercent":false},"bookmark":{"enable":false,"color":"#222","save":"auto"},"fancybox":false,"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"algolia":{"hits":{"per_page":10},"labels":{"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}},"localsearch":{"enable":true,"trigger":"auto","top_n_per_article":-1,"unescape":false,"preload":false},"motion":{"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}},"path":"search.xml"};
+  </script>
+
+  <meta name="description" content="本文对Netty进行深入学习与实践。 作为当前最流行的NIO框架，Netty在互联网领域、大数据分布式计算领域、游戏行业、通信行业等获得了广泛的应用，一些业界著名的开源组件也基于Netty的NIO框架构建。">
+<meta property="og:type" content="article">
+<meta property="og:title" content="Netty学习">
+<meta property="og:url" content="https://wtlizzz.github.io/Netty%E5%AD%A6%E4%B9%A0/index.html">
+<meta property="og:site_name" content="文韬">
+<meta property="og:description" content="本文对Netty进行深入学习与实践。 作为当前最流行的NIO框架，Netty在互联网领域、大数据分布式计算领域、游戏行业、通信行业等获得了广泛的应用，一些业界著名的开源组件也基于Netty的NIO框架构建。">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="https://s1.ax1x.com/2020/09/21/w7OTAA.png">
+<meta property="og:image" content="https://s1.ax1x.com/2020/09/21/w7OHht.png">
+<meta property="og:image" content="https://s1.ax1x.com/2020/09/21/w7OTAA.png">
+<meta property="article:published_time" content="2020-09-17T06:09:09.000Z">
+<meta property="article:modified_time" content="2020-09-21T01:18:24.036Z">
+<meta property="article:author" content="Wtli">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="https://s1.ax1x.com/2020/09/21/w7OTAA.png">
+
+<link rel="canonical" href="https://wtlizzz.github.io/Netty%E5%AD%A6%E4%B9%A0/">
+
+
+<script id="page-configurations">
+  // https://hexo.io/docs/variables.html
+  CONFIG.page = {
+    sidebar: "",
+    isHome : false,
+    isPost : true,
+    lang   : 'zh-CN'
+  };
+</script>
+
+  <title>Netty学习 | 文韬</title>
+  
+
+
+  <script>
+    var _hmt = _hmt || [];
+    (function() {
+      var hm = document.createElement("script");
+      hm.src = "https://hm.baidu.com/hm.js?7f4b8b54f803186c40c333785b8aee31";
+      var s = document.getElementsByTagName("script")[0];
+      s.parentNode.insertBefore(hm, s);
+    })();
+  </script>
+
+
+
+
+  <noscript>
+  <style>
+  .use-motion .brand,
+  .use-motion .menu-item,
+  .sidebar-inner,
+  .use-motion .post-block,
+  .use-motion .pagination,
+  .use-motion .comments,
+  .use-motion .post-header,
+  .use-motion .post-body,
+  .use-motion .collection-header { opacity: initial; }
+
+  .use-motion .site-title,
+  .use-motion .site-subtitle {
+    opacity: initial;
+    top: initial;
+  }
+
+  .use-motion .logo-line-before i { left: initial; }
+  .use-motion .logo-line-after i { right: initial; }
+  </style>
+</noscript>
+
+  <script src="https://apps.bdimg.com/libs/jquery/2.1.4/jquery.min.js">
+  </script>
+</head>
+
+
+<body itemscope itemtype="http://schema.org/WebPage">
+  <div class="container use-motion">
+    <div class="headband"></div>
+
+    <header class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-container">
+  <div class="site-nav-toggle">
+    <div class="toggle" aria-label="切换导航栏">
+      <span class="toggle-line toggle-line-first"></span>
+      <span class="toggle-line toggle-line-middle"></span>
+      <span class="toggle-line toggle-line-last"></span>
+    </div>
+  </div>
+
+  <div class="site-meta">
+
+    <a href="/" class="brand" rel="start">
+      <span class="logo-line-before"><i></i></span>
+      <h1 class="site-title">文韬</h1>
+      <span class="logo-line-after"><i></i></span>
+    </a>
+      <p class="site-subtitle" itemprop="description">始终如一</p>
+  </div>
+
+  <div class="site-nav-right">
+    <div class="toggle popup-trigger">
+        <i class="fa fa-search fa-fw fa-lg"></i>
+    </div>
+  </div>
+</div>
+
+
+
+
+<nav class="site-nav">
+  <ul id="menu" class="main-menu menu">
+        <li class="menu-item menu-item-home">
+
+    <a href="/" rel="section"><i class="fa fa-home fa-fw"></i>首页</a>
+
+  </li>
+        <li class="menu-item menu-item-目录">
+
+    <a href="/archives/" rel="section"><i class="fa fa-archive fa-fw"></i>目录</a>
+
+  </li>
+        <li class="menu-item menu-item-tags">
+
+    <a href="/tags/" rel="section"><i class="fa fa-tags fa-fw"></i>标签</a>
+
+  </li>
+        <li class="menu-item menu-item-categories">
+
+    <a href="/categories/" rel="section"><i class="fa fa-th fa-fw"></i>分类</a>
+
+  </li>
+        <li class="menu-item menu-item-commonweal">
+
+    <a href="/404/" rel="section"><i class="fa fa-heartbeat fa-fw"></i>公益</a>
+
+  </li>
+        <li class="menu-item menu-item-about">
+
+    <a href="/about/" rel="section"><i class="fa fa-user fa-fw"></i>关于</a>
+
+  </li>
+      <li class="menu-item menu-item-search">
+        <a role="button" class="popup-trigger"><i class="fa fa-search fa-fw"></i>搜索
+        </a>
+      </li>
+  </ul>
+</nav>
+
+
+
+  <div class="search-pop-overlay">
+    <div class="popup search-popup">
+        <div class="search-header">
+  <span class="search-icon">
+    <i class="fa fa-search"></i>
+  </span>
+  <div class="search-input-container">
+    <input autocomplete="off" autocapitalize="off"
+           placeholder="搜索..." spellcheck="false"
+           type="search" class="search-input">
+  </div>
+  <span class="popup-btn-close">
+    <i class="fa fa-times-circle"></i>
+  </span>
+</div>
+<div id="search-result">
+  <div id="no-result">
+    <i class="fa fa-spinner fa-pulse fa-5x fa-fw"></i>
+  </div>
+</div>
+
+    </div>
+  </div>
+
+</div>
+    </header>
+
+    
+  <div class="back-to-top">
+    <i class="fa fa-arrow-up"></i>
+    <span>0%</span>
+  </div>
+
+
+    <main class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          
+
+          <div class="content post posts-expand">
+            
+
+    
+  
+  
+  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="zh-CN">
+    <link itemprop="mainEntityOfPage" href="https://wtlizzz.github.io/Netty%E5%AD%A6%E4%B9%A0/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/avatar.jpg">
+      <meta itemprop="name" content="Wtli">
+      <meta itemprop="description" content="本博客记录博主学习内容">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="文韬">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          Netty学习
+        </h1>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-calendar"></i>
+              </span>
+              <span class="post-meta-item-text">发表于</span>
+
+              <time title="创建时间：2020-09 14:09:09" itemprop="dateCreated datePublished" datetime="2020-09-17T14:09:09+08:00">2020-09</time>
+            </span>
+
+          
+            <span class="post-meta-item" title="本文字数">
+              <span class="post-meta-item-icon">
+                <i class="far fa-file-word"></i>
+              </span>
+                <span class="post-meta-item-text">本文字数：</span>
+              <span>15k</span>
+            </span>
+            <span class="post-meta-item" title="阅读时长">
+              <span class="post-meta-item-icon">
+                <i class="far fa-clock"></i>
+              </span>
+                <span class="post-meta-item-text">阅读时长 &asymp;</span>
+              <span>14 分钟</span>
+            </span>
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+        <p>本文对Netty进行深入学习与实践。</p>
+<p>作为当前最流行的NIO框架，Netty在互联网领域、大数据分布式计算领域、游戏行业、通信行业等获得了广泛的应用，一些业界著名的开源组件也基于Netty的NIO框架构建。</p>
+<a id="more"></a>
+
+<p>Netty是一个高性能、异步事件驱动的NIO框架，它提供了对TCP、UDP和文件传输的支持，作为一个异步NIO框架，Netty的所有IO操作都是异步非阻塞的，通过Future-Listener机制，用户可以方便的主动获取或者通过通知机制获得IO操作结果。</p>
+<p>不多逼逼，先看代码，然后细细品尝</p>
+<h4 id="Writing-a-Discard-Server"><a href="#Writing-a-Discard-Server" class="headerlink" title="Writing a Discard Server"></a>Writing a Discard Server</h4><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br></pre></td><td class="code"><pre><span class="line">import io.netty.buffer.ByteBuf;</span><br><span class="line"></span><br><span class="line">import io.netty.channel.ChannelHandlerContext;</span><br><span class="line">import io.netty.channel.ChannelInboundHandlerAdapter;</span><br><span class="line"></span><br><span class="line">&#x2F;**</span><br><span class="line"> * Handles a server-side channel.</span><br><span class="line"> *&#x2F;</span><br><span class="line">public class DiscardServerHandler extends ChannelInboundHandlerAdapter &#123; &#x2F;&#x2F; (1)</span><br><span class="line"></span><br><span class="line">    @Override</span><br><span class="line">    public void channelRead(ChannelHandlerContext ctx, Object msg) &#123; &#x2F;&#x2F; (2)</span><br><span class="line">        &#x2F;&#x2F; Discard the received data silently.</span><br><span class="line">        ((ByteBuf) msg).release(); &#x2F;&#x2F; (3)</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    @Override</span><br><span class="line">    public void exceptionCaught(ChannelHandlerContext ctx, Throwable cause) &#123; &#x2F;&#x2F; (4)</span><br><span class="line">        &#x2F;&#x2F; Close the connection when an exception is raised.</span><br><span class="line">        cause.printStackTrace();</span><br><span class="line">        ctx.close();</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<ol>
+<li><p>DiscardServerHandler继承了ChannelInboundHandlerAdapter，ChannelInboundHandlerAdapter是ChannelInboundHandler的实现。ChannelInboundHandler提供了可以覆盖的各种事件处理程序方法。现在，仅扩展ChannelInboundHandlerAdapter而不是自己实现处理程序接口就足够了。</p>
+</li>
+<li><p>我们在channelRead()这里重写事件处理程序方法。每当从客户端接收到新数据时，channelRead()就会触发。在此示例中，接收到的消息的类型为ByteBuf。</p>
+</li>
+<li><p>为了实现DISCARD协议，处理程序必须忽略收到的消息。ByteBuf是一个引用计数对象，必须通过该release()方法显式释放。请记住，释放任何传递给处理程序的引用计数对象是处理程序的责任。通常，channelRead()处理程序方法的实现如下：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line">@Override</span><br><span class="line">public void channelRead(ChannelHandlerContext ctx, Object msg) &#123;</span><br><span class="line">    try &#123;</span><br><span class="line">        &#x2F;&#x2F; Do something with msg</span><br><span class="line">    &#125; finally &#123;</span><br><span class="line">        ReferenceCountUtil.release(msg);</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+</li>
+<li><p>当Netty由于I/O错误或处理程序实现由于处理事件时抛出异常而引发异常时，使用Throwable调用exceptionCaught()事件处理程序方法。在大多数情况下，应该记录捕获的异常，并在这里关闭与之关联的通道，尽管此方法的实现可能因您想要处理异常情况而有所不同。例如，您可能想在关闭连接之前发送带有错误代码的响应消息。</p>
+</li>
+</ol>
+<p>到目前为止一切顺利。我们已经实现了DISCARD服务器的前半部分。现在剩下的工作是编写main()方法，该方法使用DiscardServerHandler启动服务器。</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br></pre></td><td class="code"><pre><span class="line">import io.netty.bootstrap.ServerBootstrap;</span><br><span class="line"></span><br><span class="line">import io.netty.channel.ChannelFuture;</span><br><span class="line">import io.netty.channel.ChannelInitializer;</span><br><span class="line">import io.netty.channel.ChannelOption;</span><br><span class="line">import io.netty.channel.EventLoopGroup;</span><br><span class="line">import io.netty.channel.nio.NioEventLoopGroup;</span><br><span class="line">import io.netty.channel.socket.SocketChannel;</span><br><span class="line">import io.netty.channel.socket.nio.NioServerSocketChannel;</span><br><span class="line">    </span><br><span class="line">&#x2F;**</span><br><span class="line"> * Discards any incoming data.</span><br><span class="line"> *&#x2F;</span><br><span class="line">public class DiscardServer &#123;</span><br><span class="line">    </span><br><span class="line">    private int port;</span><br><span class="line">    </span><br><span class="line">    public DiscardServer(int port) &#123;</span><br><span class="line">        this.port &#x3D; port;</span><br><span class="line">    &#125;</span><br><span class="line">    </span><br><span class="line">    public void run() throws Exception &#123;</span><br><span class="line">        EventLoopGroup bossGroup &#x3D; new NioEventLoopGroup(); &#x2F;&#x2F; (1)</span><br><span class="line">        EventLoopGroup workerGroup &#x3D; new NioEventLoopGroup();</span><br><span class="line">        try &#123;</span><br><span class="line">            ServerBootstrap b &#x3D; new ServerBootstrap(); &#x2F;&#x2F; (2)</span><br><span class="line">            b.group(bossGroup, workerGroup)</span><br><span class="line">             .channel(NioServerSocketChannel.class) &#x2F;&#x2F; (3)</span><br><span class="line">             .childHandler(new ChannelInitializer&lt;SocketChannel&gt;() &#123; &#x2F;&#x2F; (4)</span><br><span class="line">                 @Override</span><br><span class="line">                 public void initChannel(SocketChannel ch) throws Exception &#123;</span><br><span class="line">                     ch.pipeline().addLast(new DiscardServerHandler());</span><br><span class="line">                 &#125;</span><br><span class="line">             &#125;)</span><br><span class="line">             .option(ChannelOption.SO_BACKLOG, 128)          &#x2F;&#x2F; (5)</span><br><span class="line">             .childOption(ChannelOption.SO_KEEPALIVE, true); &#x2F;&#x2F; (6)</span><br><span class="line">    </span><br><span class="line">            &#x2F;&#x2F; Bind and start to accept incoming connections.</span><br><span class="line">            ChannelFuture f &#x3D; b.bind(port).sync(); &#x2F;&#x2F; (7)</span><br><span class="line">    </span><br><span class="line">            &#x2F;&#x2F; Wait until the server socket is closed.</span><br><span class="line">            &#x2F;&#x2F; In this example, this does not happen, but you can do that to gracefully</span><br><span class="line">            &#x2F;&#x2F; shut down your server.</span><br><span class="line">            f.channel().closeFuture().sync();</span><br><span class="line">        &#125; finally &#123;</span><br><span class="line">            workerGroup.shutdownGracefully();</span><br><span class="line">            bossGroup.shutdownGracefully();</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line">    </span><br><span class="line">    public static void main(String[] args) throws Exception &#123;</span><br><span class="line">        int port &#x3D; 8080;</span><br><span class="line">        if (args.length &gt; 0) &#123;</span><br><span class="line">            port &#x3D; Integer.parseInt(args[0]);</span><br><span class="line">        &#125;</span><br><span class="line"></span><br><span class="line">        new DiscardServer(port).run();</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<ol>
+<li>NioEventLoopGroup是处理I/O操作的多线程事件循环。Netty提供了多种 EventLoopGroup为了不同类型的传输。在此示例中，我们正在实现服务器端应用程序，因此NioEventLoopGroup将使用两个。第一个通常称为”boss”，接受传入的连接。第二个通常称为”worker”，boss接受连接并向worker注册已接受的连接。使用多少线程以及如何将它们映射到创建的Channels取决于EventLoopGroup实现，甚至可以通过构造函数进行配置。</li>
+<li>ServerBootstrap是设置辅助类。也可以使用Channel直接设置服务器。但是，请注意，这是一个繁琐的过程，在大多数情况下不需要这样做。</li>
+<li>在这里，我们指定使用NioServerSocketChannel用于实例化新类Channel以接受传入连接的类。</li>
+<li>childHandler是处理新接收的channel，ChannelInitializer是配置辅助类。比如，给新的channel配置ChannelPipeline像增加DiscardServerHandler。随着应用程序变得复杂，可以封装一个通用的类。</li>
+<li>我们还可以设置Channel实现的参数。我们正在编写一个TCP/IP服务器，因此我们可以设置socket套接字选项，例如tcpNoDelay和keepAlive。请参考ChannelOption的api和具体ChannelConfig实现有关概述。</li>
+<li>option()用于NioServerSocketChannel接受传入的连接。childOption()是Channel为父级接受的ServerChannel，在本例中就是指的NioServerSocketChannel。</li>
+<li>剩下的就是绑定到端口并启动服务器。在这里，我们绑定到计算机8080中所有NIC（网络接口卡）的端口。现在，您可以bind()根据需要多次调用该方法（使用不同的绑定地址。）</li>
+</ol>
+<p>恭喜你！您已经在Netty上完成了第一台服务器。</p>
+<h4 id="Looking-into-the-Received-Data"><a href="#Looking-into-the-Received-Data" class="headerlink" title="Looking into the Received Data"></a>Looking into the Received Data</h4><p>现在，我们已经编写了第一台服务器，我们需要测试它是否确实有效。测试它的最简单方法是使用telnet命令。例如，您可以telnet localhost 8080在命令行中输入并输入一些内容。</p>
+<p>但是，我们可以说服务器工作正常吗？我们真的不知道这是因为它是一个废弃服务器。您根本不会得到任何回应。为了证明它确实有效，让我们修改服务器以打印收到的内容。</p>
+<p>我们已经知道，channelRead()每当收到数据时都会调用该方法。让我们将一些代码放入channelRead()方法中DiscardServerHandler：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br></pre></td><td class="code"><pre><span class="line">@Override</span><br><span class="line">public void channelRead(ChannelHandlerContext ctx, Object msg) &#123;</span><br><span class="line">    ByteBuf in &#x3D; (ByteBuf) msg;</span><br><span class="line">    try &#123;</span><br><span class="line">        while (in.isReadable()) &#123;</span><br><span class="line">            System.out.print((char) in.readByte());</span><br><span class="line">            System.out.flush();</span><br><span class="line">        &#125;</span><br><span class="line">    &#125; finally &#123;</span><br><span class="line">        ReferenceCountUtil.release(msg);</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>如果您再次运行telnet命令，您将看到服务器打印它接收到的内容。</p>
+<h4 id="Writing-an-Echo-Server"><a href="#Writing-an-Echo-Server" class="headerlink" title="Writing an Echo Server"></a>Writing an Echo Server</h4><p>到目前为止，我们一直在使用数据而没有任何响应。但是，通常应假定服务器对请求作出响应。让我们学习如何通过实现ECHO协议将响应消息写入客户端，在此将所有接收到的数据发送回去。</p>
+<p>与我们在上一节中实现的丢弃服务器的唯一区别在于，它会将接收到的数据发回，而不是将接收到的数据打印到控制台。因此，再次修改该channelRead()方法就足够了：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">@Override</span><br><span class="line">public void channelRead(ChannelHandlerContext ctx, Object msg) &#123;</span><br><span class="line">    ctx.write(msg); &#x2F;&#x2F; (1)</span><br><span class="line">    ctx.flush(); &#x2F;&#x2F; (2)</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<ol>
+<li>一个ChannelHandlerContext对象提供的各种操作，使您可以触发各种I/O的事件和操作。在这里，我们调用write(Object)将接收到的消息写入进去。请注意，我们没有像DISCARD示例中那样释放收到的消息。这是因为Netty在将其写到网络时会为您释放它。</li>
+<li>ctx.write(Object)不会将消息写到网络中。它在内部进行缓冲，然后通过ctx.flush()传输到网络。或者，可以使用ctx.writeAndFlush(msg)更简洁。</li>
+</ol>
+<p>如果再次运行telnet命令，您将看到服务器发回发送给它的任何内容。</p>
+<h4 id="Writing-a-Time-Server"><a href="#Writing-a-Time-Server" class="headerlink" title="Writing a Time Server"></a>Writing a Time Server</h4><p>它与前面的示例不同之处在于，它发送包含32位整数的消息，不接收任何请求，并在发送消息后关闭连接。</p>
+<p>因为我们将忽略任何接收到的数据，而是在建立连接后立即发送消息，所以channelRead()这次我们不能使用该方法。相反，我们应该重写该channelActive()方法。以下是实现：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br></pre></td><td class="code"><pre><span class="line">package io.netty.example.time;</span><br><span class="line"></span><br><span class="line">public class TimeServerHandler extends ChannelInboundHandlerAdapter &#123;</span><br><span class="line"></span><br><span class="line">    @Override</span><br><span class="line">    public void channelActive(final ChannelHandlerContext ctx) &#123; &#x2F;&#x2F; (1)</span><br><span class="line">        final ByteBuf time &#x3D; ctx.alloc().buffer(4); &#x2F;&#x2F; (2)</span><br><span class="line">        time.writeInt((int) (System.currentTimeMillis() &#x2F; 1000L + 2208988800L));</span><br><span class="line">        </span><br><span class="line">        final ChannelFuture f &#x3D; ctx.writeAndFlush(time); &#x2F;&#x2F; (3)</span><br><span class="line">        f.addListener(new ChannelFutureListener() &#123;</span><br><span class="line">            @Override</span><br><span class="line">            public void operationComplete(ChannelFuture future) &#123;</span><br><span class="line">                assert f &#x3D;&#x3D; future;</span><br><span class="line">                ctx.close();</span><br><span class="line">            &#125;</span><br><span class="line">        &#125;); &#x2F;&#x2F; (4)</span><br><span class="line">    &#125;</span><br><span class="line">    </span><br><span class="line">    @Override</span><br><span class="line">    public void exceptionCaught(ChannelHandlerContext ctx, Throwable cause) &#123;</span><br><span class="line">        cause.printStackTrace();</span><br><span class="line">        ctx.close();</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<ol>
+<li><p>channelActive()当建立连接时，将调用该方法。让我们写一个代表该方法当前时间的32位整数。</p>
+</li>
+<li><p>要发送新消息，我们需要分配一个包含消息的新缓冲区。我们将要写入一个32位整数，因此我们需要一个ByteBuf容量至少为4个字节的字节。通过ChannelHandlerContext.alloc()获得当前的ByteBufAllocator并分配一个新的缓冲区。</p>
+</li>
+<li><p>我们不是曾经调用java.nio.ByteBuffer.flip()方法在NIO中发送消息之前吗？ByteBuf没有这样的方法，因为它有两个指针；一个用于读取操作，另一个用于写入操作。当您向某处写入内容时，写入指针会增加，读取指针不会改变。读取指针和写入指针分别表示消息的开始和结束位置。<br>相反，NIO缓冲区不提供一种干净的方法来确定消息内容的开始和结束位置，而无需调用flip方法。当您忘记翻转缓冲区时会遇到麻烦，因为将不会发送任何内容或发送不正确的数据。在Netty中不会发生这样的错误，因为我们对不同的操作类型有不同的指针。您会发现，适应它会使您的生活变得更加轻松-无需flipping的生活！<br>要注意的另一点是ChannelHandlerContext.write()（和writeAndFlush()）方法返回一个ChannelFuture。A ChannelFuture表示尚未发生的I/O操作。这意味着，由于Netty中的所有操作都是异步的，因此可能尚未执行任何请求的操作。例如，以下代码甚至在发送消息之前就可能关闭连接：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">Channel ch &#x3D; ...;</span><br><span class="line">ch.writeAndFlush(message);</span><br><span class="line">ch.close();</span><br></pre></td></tr></table></figure>
+<p>因此，您需要在close()方法ChannelFuture完成后调用该方法，该write()方法由该方法返回，并在完成写操作后通知其侦听器。请注意，close()也可能不会立即关闭连接，并且返回ChannelFuture。</p>
+</li>
+<li><p>当写请求完成时，我们如何得到通知？这就像将添加ChannelFutureListener到return 一样简单ChannelFuture。在这里，我们创建了一个匿名操作ChannelFutureListener将在操作完成时关闭Channel。<br>另外，您可以使用预定义的侦听器简化代码：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">f.addListener(ChannelFutureListener.CLOSE);</span><br></pre></td></tr></table></figure>
+<p>要测试我们的时间服务器是否按预期工作，可以使用UNIX rdate命令：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">$ rdate -o &lt;port&gt; -p &lt;host&gt;</span><br></pre></td></tr></table></figure>
+<p>其中<port>是您在main()方法中指定的端口号，<host>通常为localhost。</host></port></p>
+</li>
+</ol>
+<h4 id="Writing-a-Time-Client"><a href="#Writing-a-Time-Client" class="headerlink" title="Writing a Time Client"></a>Writing a Time Client</h4><p>与DISCARD和ECHO服务器不同，我们需要用于时间协议的客户机，因为人类无法将32位二进制数据转换为日历上的日期。在本节中，我们将讨论如何确保服务器正确工作，并学习如何使用Netty编写客户端。</p>
+<p>在Netty中，服务器和客户机之间最大也是唯一的区别是使用了不同的Bootstrap和Channel实现。请查看以下代码:</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br></pre></td><td class="code"><pre><span class="line">public class TimeClient &#123;</span><br><span class="line">    public static void main(String[] args) throws Exception &#123;</span><br><span class="line">        String host &#x3D; args[0];</span><br><span class="line">        int port &#x3D; Integer.parseInt(args[1]);</span><br><span class="line">        EventLoopGroup workerGroup &#x3D; new NioEventLoopGroup();</span><br><span class="line">        </span><br><span class="line">        try &#123;</span><br><span class="line">            Bootstrap b &#x3D; new Bootstrap(); &#x2F;&#x2F; (1)</span><br><span class="line">            b.group(workerGroup); &#x2F;&#x2F; (2)</span><br><span class="line">            b.channel(NioSocketChannel.class); &#x2F;&#x2F; (3)</span><br><span class="line">            b.option(ChannelOption.SO_KEEPALIVE, true); &#x2F;&#x2F; (4)</span><br><span class="line">            b.handler(new ChannelInitializer&lt;SocketChannel&gt;() &#123;</span><br><span class="line">                @Override</span><br><span class="line">                public void initChannel(SocketChannel ch) throws Exception &#123;</span><br><span class="line">                    ch.pipeline().addLast(new TimeClientHandler());</span><br><span class="line">                &#125;</span><br><span class="line">            &#125;);</span><br><span class="line">            </span><br><span class="line">            &#x2F;&#x2F; Start the client.</span><br><span class="line">            ChannelFuture f &#x3D; b.connect(host, port).sync(); &#x2F;&#x2F; (5)</span><br><span class="line"></span><br><span class="line">            &#x2F;&#x2F; Wait until the connection is closed.</span><br><span class="line">            f.channel().closeFuture().sync();</span><br><span class="line">        &#125; finally &#123;</span><br><span class="line">            workerGroup.shutdownGracefully();</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<ol>
+<li>BootstrapServerBootstrap除了用于非服务器通道（例如客户端通道或无连接通道）之外，其他方法与之相似。</li>
+<li>如果仅指定一个EventLoopGroup，它将同时用作boss和worker。但是客户端不区分。</li>
+<li>NioSocketChannel代替NioServerSocketChannel被用来创建一个客户端Channel。</li>
+<li>请注意，childOption()此处不使用与此处不同的方法，ServerBootstrap因为客户端SocketChannel没有父级。</li>
+<li>我们应该调用connect()方法而不是bind()方法。</li>
+</ol>
+<p>与服务器端代码实际上没有什么不同。它应该从服务器接收一个32位的整数，将其转换为人类可读的格式，打印转换后的时间，然后关闭连接:</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br></pre></td><td class="code"><pre><span class="line">public class TimeClientHandler extends ChannelInboundHandlerAdapter &#123;</span><br><span class="line">    @Override</span><br><span class="line">    public void channelRead(ChannelHandlerContext ctx, Object msg) &#123;</span><br><span class="line">        ByteBuf m &#x3D; (ByteBuf) msg; &#x2F;&#x2F; (1)</span><br><span class="line">        try &#123;</span><br><span class="line">            long currentTimeMillis &#x3D; (m.readUnsignedInt() - 2208988800L) * 1000L;</span><br><span class="line">            System.out.println(new Date(currentTimeMillis));</span><br><span class="line">            ctx.close();</span><br><span class="line">        &#125; finally &#123;</span><br><span class="line">            m.release();</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    @Override</span><br><span class="line">    public void exceptionCaught(ChannelHandlerContext ctx, Throwable cause) &#123;</span><br><span class="line">        cause.printStackTrace();</span><br><span class="line">        ctx.close();</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>在TCP/IP中，Netty读取从对等点发送的数据到ByteBuf。它看起来非常简单，与服务器端示例没有任何不同。但是，这个处理程序有时会抛出IndexOutOfBoundsException。我们将在下一节中讨论为什么会发生这种情况。</p>
+<h4 id="Dealing-with-a-Stream-based-Transport"><a href="#Dealing-with-a-Stream-based-Transport" class="headerlink" title="Dealing with a Stream-based Transport"></a>Dealing with a Stream-based Transport</h4><h5 id="One-Small-Caveat-of-Socket-Buffer"><a href="#One-Small-Caveat-of-Socket-Buffer" class="headerlink" title="One Small Caveat of Socket Buffer"></a>One Small Caveat of Socket Buffer</h5><p>在基于流的传输中（例如TCP/IP），将接收到的数据存储到套接字接收缓冲区中。不幸的是，基于流的传输的缓冲区不是数据包队列而是字节队列。这意味着，即使您将两个消息作为两个独立的数据包发送，操作系统也不会将它们视为两个消息，而只是一堆字节。因此，不能保证您所阅读的内容与远程对等方写的内容完全相同。例如，让我们假设操作系统的TCP / IP堆栈已收到三个数据包：<br><img src="https://s1.ax1x.com/2020/09/21/w7OTAA.png" alt="w7OTAA.png"></p>
+<p>由于基于流的协议具有此一般属性，因此很有可能在您的应用程序中以以下分段形式读取它们：<br><img src="https://s1.ax1x.com/2020/09/21/w7OHht.png" alt="w7OHht.png"></p>
+<p>因此，无论是服务器端还是客户端，接收方都应将接收到的数据整理到一个或多个有意义的帧中，以使应用程序逻辑易于理解。在上面的示例中，接收到的数据应采用以下格式：<br><img src="https://s1.ax1x.com/2020/09/21/w7OTAA.png" alt="w7OTAA.png"></p>
+<h5 id="第一个解决方案"><a href="#第一个解决方案" class="headerlink" title="第一个解决方案"></a>第一个解决方案</h5><p>现在让我们回到TIME客户示例。我们在这里有同样的问题。32位整数是非常少量的数据，并且不太可能经常被分段。但是，问题在于它可以被碎片化，并且碎片化的可能性会随着流量的增加而增加。</p>
+<p>简单的解决方案是创建一个内部累积缓冲区，然后等待直到所有4个字节都被接收到内部缓冲区中为止。以下是修改后的TimeClientHandler实现，可以解决此问题：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br></pre></td><td class="code"><pre><span class="line">public class TimeClientHandler extends ChannelInboundHandlerAdapter &#123;</span><br><span class="line">    private ByteBuf buf;</span><br><span class="line">    </span><br><span class="line">    @Override</span><br><span class="line">    public void handlerAdded(ChannelHandlerContext ctx) &#123;</span><br><span class="line">        buf &#x3D; ctx.alloc().buffer(4); &#x2F;&#x2F; (1)</span><br><span class="line">    &#125;</span><br><span class="line">    </span><br><span class="line">    @Override</span><br><span class="line">    public void handlerRemoved(ChannelHandlerContext ctx) &#123;</span><br><span class="line">        buf.release(); &#x2F;&#x2F; (1)</span><br><span class="line">        buf &#x3D; null;</span><br><span class="line">    &#125;</span><br><span class="line">    </span><br><span class="line">    @Override</span><br><span class="line">    public void channelRead(ChannelHandlerContext ctx, Object msg) &#123;</span><br><span class="line">        ByteBuf m &#x3D; (ByteBuf) msg;</span><br><span class="line">        buf.writeBytes(m); &#x2F;&#x2F; (2)</span><br><span class="line">        m.release();</span><br><span class="line">        </span><br><span class="line">        if (buf.readableBytes() &gt;&#x3D; 4) &#123; &#x2F;&#x2F; (3)</span><br><span class="line">            long currentTimeMillis &#x3D; (buf.readUnsignedInt() - 2208988800L) * 1000L;</span><br><span class="line">            System.out.println(new Date(currentTimeMillis));</span><br><span class="line">            ctx.close();</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line">    </span><br><span class="line">    @Override</span><br><span class="line">    public void exceptionCaught(ChannelHandlerContext ctx, Throwable cause) &#123;</span><br><span class="line">        cause.printStackTrace();</span><br><span class="line">        ctx.close();</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<ol>
+<li>一个ChannelHandler有两个生命周期侦听器方法：handlerAdded()和handlerRemoved()。您可以执行任意（取消）初始化任务，只要它不会长时间阻塞即可。</li>
+<li>首先，应将所有接收到的数据累加到中buf。</li>
+<li>然后，处理程序必须检查是否buf有足够的数据（在此示例中为4个字节），然后继续进行实际的业务逻辑。否则，channelRead()当有更多数据到达时，Netty将再次调用该方法，最终将累加所有4个字节。</li>
+</ol>
+<h5 id="第二种解决方案"><a href="#第二种解决方案" class="headerlink" title="第二种解决方案"></a>第二种解决方案</h5><p>尽管第一个解决方案已经解决了TIME客户端的问题，但是修改后的处理程序看起来并不干净。想象一个更复杂的协议，它由多个字段（例如可变长度字段）组成。您的ChannelInboundHandler实施将很快变得难以维护。</p>
+<p>正如你可能已经注意到，您可以添加多个ChannelHandler到ChannelPipeline，因此，您可以拆分一个单片ChannelHandler成多个模块化的人减少了应用程序的复杂性。例如，您可以分为TimeClientHandler两个处理程序：</p>
+<ol>
+<li>TimeDecoder处理碎片问题</li>
+<li>初始简单版本TimeClientHandler。</li>
+</ol>
+<p>幸运的是，Netty提供了一个可扩展的类，帮助您编写第一个开箱即用的:</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line">public class TimeDecoder extends ByteToMessageDecoder &#123; &#x2F;&#x2F; (1)</span><br><span class="line">    @Override</span><br><span class="line">    protected void decode(ChannelHandlerContext ctx, ByteBuf in, List&lt;Object&gt; out) &#123; &#x2F;&#x2F; (2)</span><br><span class="line">        if (in.readableBytes() &lt; 4) &#123;</span><br><span class="line">            return; &#x2F;&#x2F; (3)</span><br><span class="line">        &#125;</span><br><span class="line">        </span><br><span class="line">        out.add(in.readBytes(4)); &#x2F;&#x2F; (4)</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<ol>
+<li>ByteToMessageDecoder是ChannelInboundHandler的实现，可以轻松处理碎片问题。</li>
+<li>ByteToMessageDecoderdecode()每当接收到新数据时，都使用内部维护的累积缓冲区调用该方法。</li>
+<li>decode()当累积缓冲区中没有足够的数据时，可以决定不向out添加任何内容。收到更多数据时ByteToMessageDecoder将decode()再次调用。</li>
+<li>如果decode()将对象添加到out，则表示解码器成功解码了一条消息。</li>
+<li>如果decode()向out添加了一个对象，则意味着解码器成功地解码了一条消息。ByteToMessageDecoder将丢弃缓冲区中读取部分。请记住，您不需要解码多条消息。ByteToMessageDecoder会一直调用该decode()方法，直到该方法不添加任何内容out。</li>
+</ol>
+<p>现在我们有了另一个要插入到ChannelPipeline的处理程序，我们应该在TimeClient中修改ChannelInitializer实现:</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line">b.handler(new ChannelInitializer&lt;SocketChannel&gt;() &#123;</span><br><span class="line">    @Override</span><br><span class="line">    public void initChannel(SocketChannel ch) throws Exception &#123;</span><br><span class="line">        ch.pipeline().addLast(new TimeDecoder(), new TimeClientHandler());</span><br><span class="line">    &#125;</span><br><span class="line">&#125;);</span><br></pre></td></tr></table></figure>
+<p>如果你是一个喜欢挑战的人，你可能会想要尝试ReplayingDecoder，它简化了解码器甚至更多。不过，您需要参考API参考以获得更多信息。</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line">public class TimeDecoder extends ReplayingDecoder&lt;Void&gt; &#123;</span><br><span class="line">    @Override</span><br><span class="line">    protected void decode(</span><br><span class="line">            ChannelHandlerContext ctx, ByteBuf in, List&lt;Object&gt; out) &#123;</span><br><span class="line">        out.add(in.readBytes(4));</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>此外，Netty提供了开箱即用的解码器，它使您能够非常容易地实现大多数协议，并帮助您避免以一个无法维护的单块处理器实现告终</p>
+<h4 id="使用POJO代替ByteBuf"><a href="#使用POJO代替ByteBuf" class="headerlink" title="使用POJO代替ByteBuf"></a>使用POJO代替ByteBuf</h4><p>到目前为止，我们回顾的所有示例都使用ByteBuf作为协议消息的主要数据结构。在本节中，我们将改进时间协议客户机和服务器示例，使其使用POJO而不是ByteBuf。</p>
+<p>在ChannelHandlers中使用POJO的优势是显而易见的;通过将从处理程序中提取ByteBuf信息的代码分离出来，处理程序将变得更加可维护和可重用。在时间客户端和服务器示例中，我们只读取一个32位整数，直接使用ByteBuf并不是一个大问题。但是，您会发现在实现实际协议时进行分离是必要的。</p>
+<p> 首先，让我们定义一个名为UnixTime的新类型<br> <figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br></pre></td><td class="code"><pre><span class="line"> public class UnixTime &#123;</span><br><span class="line"></span><br><span class="line">    private final long value;</span><br><span class="line">    </span><br><span class="line">    public UnixTime() &#123;</span><br><span class="line">        this(System.currentTimeMillis() &#x2F; 1000L + 2208988800L);</span><br><span class="line">    &#125;</span><br><span class="line">    </span><br><span class="line">    public UnixTime(long value) &#123;</span><br><span class="line">        this.value &#x3D; value;</span><br><span class="line">    &#125;</span><br><span class="line">        </span><br><span class="line">    public long value() &#123;</span><br><span class="line">        return value;</span><br><span class="line">    &#125;</span><br><span class="line">        </span><br><span class="line">    @Override</span><br><span class="line">    public String toString() &#123;</span><br><span class="line">        return new Date((value() - 2208988800L) * 1000L).toString();</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure><br>我们现在可以修改TimeDecoder来生成UnixTime而不是ByteBuf。</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line">@Override</span><br><span class="line">protected void decode(ChannelHandlerContext ctx, ByteBuf in, List&lt;Object&gt; out) &#123;</span><br><span class="line">    if (in.readableBytes() &lt; 4) &#123;</span><br><span class="line">        return;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    out.add(new UnixTime(in.readUnsignedInt()));</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>与更新的解码器，时间lienthandler不再使用ByteBuf:</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line">@Override</span><br><span class="line">public void channelRead(ChannelHandlerContext ctx, Object msg) &#123;</span><br><span class="line">    UnixTime m &#x3D; (UnixTime) msg;</span><br><span class="line">    System.out.println(m);</span><br><span class="line">    ctx.close();</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>更简单，更优雅，对吧?同样的技术也可以应用于服务器端。这次让我们先更新TimeServerHandler:</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">@Override</span><br><span class="line">public void channelActive(ChannelHandlerContext ctx) &#123;</span><br><span class="line">    ChannelFuture f &#x3D; ctx.writeAndFlush(new UnixTime());</span><br><span class="line">    f.addListener(ChannelFutureListener.CLOSE);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>现在，唯一缺少的部分是编码器，它是ChannelOutboundHandler的实现，它将UnixTime转换回ByteBuf。这比编写解码器要简单得多，因为在编码消息时不需要处理包碎片和程序集。</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line">public class TimeEncoder extends ChannelOutboundHandlerAdapter &#123;</span><br><span class="line">    @Override</span><br><span class="line">    public void write(ChannelHandlerContext ctx, Object msg, ChannelPromise promise) &#123;</span><br><span class="line">        UnixTime m &#x3D; (UnixTime) msg;</span><br><span class="line">        ByteBuf encoded &#x3D; ctx.alloc().buffer(4);</span><br><span class="line">        encoded.writeInt((int)m.value());</span><br><span class="line">        ctx.write(encoded, promise); &#x2F;&#x2F; (1)</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<ol>
+<li>首先，我们按原样传递原始ChannelPromise，以便当编码的数据实际写入到网络时，Netty将其标记为成功或失败。</li>
+<li>其次，我们没有调用ctx.flush()。有一个单独的处理程序方法void flush(ChannelHandlerContext ctx)，它用于覆盖flush()操作。</li>
+</ol>
+<p>为了进一步简化，你可以使用MessageToByteEncoder:</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line">public class TimeEncoder extends MessageToByteEncoder&lt;UnixTime&gt; &#123;</span><br><span class="line">    @Override</span><br><span class="line">    protected void encode(ChannelHandlerContext ctx, UnixTime msg, ByteBuf out) &#123;</span><br><span class="line">        out.writeInt((int)msg.value());</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>剩下的最后一个任务是在TimeServerHandler之前在服务器端的ChannelPipeline中插入一个TimeEncoder，这只是一个简单的练习。</p>
+<h4 id="Shutting-Down-Your-Application"><a href="#Shutting-Down-Your-Application" class="headerlink" title="Shutting Down Your Application"></a>Shutting Down Your Application</h4><p>关闭一个网络应用程序通常就像关闭通过shutdownGracefully()的关闭创建的所有EventLoopGroups一样简单。它返回一个Future，当EventLoopGroup被完全终止并且属于该组的所有通道被关闭时，它会通知您。</p>
+<p>附上参考文献：[<a target="_blank" rel="noopener" href="https://netty.io/wiki/user-guide-for-4.x.html]">https://netty.io/wiki/user-guide-for-4.x.html]</a></p>
+
+    </div>
+
+    
+    
+    
+
+      <footer class="post-footer">
+
+        
+
+
+        
+    <div class="post-nav">
+      <div class="post-nav-item">
+    <a href="/Java-NIO%E6%B7%B1%E5%85%A5%E5%AD%A6%E4%B9%A0/" rel="prev" title="Java NIO深入学习">
+      <i class="fa fa-chevron-left"></i> Java NIO深入学习
+    </a></div>
+      <div class="post-nav-item">
+    <a href="/Netty%E5%BA%94%E7%94%A8/" rel="next" title="Netty实践">
+      Netty实践 <i class="fa fa-chevron-right"></i>
+    </a></div>
+    </div>
+      </footer>
+    
+  </article>
+  
+  
+  
+
+
+
+          </div>
+          
+
+<script>
+  window.addEventListener('tabs:register', () => {
+    let { activeClass } = CONFIG.comments;
+    if (CONFIG.comments.storage) {
+      activeClass = localStorage.getItem('comments_active') || activeClass;
+    }
+    if (activeClass) {
+      let activeTab = document.querySelector(`a[href="#comment-${activeClass}"]`);
+      if (activeTab) {
+        activeTab.click();
+      }
+    }
+  });
+  if (CONFIG.comments.storage) {
+    window.addEventListener('tabs:click', event => {
+      if (!event.target.matches('.tabs-comment .tab-content .tab-pane')) return;
+      let commentClass = event.target.classList[1];
+      localStorage.setItem('comments_active', commentClass);
+    });
+  }
+</script>
+
+        </div>
+          
+  
+  <div class="toggle sidebar-toggle">
+    <span class="toggle-line toggle-line-first"></span>
+    <span class="toggle-line toggle-line-middle"></span>
+    <span class="toggle-line toggle-line-last"></span>
+  </div>
+
+  <aside class="sidebar">
+    <div class="sidebar-inner">
+
+      <ul class="sidebar-nav motion-element">
+        <li class="sidebar-nav-toc">
+          文章目录
+        </li>
+        <li class="sidebar-nav-overview">
+          站点概览
+        </li>
+      </ul>
+
+      <!--noindex-->
+      <div class="post-toc-wrap sidebar-panel">
+          <div class="post-toc motion-element"><ol class="nav"><li class="nav-item nav-level-4"><a class="nav-link" href="#Writing-a-Discard-Server"><span class="nav-number">1.</span> <span class="nav-text">Writing a Discard Server</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#Looking-into-the-Received-Data"><span class="nav-number">2.</span> <span class="nav-text">Looking into the Received Data</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#Writing-an-Echo-Server"><span class="nav-number">3.</span> <span class="nav-text">Writing an Echo Server</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#Writing-a-Time-Server"><span class="nav-number">4.</span> <span class="nav-text">Writing a Time Server</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#Writing-a-Time-Client"><span class="nav-number">5.</span> <span class="nav-text">Writing a Time Client</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#Dealing-with-a-Stream-based-Transport"><span class="nav-number">6.</span> <span class="nav-text">Dealing with a Stream-based Transport</span></a><ol class="nav-child"><li class="nav-item nav-level-5"><a class="nav-link" href="#One-Small-Caveat-of-Socket-Buffer"><span class="nav-number">6.1.</span> <span class="nav-text">One Small Caveat of Socket Buffer</span></a></li><li class="nav-item nav-level-5"><a class="nav-link" href="#%E7%AC%AC%E4%B8%80%E4%B8%AA%E8%A7%A3%E5%86%B3%E6%96%B9%E6%A1%88"><span class="nav-number">6.2.</span> <span class="nav-text">第一个解决方案</span></a></li><li class="nav-item nav-level-5"><a class="nav-link" href="#%E7%AC%AC%E4%BA%8C%E7%A7%8D%E8%A7%A3%E5%86%B3%E6%96%B9%E6%A1%88"><span class="nav-number">6.3.</span> <span class="nav-text">第二种解决方案</span></a></li></ol></li><li class="nav-item nav-level-4"><a class="nav-link" href="#%E4%BD%BF%E7%94%A8POJO%E4%BB%A3%E6%9B%BFByteBuf"><span class="nav-number">7.</span> <span class="nav-text">使用POJO代替ByteBuf</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#Shutting-Down-Your-Application"><span class="nav-number">8.</span> <span class="nav-text">Shutting Down Your Application</span></a></li></ol></div>
+      </div>
+      <!--/noindex-->
+
+      <div class="site-overview-wrap sidebar-panel">
+        <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+    <img class="site-author-image" itemprop="image" alt="Wtli"
+      src="/images/avatar.jpg">
+  <p class="site-author-name" itemprop="name">Wtli</p>
+  <div class="site-description" itemprop="description">本博客记录博主学习内容</div>
+</div>
+<div class="site-state-wrap motion-element">
+  <nav class="site-state">
+      <div class="site-state-item site-state-posts">
+          <a href="/archives">
+          <span class="site-state-item-count">44</span>
+          <span class="site-state-item-name">日志</span>
+        </a>
+      </div>
+      <div class="site-state-item site-state-categories">
+            <a href="/categories/">
+          
+        <span class="site-state-item-count">8</span>
+        <span class="site-state-item-name">分类</span></a>
+      </div>
+      <div class="site-state-item site-state-tags">
+            <a href="/tags/">
+          
+        <span class="site-state-item-count">30</span>
+        <span class="site-state-item-name">标签</span></a>
+      </div>
+  </nav>
+</div>
+
+
+
+      </div>
+
+    </div>
+  </aside>
+  <div id="sidebar-dimmer"></div>
+
+
+      </div>
+      <div class="cat-to-top cd-top faa-float animated"></div>
+
+
+    </main>
+
+    <footer class="footer">
+      <div class="footer-inner">
+        
+
+        
+
+<div class="copyright">
+  
+  &copy; 
+  <span itemprop="copyrightYear">2020</span>
+  <span class="with-love">
+    <i class="fa fa-heart"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">Wtli</span>
+</div>
+
+        
+
+
+
+
+
+
+
+
+      </div>
+    </footer>
+  </div>
+
+  
+  <script src="/lib/anime.min.js"></script>
+  <script src="/lib/velocity/velocity.min.js"></script>
+  <script src="/lib/velocity/velocity.ui.min.js"></script>
+
+<script src="/js/utils.js"></script>
+
+<script src="/js/motion.js"></script>
+
+
+<script src="/js/schemes/muse.js"></script>
+
+
+<script src="/js/next-boot.js"></script>
+
+
+
+
+  
+
+
+
+
+  
+<script src="/js/local-search.js"></script>
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+
+  
+
+<script src="/live2dw/lib/L2Dwidget.min.js?094cbace49a39548bed64abff5988b05"></script><script>L2Dwidget.init({"pluginRootPath":"live2dw/","pluginJsPath":"lib/","pluginModelPath":"assets/","tagMode":false,"log":false,"model":{"jsonPath":"/live2dw/assets/wanko.model.json"},"display":{"position":"right","width":150,"height":300},"mobile":{"show":true},"react":{"opacity":0.7}});</script></body>
+</html>

@@ -1,0 +1,601 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=2">
+<meta name="theme-color" content="#222">
+<meta name="generator" content="Hexo 5.2.0">
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/my_boy.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/my_boy.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/my_boy.png">
+  <link rel="mask-icon" href="/images/my_boy.png" color="#222">
+
+<link rel="stylesheet" href="/css/main.css">
+
+
+<link rel="stylesheet" href="/lib/font-awesome/css/all.min.css">
+  <link rel="stylesheet" href="/lib/pace/pace-theme-minimal.min.css">
+  <script src="/lib/pace/pace.min.js"></script>
+
+<script id="hexo-configurations">
+    var NexT = window.NexT || {};
+    var CONFIG = {"hostname":"wtlizzz.github.io","root":"/","scheme":"Mist","version":"7.8.0","exturl":false,"sidebar":{"position":"left","display":"post","padding":18,"offset":12,"onmobile":false},"copycode":{"enable":true,"show_result":true,"style":"flat"},"back2top":{"enable":true,"sidebar":false,"scrollpercent":false},"bookmark":{"enable":false,"color":"#222","save":"auto"},"fancybox":false,"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"algolia":{"hits":{"per_page":10},"labels":{"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}},"localsearch":{"enable":true,"trigger":"auto","top_n_per_article":-1,"unescape":false,"preload":false},"motion":{"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}},"path":"search.xml"};
+  </script>
+
+  <meta name="description" content="本文使用Java NIO实现WebSocket通信，并对Java NIO运行过程进行详细介绍。">
+<meta property="og:type" content="article">
+<meta property="og:title" content="Java NIO运行详解">
+<meta property="og:url" content="https://wtlizzz.github.io/Java-NIO%E8%BF%90%E8%A1%8C%E8%AF%A6%E8%A7%A3/index.html">
+<meta property="og:site_name" content="文韬">
+<meta property="og:description" content="本文使用Java NIO实现WebSocket通信，并对Java NIO运行过程进行详细介绍。">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="https://s1.ax1x.com/2020/10/27/BQEnxA.png">
+<meta property="og:image" content="https://s1.ax1x.com/2020/10/27/BQE3a8.png">
+<meta property="og:image" content="https://s1.ax1x.com/2020/10/27/BQEcRJ.png">
+<meta property="og:image" content="https://s1.ax1x.com/2020/10/30/BtBdtH.png">
+<meta property="og:image" content="https://s3.ax1x.com/2020/11/18/Dml0pR.png">
+<meta property="og:image" content="https://s3.ax1x.com/2020/11/18/DmJLSH.png">
+<meta property="og:image" content="https://s3.ax1x.com/2020/11/18/DmYSTf.png">
+<meta property="og:image" content="https://s1.ax1x.com/2020/10/29/BGUcWT.png">
+<meta property="og:image" content="https://s1.ax1x.com/2020/10/29/BGU7Y6.png">
+<meta property="article:published_time" content="2020-10-27T01:42:00.000Z">
+<meta property="article:modified_time" content="2020-12-21T08:57:46.232Z">
+<meta property="article:author" content="Wtli">
+<meta property="article:tag" content="Java NIO">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="https://s1.ax1x.com/2020/10/27/BQEnxA.png">
+
+<link rel="canonical" href="https://wtlizzz.github.io/Java-NIO%E8%BF%90%E8%A1%8C%E8%AF%A6%E8%A7%A3/">
+
+
+<script id="page-configurations">
+  // https://hexo.io/docs/variables.html
+  CONFIG.page = {
+    sidebar: "",
+    isHome : false,
+    isPost : true,
+    lang   : 'zh-CN'
+  };
+</script>
+
+  <title>Java NIO运行详解 | 文韬</title>
+  
+
+
+  <script>
+    var _hmt = _hmt || [];
+    (function() {
+      var hm = document.createElement("script");
+      hm.src = "https://hm.baidu.com/hm.js?7f4b8b54f803186c40c333785b8aee31";
+      var s = document.getElementsByTagName("script")[0];
+      s.parentNode.insertBefore(hm, s);
+    })();
+  </script>
+
+
+
+
+  <noscript>
+  <style>
+  .use-motion .brand,
+  .use-motion .menu-item,
+  .sidebar-inner,
+  .use-motion .post-block,
+  .use-motion .pagination,
+  .use-motion .comments,
+  .use-motion .post-header,
+  .use-motion .post-body,
+  .use-motion .collection-header { opacity: initial; }
+
+  .use-motion .site-title,
+  .use-motion .site-subtitle {
+    opacity: initial;
+    top: initial;
+  }
+
+  .use-motion .logo-line-before i { left: initial; }
+  .use-motion .logo-line-after i { right: initial; }
+  </style>
+</noscript>
+
+  <script src="https://apps.bdimg.com/libs/jquery/2.1.4/jquery.min.js">
+  </script>
+</head>
+
+
+<body itemscope itemtype="http://schema.org/WebPage">
+  <div class="container use-motion">
+    <div class="headband"></div>
+
+    <header class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-container">
+  <div class="site-nav-toggle">
+    <div class="toggle" aria-label="切换导航栏">
+      <span class="toggle-line toggle-line-first"></span>
+      <span class="toggle-line toggle-line-middle"></span>
+      <span class="toggle-line toggle-line-last"></span>
+    </div>
+  </div>
+
+  <div class="site-meta">
+
+    <a href="/" class="brand" rel="start">
+      <span class="logo-line-before"><i></i></span>
+      <h1 class="site-title">文韬</h1>
+      <span class="logo-line-after"><i></i></span>
+    </a>
+      <p class="site-subtitle" itemprop="description">始终如一</p>
+  </div>
+
+  <div class="site-nav-right">
+    <div class="toggle popup-trigger">
+        <i class="fa fa-search fa-fw fa-lg"></i>
+    </div>
+  </div>
+</div>
+
+
+
+
+<nav class="site-nav">
+  <ul id="menu" class="main-menu menu">
+        <li class="menu-item menu-item-home">
+
+    <a href="/" rel="section"><i class="fa fa-home fa-fw"></i>首页</a>
+
+  </li>
+        <li class="menu-item menu-item-目录">
+
+    <a href="/archives/" rel="section"><i class="fa fa-archive fa-fw"></i>目录</a>
+
+  </li>
+        <li class="menu-item menu-item-tags">
+
+    <a href="/tags/" rel="section"><i class="fa fa-tags fa-fw"></i>标签</a>
+
+  </li>
+        <li class="menu-item menu-item-categories">
+
+    <a href="/categories/" rel="section"><i class="fa fa-th fa-fw"></i>分类</a>
+
+  </li>
+        <li class="menu-item menu-item-commonweal">
+
+    <a href="/404/" rel="section"><i class="fa fa-heartbeat fa-fw"></i>公益</a>
+
+  </li>
+        <li class="menu-item menu-item-about">
+
+    <a href="/about/" rel="section"><i class="fa fa-user fa-fw"></i>关于</a>
+
+  </li>
+      <li class="menu-item menu-item-search">
+        <a role="button" class="popup-trigger"><i class="fa fa-search fa-fw"></i>搜索
+        </a>
+      </li>
+  </ul>
+</nav>
+
+
+
+  <div class="search-pop-overlay">
+    <div class="popup search-popup">
+        <div class="search-header">
+  <span class="search-icon">
+    <i class="fa fa-search"></i>
+  </span>
+  <div class="search-input-container">
+    <input autocomplete="off" autocapitalize="off"
+           placeholder="搜索..." spellcheck="false"
+           type="search" class="search-input">
+  </div>
+  <span class="popup-btn-close">
+    <i class="fa fa-times-circle"></i>
+  </span>
+</div>
+<div id="search-result">
+  <div id="no-result">
+    <i class="fa fa-spinner fa-pulse fa-5x fa-fw"></i>
+  </div>
+</div>
+
+    </div>
+  </div>
+
+</div>
+    </header>
+
+    
+  <div class="back-to-top">
+    <i class="fa fa-arrow-up"></i>
+    <span>0%</span>
+  </div>
+
+
+    <main class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          
+
+          <div class="content post posts-expand">
+            
+
+    
+  
+  
+  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="zh-CN">
+    <link itemprop="mainEntityOfPage" href="https://wtlizzz.github.io/Java-NIO%E8%BF%90%E8%A1%8C%E8%AF%A6%E8%A7%A3/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/avatar.jpg">
+      <meta itemprop="name" content="Wtli">
+      <meta itemprop="description" content="本博客记录博主学习内容">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="文韬">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          Java NIO运行详解
+        </h1>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-calendar"></i>
+              </span>
+              <span class="post-meta-item-text">发表于</span>
+
+              <time title="创建时间：2020-10 09:42:00" itemprop="dateCreated datePublished" datetime="2020-10-27T09:42:00+08:00">2020-10</time>
+            </span>
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-folder"></i>
+              </span>
+              <span class="post-meta-item-text">分类于</span>
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/%E5%90%8E%E7%AB%AF/" itemprop="url" rel="index"><span itemprop="name">后端</span></a>
+                </span>
+            </span>
+
+          
+            <span class="post-meta-item" title="本文字数">
+              <span class="post-meta-item-icon">
+                <i class="far fa-file-word"></i>
+              </span>
+                <span class="post-meta-item-text">本文字数：</span>
+              <span>10k</span>
+            </span>
+            <span class="post-meta-item" title="阅读时长">
+              <span class="post-meta-item-icon">
+                <i class="far fa-clock"></i>
+              </span>
+                <span class="post-meta-item-text">阅读时长 &asymp;</span>
+              <span>10 分钟</span>
+            </span>
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+        <p>本文使用Java NIO实现WebSocket通信，并对Java NIO运行过程进行详细介绍。</p>
+<a id="more"></a>
+
+<h3 id="服务端实现"><a href="#服务端实现" class="headerlink" title="服务端实现"></a>服务端实现</h3><p>创建Server运行主程序,创建WebSocketServer类以及运行的main方法。</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br></pre></td><td class="code"><pre><span class="line">public class WebSocketServer &#123;</span><br><span class="line"></span><br><span class="line">    private static ArrayList&lt;Client&gt; clients &#x3D; new ArrayList&lt;Client&gt;();</span><br><span class="line"></span><br><span class="line">    public static void main(String[] args) &#123;</span><br><span class="line">        try &#123;</span><br><span class="line">            openServer();</span><br><span class="line">        &#125; catch (IOException e) &#123;</span><br><span class="line">            e.printStackTrace();</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>在WebSocketServer类中实现openServer方法，创建ServerSocketChannel，</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br></pre></td><td class="code"><pre><span class="line">private static void openServer() throws IOException &#123;</span><br><span class="line">    ServerSocketChannel serverSocketChannel &#x3D; ServerSocketChannel.open();</span><br><span class="line">    serverSocketChannel.configureBlocking(false);</span><br><span class="line">    serverSocketChannel.socket().bind(new InetSocketAddress(8888));------------(1)</span><br><span class="line">    Selector selector &#x3D; Selector.open();---------(2)</span><br><span class="line">    serverSocketChannel.register(selector, SelectionKey.OP_ACCEPT);--------(3)</span><br><span class="line">    while (selector.select() &gt; 0) &#123;---------(4)</span><br><span class="line">        Iterator&lt;SelectionKey&gt; it &#x3D; selector.selectedKeys().iterator();</span><br><span class="line">        while (it.hasNext()) &#123;</span><br><span class="line">            SelectionKey selectionKey &#x3D; it.next();</span><br><span class="line">            if (selectionKey.isAcceptable()) &#123;</span><br><span class="line">                handleAcceptable(selectionKey, selector);</span><br><span class="line">            &#125; else if (selectionKey.isReadable()) &#123;</span><br><span class="line">                handleReadable(selectionKey);</span><br><span class="line">            &#125;</span><br><span class="line">            it.remove();</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>运行过程</p>
+<ol>
+<li><p>创建了ServerSocketChannel，绑定8888端口。<br><img src="https://s1.ax1x.com/2020/10/27/BQEnxA.png" alt="BQEnxA.png"></p>
+</li>
+<li><p>打开Selector，没有将ServerSocketChannel注册到Selector。<br><img src="https://s1.ax1x.com/2020/10/27/BQE3a8.png" alt="BQE3a8.png"></p>
+</li>
+<li><p>在Selector中注册ServerSocketChannel。<br><img src="https://s1.ax1x.com/2020/10/27/BQEcRJ.png" alt="BQEcRJ.png"></p>
+</li>
+<li><p>此时的selector.select()并没有数据，进入到等待部分，当请求进入时激活selector.select()方法。</p>
+</li>
+</ol>
+<p>创建handleAcceptable方法，处理请求到达服务端的事件</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line">private static void handleAcceptable(SelectionKey selectionKey, Selector selector) throws IOException &#123;</span><br><span class="line">    ServerSocketChannel channel &#x3D; (ServerSocketChannel) selectionKey.channel();</span><br><span class="line">    SocketChannel socketChannel &#x3D; channel.accept();</span><br><span class="line">    socketChannel.configureBlocking(false);</span><br><span class="line">    socketChannel.register(selector, SelectionKey.OP_READ);</span><br><span class="line">    System.out.println(String.format(&quot;[server] -- client %s connected.&quot;, socketChannel.getRemoteAddress().toString()));</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p><strong>说明：</strong><br>因为使用的ServerSocketChannel，会为每个传入连接创建SocketChannel。所以在selectionKey.isAcceptable()状态，将每个传入的请求SocketChannel添加到selector，绑定OP_READ状态。<br>即在处理selectionKey.isAcceptable()状态时，都是传入的新链接。在处理selectionKey.isReadable()状态时，都是websocket传输的数据。</p>
+<p>创建handleReadable方法，处理请求</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br></pre></td><td class="code"><pre><span class="line"> private static void readable(SelectionKey selectionKey) throws IOException &#123;</span><br><span class="line">    ClientSession session &#x3D; (ClientSession) selectionKey.attachment();</span><br><span class="line">    if (session &#x3D;&#x3D; null) &#123;</span><br><span class="line">        &#x2F;&#x2F;If the SocketChannel has not been bound by the ClientSession, it is considered to be a new connection and the handshake needs to be completed</span><br><span class="line">        SocketChannel socketChannel &#x3D; (SocketChannel) selectionKey.channel();</span><br><span class="line">        byte[] byteArray &#x3D; Util.readByteArray(socketChannel);</span><br><span class="line">        System.out.println(new String(byteArray));</span><br><span class="line">        WSProtocol.Header header &#x3D; WSProtocol.Header.decodeFromString(new String(byteArray));</span><br><span class="line">        String receiveKey &#x3D; header.getHeader(&quot;Sec-WebSocket-Key&quot;);</span><br><span class="line">        String response &#x3D; WSProtocol.getHandShakeResponse(receiveKey);</span><br><span class="line">        socketChannel.write(ByteBuffer.wrap(response.getBytes()));</span><br><span class="line">        ClientSession newSession &#x3D; new ClientSession(socketChannel);</span><br><span class="line">        selectionKey.attach(newSession);</span><br><span class="line">        socketListener.onOpen(newSession);</span><br><span class="line">    &#125; else &#123;</span><br><span class="line">        socketListener.onMessage(session);</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<h4 id="建立连接"><a href="#建立连接" class="headerlink" title="建立连接"></a>建立连接</h4><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">WSProtocol.Header header &#x3D; WSProtocol.Header.decodeFromString(new String(byteArray));</span><br><span class="line">String receiveKey &#x3D; header.getHeader(&quot;Sec-WebSocket-Key&quot;);</span><br><span class="line">String response &#x3D; WSProtocol.getHandShakeResponse(receiveKey);</span><br><span class="line">socketChannel.write(ByteBuffer.wrap(response.getBytes()));</span><br></pre></td></tr></table></figure>
+
+<p><strong>在服务端解析出通信的header，从header中获取到receiveKey，通过getHandShakeResponse方法，将握手的response写入到channel中，双方就在此时建立连接。</strong></p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br></pre></td><td class="code"><pre><span class="line">public class WSProtocol &#123;</span><br><span class="line">    static class Header &#123;</span><br><span class="line">        private Map&lt;String, String&gt; headers &#x3D; new HashMap&lt;&gt;();</span><br><span class="line"></span><br><span class="line">        String getHeader(String key) &#123;</span><br><span class="line">            return headers.get(key);</span><br><span class="line">        &#125;</span><br><span class="line"></span><br><span class="line">        static Header decodeFromString(String headers) &#123;</span><br><span class="line">            Header header &#x3D; new Header();</span><br><span class="line"></span><br><span class="line">            Map&lt;String, String&gt; headerMap &#x3D; new HashMap&lt;&gt;();</span><br><span class="line">            String[] headerArray &#x3D; headers.split(&quot;\r\n&quot;);</span><br><span class="line">            for (String headerLine : headerArray) &#123;</span><br><span class="line">                if (headerLine.contains(&quot;:&quot;)) &#123;</span><br><span class="line">                    int splitPos &#x3D; headerLine.indexOf(&quot;:&quot;);</span><br><span class="line">                    String key &#x3D; headerLine.substring(0, splitPos);</span><br><span class="line">                    String value &#x3D; headerLine.substring(splitPos + 1).trim();</span><br><span class="line">                    headerMap.put(key, value);</span><br><span class="line">                &#125;</span><br><span class="line">            &#125;</span><br><span class="line">            header.headers &#x3D; headerMap;</span><br><span class="line">            return header;</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    static String getHandShakeResponse(String receiveKey) &#123;</span><br><span class="line">        String keyOrigin &#x3D; receiveKey + &quot;258EAFA5-E914-47DA-95CA-C5AB0DC85B11&quot;;</span><br><span class="line">        MessageDigest sha1;</span><br><span class="line">        String accept &#x3D; null;</span><br><span class="line">        try &#123;</span><br><span class="line">            sha1 &#x3D; MessageDigest.getInstance(&quot;sha1&quot;);</span><br><span class="line">            sha1.update(keyOrigin.getBytes());</span><br><span class="line">            accept &#x3D; new String(Base64.getEncoder().encode(sha1.digest()));</span><br><span class="line">        &#125; catch (NoSuchAlgorithmException e) &#123;</span><br><span class="line">            e.printStackTrace();</span><br><span class="line">        &#125;</span><br><span class="line">        String echoHeader &#x3D; &quot;&quot;;</span><br><span class="line">        echoHeader +&#x3D; &quot;HTTP&#x2F;1.1 101 Switching Protocols\r\n&quot;;</span><br><span class="line">        echoHeader +&#x3D; &quot;Upgrade: websocket\r\n&quot;;</span><br><span class="line">        echoHeader +&#x3D; &quot;Connection: Upgrade\r\n&quot;;</span><br><span class="line">        echoHeader +&#x3D; &quot;Sec-WebSocket-Accept: &quot; + accept + &quot;\r\n&quot;;</span><br><span class="line">        echoHeader +&#x3D; &quot;\r\n&quot;;</span><br><span class="line"></span><br><span class="line">        return echoHeader;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<h4 id="Header加密"><a href="#Header加密" class="headerlink" title="Header加密"></a>Header加密</h4><p><img src="https://s1.ax1x.com/2020/10/30/BtBdtH.png" alt="BtBdtH.png"></p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br></pre></td><td class="code"><pre><span class="line">  static String getHandShakeResponse(String receiveKey) &#123;</span><br><span class="line">      String keyOrigin &#x3D; receiveKey + &quot;258EAFA5-E914-47DA-95CA-C5AB0DC85B11&quot;;</span><br><span class="line">      MessageDigest sha1;</span><br><span class="line">      String accept &#x3D; null;</span><br><span class="line">      try &#123;</span><br><span class="line">          sha1 &#x3D; MessageDigest.getInstance(&quot;sha1&quot;);</span><br><span class="line">          sha1.update(keyOrigin.getBytes());</span><br><span class="line">          accept &#x3D; new String(Base64.getEncoder().encode(sha1.digest()));</span><br><span class="line">      &#125; catch (NoSuchAlgorithmException e) &#123;</span><br><span class="line">          e.printStackTrace();</span><br><span class="line">      &#125;</span><br><span class="line">······</span><br><span class="line">  &#125;</span><br></pre></td></tr></table></figure>
+
+<ol>
+<li><p>获取到Sec-WebSocket-Key：MOEX6T+CaLUFGiHqbeNjRQ==</p>
+</li>
+<li><p>然后将258EAFA5-E914-47DA-95CA-C5AB0DC85B11添加到Sec-WebSocket-Key中：<br>String keyOrigin = receiveKey + “258EAFA5-E914-47DA-95CA-C5AB0DC85B11”;</p>
+</li>
+<li><p>下一步使用sha1加密keyOrigin</p>
+</li>
+<li><p>最后在使用Base64加密。生成accept：2jmj7l5rSw0yVb/vlWAYkK/YBwk=</p>
+</li>
+<li><p>将对应的accept塞到Header中的Sec-WebSocket-Accept。</p>
+</li>
+</ol>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line">String echoHeader &#x3D; &quot;&quot;;</span><br><span class="line">echoHeader +&#x3D; &quot;HTTP&#x2F;1.1 101 Switching Protocols\r\n&quot;;</span><br><span class="line">echoHeader +&#x3D; &quot;Upgrade: websocket\r\n&quot;;</span><br><span class="line">echoHeader +&#x3D; &quot;Connection: Upgrade\r\n&quot;;</span><br><span class="line">echoHeader +&#x3D; &quot;Sec-WebSocket-Accept: &quot; + accept + &quot;\r\n&quot;;</span><br><span class="line">echoHeader +&#x3D; &quot;\r\n&quot;;</span><br><span class="line">return echoHeader;</span><br></pre></td></tr></table></figure>
+
+<h4 id="接收数据"><a href="#接收数据" class="headerlink" title="接收数据"></a>接收数据</h4><p>读取SocketChannel中数据，使用bytebuffer将数据从channle中读取到缓存（内存块）中，然后将缓存中数据转换成byte[]类型数据。</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line">int num &#x3D; s.read(buffer);</span><br><span class="line">buffer.flip();</span><br><span class="line">int limit &#x3D; buffer.limit();</span><br><span class="line">byte[] bytes &#x3D; new byte[limit];</span><br><span class="line">while (num !&#x3D; -1 &amp;&amp; buffer.hasRemaining()) &#123;</span><br><span class="line">     buffer.get(bytes);</span><br><span class="line">&#125;</span><br><span class="line">return bytes;</span><br></pre></td></tr></table></figure>
+<p>判断连接断开，通过byteData[0]来进行判断。也可以根据第二位来获取数据的长度，通过bytesData[1] &amp; 0x7f方法。</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">if ((bytesData[0] &amp; 0xf) &#x3D;&#x3D; 8) &#123;</span><br><span class="line">    this.onClose(session);</span><br><span class="line">    return;</span><br><span class="line">&#125;</span><br><span class="line">byte payloadLength &#x3D; (byte) (bytesData[1] &amp; 0x7f);</span><br></pre></td></tr></table></figure>
+
+<p>下面是获取数据</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">byte[] mask &#x3D; Arrays.copyOfRange(bytesData, 2, 6);</span><br><span class="line">byte[] payloadData &#x3D; Arrays.copyOfRange(bytesData, 6, bytesData.length);</span><br></pre></td></tr></table></figure>
+
+<h3 id="WebSocket包解析"><a href="#WebSocket包解析" class="headerlink" title="WebSocket包解析"></a>WebSocket包解析</h3><p>对WebSocket进行抓包查看，</p>
+<p><img src="https://s3.ax1x.com/2020/11/18/Dml0pR.png" alt="Dml0pR.png"></p>
+<p>建立一个WebSocket连接，首先会通过TCP请求，来进行握手，然后发送HTTP请求建立连接，再使用WebSocket Protocol来进行数据的传输。通过TCP连接来进行心跳保活（大约几秒一次，会发送TCP请求）。</p>
+<p>报文包解析：</p>
+<p><img src="https://s3.ax1x.com/2020/11/18/DmJLSH.png" alt="DmJLSH.png"></p>
+<p>WebSocket前几位分别是：Fin、Reserved、Opcode、Mask、Payload length。之后是Masking-key、Masked payload，下面的Payload就是这次请求携带的Data。</p>
+<p><img src="https://s3.ax1x.com/2020/11/18/DmYSTf.png" alt="DmYSTf.png"></p>
+<p><strong>附：</strong><br><strong>FIN：</strong>标识是否为此消息的最后一个数据包，占 1 bit<br><strong>RSV1, RSV2, RSV3:</strong> 用于扩展协议，一般为0，各占1bit<br><strong>Opcode：</strong>数据包类型（frame type），占4bits<br>0x0：标识一个中间数据包<br>0x1：标识一个text类型数据包<br>0x2：标识一个binary类型数据包<br>0x3-7：保留<br>0x8：标识一个断开连接类型数据包<br>0x9：标识一个ping类型数据包<br>0xA：表示一个pong类型数据包<br>0xB-F：保留<br><strong>MASK：</strong>占1bits，用于标识PayloadData是否经过掩码处理。<br><strong>Payload length：</strong>Payload data的长度。<br>1、如果其值在0-125，则是payload的真实长度。<br>2、如果值是126，则后面2个字节形成的16bits无符号整型数的值是payload的真实长度。<br>3、如果值是127，则后面8个字节形成的64bits无符号整型数的值是payload的真实长度。  </p>
+<h3 id="Buffer"><a href="#Buffer" class="headerlink" title="Buffer"></a>Buffer</h3><p>创建ByteBuffer时，Buffer是处于写入状态。</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">        ByteBuffer byteBuffer &#x3D; ByteBuffer.allocate(1024);</span><br><span class="line">&#x2F;&#x2F;        byteBuffer.flip();</span><br><span class="line">        byteBuffer.put(&quot;hlloo&quot;.getBytes());</span><br></pre></td></tr></table></figure>
+
+<p><strong>position=0   position是写入的位置<br> limit=capacity=1024  分别是数据最大的位置和容器最大的位置</strong></p>
+<p><img src="https://s1.ax1x.com/2020/10/29/BGUcWT.png" alt="BGUcWT.png"></p>
+<p><strong>如果在此时调用flip()再写入就会BufferOverflowException报错</strong></p>
+<p><img src="https://s1.ax1x.com/2020/10/29/BGU7Y6.png" alt="BGU7Y6.png"></p>
+<p>看着源码，在解释一遍buffer的属性：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br></pre></td><td class="code"><pre><span class="line">*   &lt;p&gt; A buffer&#39;s &lt;i&gt;capacity&lt;&#x2F;i&gt; is the number of elements it contains.  The</span><br><span class="line">*   capacity of a buffer is never negative and never changes.  &lt;&#x2F;p&gt;</span><br><span class="line">*</span><br><span class="line">*   &lt;p&gt; A buffer&#39;s &lt;i&gt;limit&lt;&#x2F;i&gt; is the index of the first element that should</span><br><span class="line">*   not be read or written.  A buffer&#39;s limit is never negative and is never</span><br><span class="line">*   greater than its capacity.  &lt;&#x2F;p&gt;</span><br><span class="line">*</span><br><span class="line">*   &lt;p&gt; A buffer&#39;s &lt;i&gt;position&lt;&#x2F;i&gt; is the index of the next element to be</span><br><span class="line">*   read or written.  A buffer&#39;s position is never negative and is never</span><br><span class="line">*   greater than its limit.  &lt;&#x2F;p&gt;</span><br><span class="line"></span><br><span class="line">* &lt;p&gt; A buffer&#39;s &lt;i&gt;mark&lt;&#x2F;i&gt; is the index to which its position will be reset</span><br><span class="line">* when the &#123;@link #reset reset&#125; method is invoked.  The mark is not always</span><br><span class="line">* defined, but when it is defined it is never negative and is never greater</span><br><span class="line">* than the position.  If the mark is defined then it is discarded when the</span><br><span class="line">* position or the limit is adjusted to a value smaller than the mark.  If the</span><br><span class="line">* mark is not defined then invoking the &#123;@link #reset reset&#125; method causes an</span><br><span class="line">* &#123;@link InvalidMarkException&#125; to be thrown.</span><br><span class="line"></span><br></pre></td></tr></table></figure>
+
+<ul>
+<li>capacity： 永远不会变化的值，代表他能包含的数量。</li>
+<li>limit： 不应该读或写的第一个索引。不会是负数，不会比capacity大。不太明白，先看position的定义。初始化生成一个buffer时处于写状态，limit=capaticy，代表最大容量值，调用flip()方法时，处于读状态时limit=position，position=0，代表数据的容量。。</li>
+<li>position： 代表读或者写的下一个位置。不能为负数，不能比limit大。</li>
+</ul>
+<p>也就是说：</p>
+  <blockquote>
+      <tt>0</tt> <tt>&lt;=</tt>
+      <i>mark</i> <tt>&lt;=</tt>
+      <i>position</i> <tt>&lt;=</tt>
+      <i>limit</i> <tt>&lt;=</tt>
+      <i>capacity</i>
+  </blockquote>
+
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line">public final Buffer flip() &#123;</span><br><span class="line">    limit &#x3D; position;</span><br><span class="line">    position &#x3D; 0;</span><br><span class="line">    mark &#x3D; -1;</span><br><span class="line">    return this;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>buffer的flip()方法，将limit设置为position，position设置为0。将读取或者写入的位置设置为0，将数据的最大索引设置为limit。</p>
+<p>也就是说flip()方法不是说完全意义上的将buffer的状态从写状态转换成读状态。</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line">byte b &#x3D; &#39;b&#39;;</span><br><span class="line">byte a &#x3D; &#39;a&#39;;</span><br><span class="line">ByteBuffer buffer2 &#x3D; ByteBuffer.allocate(1024);</span><br><span class="line">buffer2.put(b);</span><br><span class="line">buffer2.flip();</span><br><span class="line">buffer2.put(a);</span><br></pre></td></tr></table></figure>
+<p>如上代码，在生成buffer之后，将’b’写入，然后调用flip()方法，再次将’a’写入，在最后时buffer中的数据内容只有一个a。</p>
+<p>它只有在写入的时候，会根据position &gt;= limit来判断能不能写入。根据设定的position必须小于limit，才能写入，这与之前部分的position&lt;=limit冲突，可能是在某些情况下position可以&lt;=limit，但是在写入的时候position必须&lt;limit,并且mark的值最开始是-1,之前的源码中注释写的是mark&gt;=0的。</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">final int nextPutIndex() &#123;                          </span><br><span class="line">    if (position &gt;&#x3D; limit)</span><br><span class="line">        throw new BufferOverflowException();</span><br><span class="line">    return position++;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p><strong>综上所述：</strong><br>buffer.flip()方法，功能不是读写状态的切换，它的功能是将limit设置为position的位置，将position设置为0，将mark设置为-1。读和写操作都是在position的位置，都必须position&lt;limit，否则就会报错BufferUnderflowException。只要是满足position&lt;limit这个条件，就能够进行读或写操作。</p>
+<p>buffer写数据与读数据方法，学习一下源码，来理解这些变量的用法。</p>
+<p><strong>写数据：</strong></p>
+<p>调用socketChannel.read(buffer)方法，会往buffer中写数据。</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">源码实现类HeapByteBuffer:</span><br><span class="line">    public ByteBuffer put(byte x) &#123;</span><br><span class="line">        hb[ix(nextPutIndex())] &#x3D; x;</span><br><span class="line">        return this;</span><br><span class="line">    &#125;</span><br></pre></td></tr></table></figure>
+<p>调用了Buffer的nextPutIndex()方法，该方法返回的是position的下一位，也就是说如果是写数据的时候，是从position的下一位开始写，ix()方法是在定义offest的情况下索引的偏移量。</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">final int nextPutIndex() &#123;                          </span><br><span class="line">    if (position &gt;&#x3D; limit)</span><br><span class="line">        throw new BufferOverflowException();</span><br><span class="line">    return position++;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p><strong>读数据：</strong></p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">源码实现类HeapByteBuffer:</span><br><span class="line">    public byte get() &#123;</span><br><span class="line">        return hb[ix(nextGetIndex())];</span><br><span class="line">    &#125;</span><br></pre></td></tr></table></figure>
+<p>直接返回的是hb[]，hb是定义的final byte[] hb;缓存的实质是一个byte的数组。</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">final int nextGetIndex() &#123;                          </span><br><span class="line">    if (position &gt;&#x3D; limit)</span><br><span class="line">        throw new BufferUnderflowException();</span><br><span class="line">    return position++;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+    </div>
+
+    
+    
+    
+
+      <footer class="post-footer">
+          
+          <div class="post-tags">
+              <a href="/tags/Java-NIO/" rel="tag"><i class="fa fa-tag"></i> Java NIO</a>
+          </div>
+
+        
+
+
+        
+    <div class="post-nav">
+      <div class="post-nav-item">
+    <a href="/network-policy/" rel="prev" title="network policy">
+      <i class="fa fa-chevron-left"></i> network policy
+    </a></div>
+      <div class="post-nav-item">
+    <a href="/idea%E6%9F%A5%E7%9C%8B%E6%BA%90%E7%A0%81/" rel="next" title="idea查看JDK8源码">
+      idea查看JDK8源码 <i class="fa fa-chevron-right"></i>
+    </a></div>
+    </div>
+      </footer>
+    
+  </article>
+  
+  
+  
+
+
+
+          </div>
+          
+
+<script>
+  window.addEventListener('tabs:register', () => {
+    let { activeClass } = CONFIG.comments;
+    if (CONFIG.comments.storage) {
+      activeClass = localStorage.getItem('comments_active') || activeClass;
+    }
+    if (activeClass) {
+      let activeTab = document.querySelector(`a[href="#comment-${activeClass}"]`);
+      if (activeTab) {
+        activeTab.click();
+      }
+    }
+  });
+  if (CONFIG.comments.storage) {
+    window.addEventListener('tabs:click', event => {
+      if (!event.target.matches('.tabs-comment .tab-content .tab-pane')) return;
+      let commentClass = event.target.classList[1];
+      localStorage.setItem('comments_active', commentClass);
+    });
+  }
+</script>
+
+        </div>
+          
+  
+  <div class="toggle sidebar-toggle">
+    <span class="toggle-line toggle-line-first"></span>
+    <span class="toggle-line toggle-line-middle"></span>
+    <span class="toggle-line toggle-line-last"></span>
+  </div>
+
+  <aside class="sidebar">
+    <div class="sidebar-inner">
+
+      <ul class="sidebar-nav motion-element">
+        <li class="sidebar-nav-toc">
+          文章目录
+        </li>
+        <li class="sidebar-nav-overview">
+          站点概览
+        </li>
+      </ul>
+
+      <!--noindex-->
+      <div class="post-toc-wrap sidebar-panel">
+          <div class="post-toc motion-element"><ol class="nav"><li class="nav-item nav-level-3"><a class="nav-link" href="#%E6%9C%8D%E5%8A%A1%E7%AB%AF%E5%AE%9E%E7%8E%B0"><span class="nav-number">1.</span> <span class="nav-text">服务端实现</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#%E5%BB%BA%E7%AB%8B%E8%BF%9E%E6%8E%A5"><span class="nav-number">1.1.</span> <span class="nav-text">建立连接</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#Header%E5%8A%A0%E5%AF%86"><span class="nav-number">1.2.</span> <span class="nav-text">Header加密</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#%E6%8E%A5%E6%94%B6%E6%95%B0%E6%8D%AE"><span class="nav-number">1.3.</span> <span class="nav-text">接收数据</span></a></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#WebSocket%E5%8C%85%E8%A7%A3%E6%9E%90"><span class="nav-number">2.</span> <span class="nav-text">WebSocket包解析</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#Buffer"><span class="nav-number">3.</span> <span class="nav-text">Buffer</span></a></li></ol></div>
+      </div>
+      <!--/noindex-->
+
+      <div class="site-overview-wrap sidebar-panel">
+        <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+    <img class="site-author-image" itemprop="image" alt="Wtli"
+      src="/images/avatar.jpg">
+  <p class="site-author-name" itemprop="name">Wtli</p>
+  <div class="site-description" itemprop="description">本博客记录博主学习内容</div>
+</div>
+<div class="site-state-wrap motion-element">
+  <nav class="site-state">
+      <div class="site-state-item site-state-posts">
+          <a href="/archives">
+          <span class="site-state-item-count">44</span>
+          <span class="site-state-item-name">日志</span>
+        </a>
+      </div>
+      <div class="site-state-item site-state-categories">
+            <a href="/categories/">
+          
+        <span class="site-state-item-count">8</span>
+        <span class="site-state-item-name">分类</span></a>
+      </div>
+      <div class="site-state-item site-state-tags">
+            <a href="/tags/">
+          
+        <span class="site-state-item-count">30</span>
+        <span class="site-state-item-name">标签</span></a>
+      </div>
+  </nav>
+</div>
+
+
+
+      </div>
+
+    </div>
+  </aside>
+  <div id="sidebar-dimmer"></div>
+
+
+      </div>
+      <div class="cat-to-top cd-top faa-float animated"></div>
+
+
+    </main>
+
+    <footer class="footer">
+      <div class="footer-inner">
+        
+
+        
+
+<div class="copyright">
+  
+  &copy; 
+  <span itemprop="copyrightYear">2020</span>
+  <span class="with-love">
+    <i class="fa fa-heart"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">Wtli</span>
+</div>
+
+        
+
+
+
+
+
+
+
+
+      </div>
+    </footer>
+  </div>
+
+  
+  <script src="/lib/anime.min.js"></script>
+  <script src="/lib/velocity/velocity.min.js"></script>
+  <script src="/lib/velocity/velocity.ui.min.js"></script>
+
+<script src="/js/utils.js"></script>
+
+<script src="/js/motion.js"></script>
+
+
+<script src="/js/schemes/muse.js"></script>
+
+
+<script src="/js/next-boot.js"></script>
+
+
+
+
+  
+
+
+
+
+  
+<script src="/js/local-search.js"></script>
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+
+  
+
+<script src="/live2dw/lib/L2Dwidget.min.js?094cbace49a39548bed64abff5988b05"></script><script>L2Dwidget.init({"pluginRootPath":"live2dw/","pluginJsPath":"lib/","pluginModelPath":"assets/","tagMode":false,"log":false,"model":{"jsonPath":"/live2dw/assets/wanko.model.json"},"display":{"position":"right","width":150,"height":300},"mobile":{"show":true},"react":{"opacity":0.7}});</script></body>
+</html>

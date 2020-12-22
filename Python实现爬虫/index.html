@@ -1,0 +1,559 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=2">
+<meta name="theme-color" content="#222">
+<meta name="generator" content="Hexo 5.2.0">
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/my_boy.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/my_boy.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/my_boy.png">
+  <link rel="mask-icon" href="/images/my_boy.png" color="#222">
+
+<link rel="stylesheet" href="/css/main.css">
+
+
+<link rel="stylesheet" href="/lib/font-awesome/css/all.min.css">
+  <link rel="stylesheet" href="/lib/pace/pace-theme-minimal.min.css">
+  <script src="/lib/pace/pace.min.js"></script>
+
+<script id="hexo-configurations">
+    var NexT = window.NexT || {};
+    var CONFIG = {"hostname":"wtlizzz.github.io","root":"/","scheme":"Mist","version":"7.8.0","exturl":false,"sidebar":{"position":"left","display":"post","padding":18,"offset":12,"onmobile":false},"copycode":{"enable":true,"show_result":true,"style":"flat"},"back2top":{"enable":true,"sidebar":false,"scrollpercent":false},"bookmark":{"enable":false,"color":"#222","save":"auto"},"fancybox":false,"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"algolia":{"hits":{"per_page":10},"labels":{"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}},"localsearch":{"enable":true,"trigger":"auto","top_n_per_article":-1,"unescape":false,"preload":false},"motion":{"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}},"path":"search.xml"};
+  </script>
+
+  <meta name="description" content="爬虫学的好，牢饭吃得饱～～ 使用Python实现爬虫，首先根据网上项目入门简单爬虫，然后爬取山东省各地市政府招标网站的信息。">
+<meta property="og:type" content="article">
+<meta property="og:title" content="Python实现爬虫">
+<meta property="og:url" content="https://wtlizzz.github.io/Python%E5%AE%9E%E7%8E%B0%E7%88%AC%E8%99%AB/index.html">
+<meta property="og:site_name" content="文韬">
+<meta property="og:description" content="爬虫学的好，牢饭吃得饱～～ 使用Python实现爬虫，首先根据网上项目入门简单爬虫，然后爬取山东省各地市政府招标网站的信息。">
+<meta property="og:locale" content="zh_CN">
+<meta property="article:published_time" content="2020-11-03T00:21:00.000Z">
+<meta property="article:modified_time" content="2020-11-19T08:32:37.247Z">
+<meta property="article:author" content="Wtli">
+<meta name="twitter:card" content="summary">
+
+<link rel="canonical" href="https://wtlizzz.github.io/Python%E5%AE%9E%E7%8E%B0%E7%88%AC%E8%99%AB/">
+
+
+<script id="page-configurations">
+  // https://hexo.io/docs/variables.html
+  CONFIG.page = {
+    sidebar: "",
+    isHome : false,
+    isPost : true,
+    lang   : 'zh-CN'
+  };
+</script>
+
+  <title>Python实现爬虫 | 文韬</title>
+  
+
+
+  <script>
+    var _hmt = _hmt || [];
+    (function() {
+      var hm = document.createElement("script");
+      hm.src = "https://hm.baidu.com/hm.js?7f4b8b54f803186c40c333785b8aee31";
+      var s = document.getElementsByTagName("script")[0];
+      s.parentNode.insertBefore(hm, s);
+    })();
+  </script>
+
+
+
+
+  <noscript>
+  <style>
+  .use-motion .brand,
+  .use-motion .menu-item,
+  .sidebar-inner,
+  .use-motion .post-block,
+  .use-motion .pagination,
+  .use-motion .comments,
+  .use-motion .post-header,
+  .use-motion .post-body,
+  .use-motion .collection-header { opacity: initial; }
+
+  .use-motion .site-title,
+  .use-motion .site-subtitle {
+    opacity: initial;
+    top: initial;
+  }
+
+  .use-motion .logo-line-before i { left: initial; }
+  .use-motion .logo-line-after i { right: initial; }
+  </style>
+</noscript>
+
+  <script src="https://apps.bdimg.com/libs/jquery/2.1.4/jquery.min.js">
+  </script>
+</head>
+
+
+<body itemscope itemtype="http://schema.org/WebPage">
+  <div class="container use-motion">
+    <div class="headband"></div>
+
+    <header class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-container">
+  <div class="site-nav-toggle">
+    <div class="toggle" aria-label="切换导航栏">
+      <span class="toggle-line toggle-line-first"></span>
+      <span class="toggle-line toggle-line-middle"></span>
+      <span class="toggle-line toggle-line-last"></span>
+    </div>
+  </div>
+
+  <div class="site-meta">
+
+    <a href="/" class="brand" rel="start">
+      <span class="logo-line-before"><i></i></span>
+      <h1 class="site-title">文韬</h1>
+      <span class="logo-line-after"><i></i></span>
+    </a>
+      <p class="site-subtitle" itemprop="description">始终如一</p>
+  </div>
+
+  <div class="site-nav-right">
+    <div class="toggle popup-trigger">
+        <i class="fa fa-search fa-fw fa-lg"></i>
+    </div>
+  </div>
+</div>
+
+
+
+
+<nav class="site-nav">
+  <ul id="menu" class="main-menu menu">
+        <li class="menu-item menu-item-home">
+
+    <a href="/" rel="section"><i class="fa fa-home fa-fw"></i>首页</a>
+
+  </li>
+        <li class="menu-item menu-item-目录">
+
+    <a href="/archives/" rel="section"><i class="fa fa-archive fa-fw"></i>目录</a>
+
+  </li>
+        <li class="menu-item menu-item-tags">
+
+    <a href="/tags/" rel="section"><i class="fa fa-tags fa-fw"></i>标签</a>
+
+  </li>
+        <li class="menu-item menu-item-categories">
+
+    <a href="/categories/" rel="section"><i class="fa fa-th fa-fw"></i>分类</a>
+
+  </li>
+        <li class="menu-item menu-item-commonweal">
+
+    <a href="/404/" rel="section"><i class="fa fa-heartbeat fa-fw"></i>公益</a>
+
+  </li>
+        <li class="menu-item menu-item-about">
+
+    <a href="/about/" rel="section"><i class="fa fa-user fa-fw"></i>关于</a>
+
+  </li>
+      <li class="menu-item menu-item-search">
+        <a role="button" class="popup-trigger"><i class="fa fa-search fa-fw"></i>搜索
+        </a>
+      </li>
+  </ul>
+</nav>
+
+
+
+  <div class="search-pop-overlay">
+    <div class="popup search-popup">
+        <div class="search-header">
+  <span class="search-icon">
+    <i class="fa fa-search"></i>
+  </span>
+  <div class="search-input-container">
+    <input autocomplete="off" autocapitalize="off"
+           placeholder="搜索..." spellcheck="false"
+           type="search" class="search-input">
+  </div>
+  <span class="popup-btn-close">
+    <i class="fa fa-times-circle"></i>
+  </span>
+</div>
+<div id="search-result">
+  <div id="no-result">
+    <i class="fa fa-spinner fa-pulse fa-5x fa-fw"></i>
+  </div>
+</div>
+
+    </div>
+  </div>
+
+</div>
+    </header>
+
+    
+  <div class="back-to-top">
+    <i class="fa fa-arrow-up"></i>
+    <span>0%</span>
+  </div>
+
+
+    <main class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          
+
+          <div class="content post posts-expand">
+            
+
+    
+  
+  
+  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="zh-CN">
+    <link itemprop="mainEntityOfPage" href="https://wtlizzz.github.io/Python%E5%AE%9E%E7%8E%B0%E7%88%AC%E8%99%AB/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/avatar.jpg">
+      <meta itemprop="name" content="Wtli">
+      <meta itemprop="description" content="本博客记录博主学习内容">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="文韬">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          Python实现爬虫
+        </h1>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-calendar"></i>
+              </span>
+              <span class="post-meta-item-text">发表于</span>
+
+              <time title="创建时间：2020-11 08:21:00" itemprop="dateCreated datePublished" datetime="2020-11-03T08:21:00+08:00">2020-11</time>
+            </span>
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-folder"></i>
+              </span>
+              <span class="post-meta-item-text">分类于</span>
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/Python/" itemprop="url" rel="index"><span itemprop="name">Python</span></a>
+                </span>
+            </span>
+
+          
+            <span class="post-meta-item" title="本文字数">
+              <span class="post-meta-item-icon">
+                <i class="far fa-file-word"></i>
+              </span>
+                <span class="post-meta-item-text">本文字数：</span>
+              <span>14k</span>
+            </span>
+            <span class="post-meta-item" title="阅读时长">
+              <span class="post-meta-item-icon">
+                <i class="far fa-clock"></i>
+              </span>
+                <span class="post-meta-item-text">阅读时长 &asymp;</span>
+              <span>13 分钟</span>
+            </span>
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+        <p>爬虫学的好，牢饭吃得饱～～</p>
+<p>使用Python实现爬虫，首先根据网上项目入门简单爬虫，然后爬取山东省各地市政府招标网站的信息。</p>
+<a id="more"></a>
+
+<h3 id="简单爬虫"><a href="#简单爬虫" class="headerlink" title="简单爬虫"></a>简单爬虫</h3><p>运行主函数：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line">def main():</span><br><span class="line">    for i in range(1, 14):</span><br><span class="line">        url &#x3D; &#39;https:&#x2F;&#x2F;qiushibaike.com&#x2F;text&#x2F;page&#x2F;&#123;&#125;&#39;.format(i)</span><br><span class="line">        html &#x3D; download_page(url)</span><br><span class="line">        get_content(html, i)</span><br><span class="line"></span><br><span class="line"></span><br><span class="line">if __name__ &#x3D;&#x3D; &#39;__main__&#39;:</span><br><span class="line">    main()</span><br><span class="line"></span><br></pre></td></tr></table></figure>
+
+<p>抓取糗事百科的文字，设置url，将网页下载下来，然后处理下载下来的网页。<br><font color="gray">这里使用到requests和BeautifulSoup包，如果没有的话请使用pip install安装</font></p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line">import requests</span><br><span class="line">from bs4 import BeautifulSoup</span><br><span class="line"></span><br><span class="line">def download_page(url):</span><br><span class="line">    headers &#x3D; &#123;&quot;User-Agent&quot;: &quot;Mozilla&#x2F;5.0 (Windows NT 10.0; Win64; x64; rv:61.0) Gecko&#x2F;20100101 Firefox&#x2F;61.0&quot;&#125;</span><br><span class="line">    r &#x3D; requests.get(url, headers&#x3D;headers)</span><br><span class="line">    return r.text</span><br></pre></td></tr></table></figure>
+<p>这里的到的r是指的Response网页请求的返回信息,r.text指的就是html代码：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br></pre></td><td class="code"><pre><span class="line">&lt;!DOCTYPE html</span><br><span class="line">PUBLIC &quot;-&#x2F;&#x2F;W3C&#x2F;&#x2F;DTD XHTML 1.0 Transitional&#x2F;&#x2F;EN&quot; &quot;http:&#x2F;&#x2F;www.w3.org&#x2F;TR&#x2F;xhtml1&#x2F;DTD&#x2F;xhtml1-transitional.dtd&quot;&gt;</span><br><span class="line">&lt;html xmlns&#x3D;&quot;http:&#x2F;&#x2F;www.w3.org&#x2F;1999&#x2F;xhtml&quot;&gt;</span><br><span class="line">&lt;head&gt;</span><br><span class="line">&lt;meta http-equiv&#x3D;&quot;Content-Type&quot; content&#x3D;&quot;text&#x2F;html; charset&#x3D;utf-8&quot; &#x2F;&gt;</span><br><span class="line">&lt;meta http-equiv&#x3D;&quot;X-UA-Compatible&quot; content&#x3D;&quot;chrome&#x3D;1,IE&#x3D;edge&quot;&gt;</span><br><span class="line">&lt;meta name&#x3D;&quot;renderer&quot; content&#x3D;&quot;webkit&quot; &#x2F;&gt;</span><br><span class="line">&lt;meta name&#x3D;&quot;applicable-device&quot; content&#x3D;&quot;pc&quot;&gt;</span><br><span class="line"></span><br><span class="line">······</span><br><span class="line"></span><br><span class="line">&lt;a href&#x3D;&quot;&#x2F;article&#x2F;123739738&quot; target&#x3D;&quot;_blank&quot; class&#x3D;&quot;contentHerf&quot; onclick&#x3D;&quot;_hmt.push([&#39;_trackEvent&#39;,&#39;web-list-content&#39;,&#39;chick&#39;])&quot;&gt;</span><br><span class="line">&lt;div class&#x3D;&quot;content&quot;&gt;</span><br><span class="line">&lt;span&gt;</span><br><span class="line"></span><br><span class="line"></span><br><span class="line">病房里有个大叔在我们科室住过几次院，科室里的护士他基本上都能认出来！&lt;br&#x2F;&gt;接班的时候他发现是我值班，就跟隔壁床的说他血管不好找，每次都要找我扎 针，说我扎 针技术就是好，最后差点吹嘘到我就是闭着眼睛就能扎上！&lt;br&#x2F;&gt;隔壁床听着有点不信他，他就有点不高兴，立马叫上我，非让我把手上的针给拔了重新扎一下。&lt;br&#x2F;&gt;我劝他别这样，手上的留置针其实还能用，他非不听，后来我没办法，在他期待的眼神里给他扎了两下才扎上！&lt;br&#x2F;&gt;他望着隔壁床尴尬的说，可能晚上光线不好才会扎两下的！</span><br><span class="line"></span><br><span class="line">&lt;&#x2F;span&gt;</span><br></pre></td></tr></table></figure>
+
+<p>接下来是处理网页html数据，将有效的信息摘选出来：</p>
+<ol>
+<li>使用BeautifulSoup，将html转换成soup；</li>
+<li>在网页中查看源代码， 看到想要的数据在content标签下，调用soup.find方法，找到&lt;div id=”content”&gt;标签下的数据；</li>
+<li>找到文章列表con.find_all(‘div’, class_=”article”)，在列表中遍历。</li>
+<li>遍历每条数据，调用save_txt方法，保存到txt中。</li>
+</ol>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br></pre></td><td class="code"><pre><span class="line">def get_content(html, page):</span><br><span class="line">    output &#x3D; &quot;第&#123;&#125;页 作者：&#123;&#125; 性别：&#123;&#125; 年龄：&#123;&#125; 点赞：&#123;&#125; 评论：&#123;&#125;\n&#123;&#125;\n------------\n&quot;</span><br><span class="line">    soup &#x3D; BeautifulSoup(html, &#39;html.parser&#39;)</span><br><span class="line">    con &#x3D; soup.find(id&#x3D;&#39;content&#39;)</span><br><span class="line">    con_list &#x3D; con.find_all(&#39;div&#39;, class_&#x3D;&quot;article&quot;)</span><br><span class="line">    for i in con_list:</span><br><span class="line">        author &#x3D; i.find(&#39;h2&#39;).string  # 获取作者名字</span><br><span class="line">        content &#x3D; i.find(&#39;div&#39;, class_&#x3D;&#39;content&#39;).find(&#39;span&#39;).get_text()  # 获取内容</span><br><span class="line">        stats &#x3D; i.find(&#39;div&#39;, class_&#x3D;&#39;stats&#39;)</span><br><span class="line">        vote &#x3D; stats.find(&#39;span&#39;, class_&#x3D;&#39;stats-vote&#39;).find(&#39;i&#39;, class_&#x3D;&#39;number&#39;).string</span><br><span class="line">        comment &#x3D; stats.find(&#39;span&#39;, class_&#x3D;&#39;stats-comments&#39;).find(&#39;i&#39;, class_&#x3D;&#39;number&#39;).string</span><br><span class="line">        author_info &#x3D; i.find(&#39;div&#39;, class_&#x3D;&#39;articleGender&#39;)  # 获取作者 年龄，性别</span><br><span class="line">        if author_info is not None:  # 非匿名用户</span><br><span class="line">            class_list &#x3D; author_info[&#39;class&#39;]</span><br><span class="line">            if &quot;womenIcon&quot; in class_list:</span><br><span class="line">                gender &#x3D; &#39;女&#39;</span><br><span class="line">            elif &quot;manIcon&quot; in class_list:</span><br><span class="line">                gender &#x3D; &#39;男&#39;</span><br><span class="line">            else:</span><br><span class="line">                gender &#x3D; &#39;&#39;</span><br><span class="line">            age &#x3D; author_info.string  # 获取年龄</span><br><span class="line">        else:  # 匿名用户</span><br><span class="line">            gender &#x3D; &#39;&#39;</span><br><span class="line">            age &#x3D; &#39;&#39;</span><br><span class="line"></span><br><span class="line">        save_txt(output.format(page, author, gender, age, vote, comment, content))</span><br><span class="line">        </span><br><span class="line">        </span><br><span class="line">def save_txt(*args):</span><br><span class="line">    for i in args:</span><br><span class="line">        with open(&#39;qiubai.txt&#39;, &#39;a&#39;, encoding&#x3D;&#39;utf-8&#39;) as f:</span><br><span class="line">            f.write(i)        </span><br></pre></td></tr></table></figure>
+
+<p>输出：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br></pre></td><td class="code"><pre><span class="line">第1页 作者：</span><br><span class="line">夏有凉风秋望月</span><br><span class="line"> 性别：女 年龄：16 点赞：846 评论：26</span><br><span class="line"></span><br><span class="line"></span><br><span class="line"></span><br><span class="line">小时候，对三国是很迷恋的，对于杀又鸟敬猴这招阳谋很是推崇，平时没少对小伙伴们灌输这个思想。由于我们这伙小伙子不太爱学习，老师被班主任罚站，于是我们决定杀又鸟敬候，于是我们伙在一起蹭着月黑风高把校长办公室的玻璃给砸了，还自报了家门，连校长我们都敢招惹看你班主任敢拿我们怎么样。果然杀又鸟儆猴凑效了，校长和班主任让我们这些小又鸟，让我们在全校的猴面前做检讨和保证。。。。</span><br><span class="line"></span><br><span class="line"></span><br><span class="line">------------</span><br><span class="line">第1页 作者：</span><br><span class="line">无书斋主</span><br><span class="line"> 性别：男 年龄：42 点赞：1066 评论：38</span><br><span class="line"></span><br><span class="line"></span><br><span class="line"></span><br><span class="line">本人糗百上用的陈道明图像，觉得他不但温文尔雅还有真性情……昨天外地出差，一糗友特意赶过来一起聚聚，他还带了两个朋友！……打招呼寒暄三杯酒下肚后，这糗友的朋友:他不是无书吧，无书不是长这样吗？（他指着我糗百图像）……我……我是，你说的是明哥！……</span><br><span class="line"></span><br><span class="line"></span><br><span class="line">------------</span><br></pre></td></tr></table></figure>
+<h3 id="爬虫获取拉钩网数据"><a href="#爬虫获取拉钩网数据" class="headerlink" title="爬虫获取拉钩网数据"></a>爬虫获取拉钩网数据</h3><p>先发代码：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br></pre></td><td class="code"><pre><span class="line">import requests</span><br><span class="line">import time</span><br><span class="line">import json</span><br><span class="line"></span><br><span class="line"></span><br><span class="line">def main():</span><br><span class="line">    url_start &#x3D; &quot;https:&#x2F;&#x2F;www.lagou.com&#x2F;jobs&#x2F;list_运维?city&#x3D;%E6%88%90%E9%83%BD&amp;cl&#x3D;false&amp;fromSearch&#x3D;true&amp;labelWords&#x3D;&amp;suginput&#x3D;&quot;</span><br><span class="line">    url_parse &#x3D; &quot;https:&#x2F;&#x2F;www.lagou.com&#x2F;jobs&#x2F;positionAjax.json?city&#x3D;成都&amp;needAddtionalResult&#x3D;false&quot;</span><br><span class="line">    headers &#x3D; &#123;</span><br><span class="line">        &#39;Accept&#39;: &#39;application&#x2F;json, text&#x2F;javascript, *&#x2F;*; q&#x3D;0.01&#39;,</span><br><span class="line">        &#39;Referer&#39;: &#39;https:&#x2F;&#x2F;www.lagou.com&#x2F;jobs&#x2F;list_%E8%BF%90%E7%BB%B4?city&#x3D;%E6%88%90%E9%83%BD&amp;cl&#x3D;false&amp;fromSearch&#x3D;true&amp;labelWords&#x3D;&amp;suginput&#x3D;&#39;,</span><br><span class="line">        &#39;User-Agent&#39;: &#39;Mozilla&#x2F;5.0 (Windows NT 10.0; Win64; x64) AppleWebKit&#x2F;537.36 (KHTML, like Gecko) Chrome&#x2F;72.0.3626.121 Safari&#x2F;537.36&#39;</span><br><span class="line">    &#125;</span><br><span class="line">    for x in range(1, 5):</span><br><span class="line">        data &#x3D; &#123;</span><br><span class="line">            &#39;first&#39;: &#39;true&#39;,</span><br><span class="line">            &#39;pn&#39;: str(x),</span><br><span class="line">            &#39;kd&#39;: &#39;运维&#39;</span><br><span class="line">                &#125;</span><br><span class="line">        s &#x3D; requests.Session() # 创建一个session对象</span><br><span class="line">        s.get(url_start, headers&#x3D;headers, timeout&#x3D;3)  # 用session对象发出get请求，请求首页获取cookies</span><br><span class="line">        cookie &#x3D; s.cookies  # 为此次获取的cookies</span><br><span class="line">        response &#x3D; s.post(url_parse, data&#x3D;data, headers&#x3D;headers, cookies&#x3D;cookie, timeout&#x3D;3)  # 获取此次文本</span><br><span class="line">        time.sleep(5)</span><br><span class="line">        response.encoding &#x3D; response.apparent_encoding</span><br><span class="line">        text &#x3D; json.loads(response.text)</span><br><span class="line">        info &#x3D; text[&quot;content&quot;][&quot;positionResult&quot;][&quot;result&quot;]</span><br><span class="line">        for i in info:</span><br><span class="line">            print(i[&quot;companyFullName&quot;])</span><br><span class="line">            companyFullName &#x3D; i[&quot;companyFullName&quot;]</span><br><span class="line">            print(i[&quot;positionName&quot;])</span><br><span class="line">            positionName &#x3D; i[&quot;positionName&quot;]</span><br><span class="line">            print(i[&quot;salary&quot;])</span><br><span class="line">            salary &#x3D; i[&quot;salary&quot;]</span><br><span class="line">            print(i[&quot;companySize&quot;])</span><br><span class="line">            companySize &#x3D; i[&quot;companySize&quot;]</span><br><span class="line">            print(i[&quot;skillLables&quot;])</span><br><span class="line">            skillLables &#x3D; i[&quot;skillLables&quot;]</span><br><span class="line">            print(i[&quot;createTime&quot;])</span><br><span class="line">            createTime &#x3D; i[&quot;createTime&quot;]</span><br><span class="line">            print(i[&quot;district&quot;])</span><br><span class="line">            district &#x3D; i[&quot;district&quot;]</span><br><span class="line">            print(i[&quot;stationname&quot;])</span><br><span class="line">            stationname &#x3D; i[&quot;stationname&quot;]</span><br><span class="line"></span><br><span class="line">if __name__ &#x3D;&#x3D; &#39;__main__&#39;:</span><br><span class="line">    main()</span><br><span class="line"></span><br></pre></td></tr></table></figure>
+<p>有很多写法：<br>发现返回结果为访问太频繁，可以认为拉勾网做了一定的反扒技术，下面在慢慢分析一下拉勾网的请求策略：</p>
+<p>参考网上说的可能性</p>
+<ol>
+<li>拉勾网对cookie动了手脚，cookie具有实时性，只能使用一次。</li>
+<li>拉勾网对获取数据请求之前还有获取cookie的前置请求。</li>
+</ol>
+<h4 id="获取ajax请求"><a href="#获取ajax请求" class="headerlink" title="获取ajax请求"></a>获取ajax请求</h4><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">json &#x3D; requests.post(url, data, headers&#x3D;headers).json()</span><br></pre></td></tr></table></figure>
+
+
+
+<h4 id="写入到excel中"><a href="#写入到excel中" class="headerlink" title="写入到excel中"></a>写入到excel中</h4><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">from openpyxl import Workbook</span><br><span class="line"></span><br><span class="line">wb &#x3D; Workbook()</span><br><span class="line">wb.save(&#39;&#123;&#125;职位信息.xlsx&#39;.format(lang_name))</span><br></pre></td></tr></table></figure>
+
+
+
+
+
+<h4 id="写入到数据库中"><a href="#写入到数据库中" class="headerlink" title="写入到数据库中"></a>写入到数据库中</h4><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br></pre></td><td class="code"><pre><span class="line">import pymysql.cursors</span><br><span class="line"></span><br><span class="line">def get_conn():</span><br><span class="line">    &#39;&#39;&#39;建立数据库连接&#39;&#39;&#39;</span><br><span class="line">    conn &#x3D; pymysql.connect(host&#x3D;&#39;localhost&#39;,</span><br><span class="line">                           user&#x3D;&#39;root&#39;,</span><br><span class="line">                           password&#x3D;&#39;root&#39;,</span><br><span class="line">                           db&#x3D;&#39;python&#39;,</span><br><span class="line">                           charset&#x3D;&#39;utf8mb4&#39;,</span><br><span class="line">                           cursorclass&#x3D;pymysql.cursors.DictCursor)</span><br><span class="line">    return conn</span><br><span class="line"></span><br><span class="line"></span><br><span class="line">def insert(conn, info):</span><br><span class="line">    &#39;&#39;&#39;数据写入数据库&#39;&#39;&#39;</span><br><span class="line">    with conn.cursor() as cursor:</span><br><span class="line">        sql &#x3D; &quot;INSERT INTO &#96;python&#96; (&#96;shortname&#96;, &#96;fullname&#96;, &#96;industryfield&#96;, &#96;companySize&#96;, &#96;salary&#96;, &#96;city&#96;, &#96;education&#96;) VALUES (%s, %s, %s, %s, %s, %s, %s)&quot;</span><br><span class="line">        cursor.execute(sql, info)</span><br><span class="line">    conn.commit()</span><br></pre></td></tr></table></figure>
+
+<h4 id="输出"><a href="#输出" class="headerlink" title="输出"></a>输出</h4><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br><span class="line">65</span><br><span class="line">66</span><br><span class="line">67</span><br><span class="line">68</span><br><span class="line">69</span><br><span class="line">70</span><br><span class="line">71</span><br><span class="line">72</span><br><span class="line">73</span><br><span class="line">74</span><br><span class="line">75</span><br><span class="line">76</span><br><span class="line">77</span><br><span class="line">78</span><br><span class="line">79</span><br><span class="line">80</span><br><span class="line">81</span><br><span class="line">82</span><br><span class="line">83</span><br><span class="line">84</span><br><span class="line">85</span><br><span class="line">86</span><br><span class="line">87</span><br><span class="line">88</span><br><span class="line">89</span><br><span class="line">90</span><br><span class="line">91</span><br><span class="line">92</span><br><span class="line">93</span><br><span class="line">94</span><br><span class="line">95</span><br><span class="line">96</span><br><span class="line">97</span><br><span class="line">98</span><br><span class="line">99</span><br><span class="line">100</span><br><span class="line">101</span><br><span class="line">102</span><br><span class="line">103</span><br><span class="line">104</span><br><span class="line">105</span><br><span class="line">106</span><br><span class="line">107</span><br><span class="line">108</span><br><span class="line">109</span><br><span class="line">110</span><br><span class="line">111</span><br><span class="line">112</span><br><span class="line">113</span><br><span class="line">114</span><br><span class="line">115</span><br><span class="line">116</span><br><span class="line">117</span><br><span class="line">118</span><br><span class="line">119</span><br><span class="line">120</span><br></pre></td><td class="code"><pre><span class="line">北京中富金石咨询有限公司四川分公司</span><br><span class="line">linux运维工程师</span><br><span class="line">10k-15k</span><br><span class="line">150-500人</span><br><span class="line">[&#39;Linux&#39;, &#39;CI&#x2F;CD&#39;, &#39;Python&#39;, &#39;Ansible&#39;]</span><br><span class="line">2020-11-04 09:27:12</span><br><span class="line">高新区</span><br><span class="line">倪家桥</span><br><span class="line">成都华栖云科技有限公司</span><br><span class="line">高级运维工程师</span><br><span class="line">10k-15k</span><br><span class="line">500-2000人</span><br><span class="line">[&#39;Linux&#39;]</span><br><span class="line">2020-11-04 09:23:18</span><br><span class="line">高新区</span><br><span class="line">天府五街</span><br><span class="line">成都心田花开科技有限公司</span><br><span class="line">高级运维工程师</span><br><span class="line">15k-20k</span><br><span class="line">500-2000人</span><br><span class="line">[&#39;CI&#x2F;CD&#39;, &#39;Python&#39;, &#39;运维开发&#39;, &#39;系统运维&#39;]</span><br><span class="line">2020-11-04 09:04:40</span><br><span class="line">武侯区</span><br><span class="line">桐梓林</span><br><span class="line">新蛋科技（成都）有限公司</span><br><span class="line">运维开发工程师</span><br><span class="line">15k-25k</span><br><span class="line">500-2000人</span><br><span class="line">[&#39;python&#39;, &#39;IT 自动化方向&#39;]</span><br><span class="line">2020-11-04 08:56:22</span><br><span class="line">高新区</span><br><span class="line">天府五街</span><br><span class="line">成都维堰信息技术服务有限公司陕西分公司</span><br><span class="line">数据库运维工程师</span><br><span class="line">10k-15k</span><br><span class="line">150-500人</span><br><span class="line">[&#39;数据库运维&#39;, &#39;DBA&#39;, &#39;Hadoop&#39;, &#39;Oracle&#39;]</span><br><span class="line">2020-11-04 08:42:38</span><br><span class="line">郫县</span><br><span class="line">None</span><br><span class="line">科大讯飞股份有限公司</span><br><span class="line">运维工程师-运营商BU-成都</span><br><span class="line">15k-20k</span><br><span class="line">2000人以上</span><br><span class="line">[&#39;Shell&#39;, &#39;Linux&#39;, &#39;Python&#39;, &#39;MySQL&#39;]</span><br><span class="line">2020-11-04 09:28:02</span><br><span class="line">双流县</span><br><span class="line">兴隆湖</span><br><span class="line">成都心田花开科技有限公司</span><br><span class="line">运维总监</span><br><span class="line">20k-30k</span><br><span class="line">500-2000人</span><br><span class="line">[&#39;运维管理&#39;, &#39;高级技术管理&#39;, &#39;领导力&#39;, &#39;技术管理&#39;]</span><br><span class="line">2020-11-04 09:04:39</span><br><span class="line">武侯区</span><br><span class="line">桐梓林</span><br><span class="line">深圳前海中电慧安科技有限公司</span><br><span class="line">运维工程师（四川地区）</span><br><span class="line">6k-12k</span><br><span class="line">50-150人</span><br><span class="line">[&#39;MongoDB&#39;, &#39;大数据运维&#39;, &#39;MySql&#39;, &#39;Tomcat&#39;]</span><br><span class="line">2020-11-04 08:57:23</span><br><span class="line">高新区</span><br><span class="line">天府五街</span><br><span class="line">成都华栖云科技有限公司</span><br><span class="line">中级售后运维工程师</span><br><span class="line">8k-12k</span><br><span class="line">500-2000人</span><br><span class="line">[&#39;Linux&#39;, &#39;MySQL&#39;, &#39;SQLServer&#39;, &#39;Oracle&#39;]</span><br><span class="line">2020-11-04 09:23:18</span><br><span class="line">高新区</span><br><span class="line">天府五街</span><br><span class="line">北京字节跳动科技有限公司</span><br><span class="line">分布式存储运维开发工程师</span><br><span class="line">20k-40k</span><br><span class="line">2000人以上</span><br><span class="line">[]</span><br><span class="line">2020-11-04 03:27:45</span><br><span class="line">武侯区</span><br><span class="line">天府五街</span><br><span class="line">北京字节跳动科技有限公司</span><br><span class="line">运维研发工程师</span><br><span class="line">30k-60k</span><br><span class="line">2000人以上</span><br><span class="line">[]</span><br><span class="line">2020-11-04 03:22:22</span><br><span class="line">高新区</span><br><span class="line">天府五街</span><br><span class="line">博睿天下（成都）科技有限责任公司</span><br><span class="line">运维工程师</span><br><span class="line">10k-15k</span><br><span class="line">50-150人</span><br><span class="line">[&#39;DevOps&#x2F;AIOps&#39;]</span><br><span class="line">2020-11-04 08:51:53</span><br><span class="line">高新区</span><br><span class="line">天府三街</span><br><span class="line">成都云智天下科技股份有限公司</span><br><span class="line">系统运维工程师</span><br><span class="line">9k-11k</span><br><span class="line">50-150人</span><br><span class="line">[&#39;Linux&#39;, &#39;DevOps&#x2F;AIOps&#39;, &#39;CI&#x2F;CD&#39;]</span><br><span class="line">2020-11-04 09:27:48</span><br><span class="line">高新区</span><br><span class="line">红牌楼</span><br><span class="line">四川久远银海软件股份有限公司</span><br><span class="line">软件运维开发工程师</span><br><span class="line">4k-8k</span><br><span class="line">2000人以上</span><br><span class="line">[&#39;Java&#39;, &#39;运维开发&#39;, &#39;系统运维&#39;]</span><br><span class="line">2020-11-04 09:22:48</span><br><span class="line">锦江区</span><br><span class="line">None</span><br><span class="line">成都维堰信息技术服务有限公司陕西分公司</span><br><span class="line">linux运维工程师</span><br><span class="line">8k-15k</span><br><span class="line">150-500人</span><br><span class="line">[&#39;Python&#39;, &#39;现场运维&#39;, &#39;K8s&#x2F;Docker&#39;, &#39;open stack&#39;]</span><br><span class="line">2020-11-04 08:42:34</span><br><span class="line">郫县</span><br><span class="line">None</span><br></pre></td></tr></table></figure>
+
+
+<h3 id="获取济南市政府招标内容"><a href="#获取济南市政府招标内容" class="headerlink" title="获取济南市政府招标内容"></a>获取济南市政府招标内容</h3><p>代码：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br></pre></td><td class="code"><pre><span class="line">import requests</span><br><span class="line">from bs4 import BeautifulSoup</span><br><span class="line"></span><br><span class="line"></span><br><span class="line">def download_page(url):</span><br><span class="line">    headers &#x3D; &#123;&quot;User-Agent&quot;: &quot;Mozilla&#x2F;5.0 (Windows NT 10.0; Win64; x64; rv:61.0) Gecko&#x2F;20100101 Firefox&#x2F;61.0&quot;&#125;</span><br><span class="line">    r &#x3D; requests.get(url, headers&#x3D;headers)</span><br><span class="line">    return r.text</span><br><span class="line"></span><br><span class="line"></span><br><span class="line">def get_content(html):</span><br><span class="line">    output &#x3D; &quot;标题：&#123;&#125;   日期：&#123;&#125;\n------------\n&quot;</span><br><span class="line">    soup &#x3D; BeautifulSoup(html, &#39;html.parser&#39;)</span><br><span class="line">    con &#x3D; soup.find(id&#x3D;&#39;content&#39;)</span><br><span class="line">    con_list &#x3D; con.find_all(&#39;li&#39;)</span><br><span class="line">    for i in con_list:</span><br><span class="line">        a &#x3D; i.find(&quot;a&quot;).text</span><br><span class="line">        d &#x3D; i.find(&quot;span&quot;, class_&#x3D;&quot;span2&quot;).text</span><br><span class="line"></span><br><span class="line">        save_txt(output.format(a, d))</span><br><span class="line"></span><br><span class="line"></span><br><span class="line">def save_txt(*args):</span><br><span class="line">    for i in args:</span><br><span class="line">        with open(&#39;jn.txt&#39;, &#39;a&#39;, encoding&#x3D;&#39;utf-8&#39;) as f:</span><br><span class="line">            f.write(i)</span><br><span class="line"></span><br><span class="line"></span><br><span class="line">def main():</span><br><span class="line">    url &#x3D; &#39;http:&#x2F;&#x2F;jnggzy.jinan.gov.cn&#x2F;jnggzyztb&#x2F;front&#x2F;noticelist.do?type&#x3D;1&amp;xuanxiang&#x3D;1&amp;area&#x3D;&#39;</span><br><span class="line">    html &#x3D; download_page(url)</span><br><span class="line">    get_content(html)</span><br><span class="line"></span><br><span class="line"></span><br><span class="line">if __name__ &#x3D;&#x3D; &#39;__main__&#39;:</span><br><span class="line">    main()</span><br></pre></td></tr></table></figure>
+
+
+<p>解析获取内容时可以使用</p>
+<ul>
+<li>i.find(“a”).text</li>
+<li>i.find(“a”).get_text()</li>
+<li>i.find(“a”).string  </li>
+</ul>
+<p>方式来进行获取解析内容，这里只用到了标题名称和日期，将解析的内容写到txt文件中。</p>
+<p><strong>问题：通过上面代码获取到的内容，并不是最新的内容</strong></p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br></pre></td><td class="code"><pre><span class="line">标题：济南市生态环境局济南市部分城镇集中式饮用水水...   日期：2020-06-11</span><br><span class="line">------------</span><br><span class="line">标题：商河县残疾人家庭无障碍改造项目招标公告   日期：2020-05-18</span><br><span class="line">------------</span><br><span class="line">标题：济南职业学院济南职业学院现代学徒制管理...   日期：2020-04-01</span><br><span class="line">------------</span><br><span class="line">标题：济南信息工程学校济南信息工程学校普通图...   日期：2020-01-09</span><br><span class="line">------------</span><br><span class="line">标题：山东省济南市人民检察院山东省济南市人民...   日期：2019-12-20</span><br><span class="line">------------</span><br><span class="line">标题：济南护理职业学院济南护理职业学院消防工...   日期：2019-06-13</span><br><span class="line">------------</span><br><span class="line">标题：济南市济阳区回河街道办事处回跺路改造工程   日期：2019-05-27</span><br><span class="line">------------</span><br><span class="line">标题：济南市排水管理服务中心济南市排水管理服...   日期：2019-01-10</span><br><span class="line">------------</span><br><span class="line">标题：山东省济南中学山东省济南中学软件开发服务竞争...   日期：2018-08-31</span><br><span class="line">------------</span><br><span class="line">标题：济南市食品药品监督管理局济南市食品药品监督管...   日期：2018-08-31</span><br><span class="line">------------</span><br><span class="line">标题：山东省济南第七中学足球训练营采购竞争性磋商公...   日期：2018-08-31</span><br><span class="line">------------</span><br><span class="line">标题：济南市技师学院济南市技师学院空调、电梯维修和...   日期：2018-08-31</span><br><span class="line">------------</span><br><span class="line">标题：济南市农业科学研究院济南市农业科学研究院试验...   日期：2018-08-31</span><br><span class="line">------------</span><br><span class="line">标题：济南信息工程学校济南信息工程学校物业管理服务...   日期：2018-08-31</span><br><span class="line">------------</span><br><span class="line">标题：济南市城乡交通运输委员会济南市主城区道路及公...   日期：2018-08-31</span><br><span class="line">------------</span><br></pre></td></tr></table></figure>
+
+<p><strong>初步估计：</strong><br>网页是通过http://jnggzy.jinan.gov.cn/jnggzyztb/front/search.do这个请求获取最新的内容，并不是打开网页就是最新的数据。</p>
+<p>下一步就是想办法获取search.do这个请求的数据</p>
+<p><strong>步骤一：</strong><br>根据chrome的控制台，将From Data转换成source格式，放在url后方：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">Form Data：area&#x3D;&amp;type&#x3D;1&amp;xuanxiang&#x3D;%E6%8B%9B%E6%A0%87%E5%85%AC%E5%91%8A&amp;subheading&#x3D;&amp;pagenum&#x3D;1</span><br></pre></td></tr></table></figure>
+
+
+<p><strong>步骤二：</strong><br>配置连接header</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line">def download_page(url):</span><br><span class="line">    headers &#x3D; &#123;</span><br><span class="line">        &#39;Accept&#39;: &#39;*&#x2F;*&#39;,</span><br><span class="line">        &#39;Referer&#39;: &#39;http:&#x2F;&#x2F;jnggzy.jinan.gov.cn&#x2F;jnggzyztb&#x2F;front&#x2F;noticelist.do?type&#x3D;1&amp;xuanxiang&#x3D;1&amp;area&#x3D;&#39;,</span><br><span class="line">        &#39;Origin&#39;: &#39;http:&#x2F;&#x2F;jnggzy.jinan.gov.cn&#39;,</span><br><span class="line">        &#39;User-Agent&#39;: &#39;Mozilla&#x2F;5.0 (Macintosh; Intel Mac OS X 10_14_6) AppleWebKit&#x2F;537.36 (KHTML, like Gecko) Chrome&#x2F;86.0.4240.183 Safari&#x2F;537.36&#39;</span><br><span class="line">    &#125;</span><br><span class="line">    r &#x3D; requests.post(url, headers&#x3D;headers, timeout&#x3D;3)</span><br><span class="line">    return json.loads(r.text)</span><br></pre></td></tr></table></figure>
+
+<p><strong>步骤三：</strong><br>解析连接数据</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line">def get_content(html):</span><br><span class="line">    output &#x3D; &quot;标题：&#123;&#125;   日期：&#123;&#125;\n------------\n&quot;</span><br><span class="line">    params &#x3D; html.get(&quot;params&quot;)</span><br><span class="line">    result &#x3D; params.get(&quot;str&quot;)</span><br><span class="line">    con_list &#x3D; BeautifulSoup(result).find_all(&quot;li&quot;)</span><br><span class="line">    for i in con_list:</span><br><span class="line">        a &#x3D; i.find(&quot;a&quot;).text</span><br><span class="line">        d &#x3D; i.find(&quot;span&quot;, class_&#x3D;&quot;span2&quot;).text</span><br><span class="line">        save_txt(output.format(a, d))</span><br></pre></td></tr></table></figure>
+<p><strong>步骤四：</strong><br>数据结果</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br></pre></td><td class="code"><pre><span class="line">标题：【电子全流程】济南市机械化清扫大队车辆保险竞争性磋商公告   日期：2020-11-04</span><br><span class="line">------------</span><br><span class="line">标题：【电子全流程】济南市南部山区管理委员会综合管理执法局济南市...   日期：2020-11-04</span><br><span class="line">------------</span><br><span class="line">标题：【电子全流程】中国共产党济南市委员会宣传部印刷服务竞争性磋...   日期：2020-11-04</span><br><span class="line">------------</span><br><span class="line">标题：【电子全流程】中国共产党济南市委员会宣传部印刷服务竞争性磋...   日期：2020-11-04</span><br><span class="line">------------</span><br><span class="line">标题：【电子全流程】山东省实验中学东校扫描仪竞争性谈判公告   日期：2020-11-04</span><br><span class="line">------------</span><br><span class="line">标题：【电子全流程】莱芜职业技术学院技术测量实训室建设公开招标公...   日期：2020-11-04</span><br><span class="line">------------</span><br><span class="line">标题：【电子全流程】济南市城市管理局济南市固体废弃物分类专项规划...   日期：2020-11-04</span><br><span class="line">------------</span><br><span class="line">标题：【电子全流程】济南市历城区发展和改革局济南市历城区发展和改...   日期：2020-11-04</span><br><span class="line">------------</span><br><span class="line">标题：【电子全流程】莱芜职业技术学院商管系学生创新创业实训室建设...   日期：2020-11-04</span><br><span class="line">------------</span><br><span class="line">标题：【电子全流程】莱芜职业技术学院智能工厂虚拟仿真与云服务实训...   日期：2020-11-04</span><br><span class="line">------------</span><br></pre></td></tr></table></figure>
+<h4 id="获取跳转链接"><a href="#获取跳转链接" class="headerlink" title="获取跳转链接"></a>获取跳转链接</h4><p>获得的数据，只存在一个点击事件，只要将对应的id数据存到数据库中，就能分析点击事件组成跳转链接。</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">&#39;showview(&#39;E6BB8EE65366081B72346771888505B6&#39;,1)&#39;</span><br></pre></td></tr></table></figure>
+<p>使用正则表达式：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">rex &#x3D; &quot;(&#39;(.+?)&#39;,&quot;</span><br></pre></td></tr></table></figure>
+<p>直接获取到E6BB8EE65366081B72346771888505B6，将id存到数据库中，在前端显示时，组合成跳转链接。</p>
+<h4 id="写入数据库"><a href="#写入数据库" class="headerlink" title="写入数据库"></a>写入数据库</h4><p>连接数据库,使用pymysql包建立连接：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br></pre></td><td class="code"><pre><span class="line">import pymysql.cursors</span><br><span class="line"></span><br><span class="line"></span><br><span class="line">def get_conn():</span><br><span class="line">    &#39;&#39;&#39;建立数据库连接&#39;&#39;&#39;</span><br><span class="line">    conn &#x3D; pymysql.connect(host&#x3D;&#39;localhost&#39;,</span><br><span class="line">                           user&#x3D;&#39;root&#39;,</span><br><span class="line">                           password&#x3D;&#39;******&#39;,</span><br><span class="line">                           db&#x3D;&#39;spider&#39;,</span><br><span class="line">                           charset&#x3D;&#39;utf8mb4&#39;,</span><br><span class="line">                           cursorclass&#x3D;pymysql.cursors.DictCursor)</span><br><span class="line">    return conn</span><br></pre></td></tr></table></figure>
+
+<p>将数据传入insert方法，我这里传入的是一个元组类型：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line">def insert(conn, *info):</span><br><span class="line">    &#39;&#39;&#39;数据写入数据库&#39;&#39;&#39;</span><br><span class="line">    with conn.cursor() as cursor:</span><br><span class="line">        sql &#x3D; &quot;INSERT INTO &#96;jinanshizhengfu&#96; (&#96;title&#96;, &#96;link&#96;, &#96;date&#96;, &#96;city&#96;) VALUES (%s, %s, %s, %s)&quot;</span><br><span class="line">        n &#x3D; cursor.execute(sql, info)</span><br><span class="line">    conn.commit()</span><br></pre></td></tr></table></figure>
+    </div>
+
+    
+    
+    
+
+      <footer class="post-footer">
+
+        
+
+
+        
+    <div class="post-nav">
+      <div class="post-nav-item">
+    <a href="/idea%E6%9F%A5%E7%9C%8B%E6%BA%90%E7%A0%81/" rel="prev" title="idea查看JDK8源码">
+      <i class="fa fa-chevron-left"></i> idea查看JDK8源码
+    </a></div>
+      <div class="post-nav-item">
+    <a href="/Hadoop%E5%85%A5%E9%97%A8/" rel="next" title="Hadoop入门">
+      Hadoop入门 <i class="fa fa-chevron-right"></i>
+    </a></div>
+    </div>
+      </footer>
+    
+  </article>
+  
+  
+  
+
+
+
+          </div>
+          
+
+<script>
+  window.addEventListener('tabs:register', () => {
+    let { activeClass } = CONFIG.comments;
+    if (CONFIG.comments.storage) {
+      activeClass = localStorage.getItem('comments_active') || activeClass;
+    }
+    if (activeClass) {
+      let activeTab = document.querySelector(`a[href="#comment-${activeClass}"]`);
+      if (activeTab) {
+        activeTab.click();
+      }
+    }
+  });
+  if (CONFIG.comments.storage) {
+    window.addEventListener('tabs:click', event => {
+      if (!event.target.matches('.tabs-comment .tab-content .tab-pane')) return;
+      let commentClass = event.target.classList[1];
+      localStorage.setItem('comments_active', commentClass);
+    });
+  }
+</script>
+
+        </div>
+          
+  
+  <div class="toggle sidebar-toggle">
+    <span class="toggle-line toggle-line-first"></span>
+    <span class="toggle-line toggle-line-middle"></span>
+    <span class="toggle-line toggle-line-last"></span>
+  </div>
+
+  <aside class="sidebar">
+    <div class="sidebar-inner">
+
+      <ul class="sidebar-nav motion-element">
+        <li class="sidebar-nav-toc">
+          文章目录
+        </li>
+        <li class="sidebar-nav-overview">
+          站点概览
+        </li>
+      </ul>
+
+      <!--noindex-->
+      <div class="post-toc-wrap sidebar-panel">
+          <div class="post-toc motion-element"><ol class="nav"><li class="nav-item nav-level-3"><a class="nav-link" href="#%E7%AE%80%E5%8D%95%E7%88%AC%E8%99%AB"><span class="nav-number">1.</span> <span class="nav-text">简单爬虫</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E7%88%AC%E8%99%AB%E8%8E%B7%E5%8F%96%E6%8B%89%E9%92%A9%E7%BD%91%E6%95%B0%E6%8D%AE"><span class="nav-number">2.</span> <span class="nav-text">爬虫获取拉钩网数据</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#%E8%8E%B7%E5%8F%96ajax%E8%AF%B7%E6%B1%82"><span class="nav-number">2.1.</span> <span class="nav-text">获取ajax请求</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#%E5%86%99%E5%85%A5%E5%88%B0excel%E4%B8%AD"><span class="nav-number">2.2.</span> <span class="nav-text">写入到excel中</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#%E5%86%99%E5%85%A5%E5%88%B0%E6%95%B0%E6%8D%AE%E5%BA%93%E4%B8%AD"><span class="nav-number">2.3.</span> <span class="nav-text">写入到数据库中</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#%E8%BE%93%E5%87%BA"><span class="nav-number">2.4.</span> <span class="nav-text">输出</span></a></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E8%8E%B7%E5%8F%96%E6%B5%8E%E5%8D%97%E5%B8%82%E6%94%BF%E5%BA%9C%E6%8B%9B%E6%A0%87%E5%86%85%E5%AE%B9"><span class="nav-number">3.</span> <span class="nav-text">获取济南市政府招标内容</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#%E8%8E%B7%E5%8F%96%E8%B7%B3%E8%BD%AC%E9%93%BE%E6%8E%A5"><span class="nav-number">3.1.</span> <span class="nav-text">获取跳转链接</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#%E5%86%99%E5%85%A5%E6%95%B0%E6%8D%AE%E5%BA%93"><span class="nav-number">3.2.</span> <span class="nav-text">写入数据库</span></a></li></ol></li></ol></div>
+      </div>
+      <!--/noindex-->
+
+      <div class="site-overview-wrap sidebar-panel">
+        <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+    <img class="site-author-image" itemprop="image" alt="Wtli"
+      src="/images/avatar.jpg">
+  <p class="site-author-name" itemprop="name">Wtli</p>
+  <div class="site-description" itemprop="description">本博客记录博主学习内容</div>
+</div>
+<div class="site-state-wrap motion-element">
+  <nav class="site-state">
+      <div class="site-state-item site-state-posts">
+          <a href="/archives">
+          <span class="site-state-item-count">44</span>
+          <span class="site-state-item-name">日志</span>
+        </a>
+      </div>
+      <div class="site-state-item site-state-categories">
+            <a href="/categories/">
+          
+        <span class="site-state-item-count">8</span>
+        <span class="site-state-item-name">分类</span></a>
+      </div>
+      <div class="site-state-item site-state-tags">
+            <a href="/tags/">
+          
+        <span class="site-state-item-count">30</span>
+        <span class="site-state-item-name">标签</span></a>
+      </div>
+  </nav>
+</div>
+
+
+
+      </div>
+
+    </div>
+  </aside>
+  <div id="sidebar-dimmer"></div>
+
+
+      </div>
+      <div class="cat-to-top cd-top faa-float animated"></div>
+
+
+    </main>
+
+    <footer class="footer">
+      <div class="footer-inner">
+        
+
+        
+
+<div class="copyright">
+  
+  &copy; 
+  <span itemprop="copyrightYear">2020</span>
+  <span class="with-love">
+    <i class="fa fa-heart"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">Wtli</span>
+</div>
+
+        
+
+
+
+
+
+
+
+
+      </div>
+    </footer>
+  </div>
+
+  
+  <script src="/lib/anime.min.js"></script>
+  <script src="/lib/velocity/velocity.min.js"></script>
+  <script src="/lib/velocity/velocity.ui.min.js"></script>
+
+<script src="/js/utils.js"></script>
+
+<script src="/js/motion.js"></script>
+
+
+<script src="/js/schemes/muse.js"></script>
+
+
+<script src="/js/next-boot.js"></script>
+
+
+
+
+  
+
+
+
+
+  
+<script src="/js/local-search.js"></script>
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+
+  
+
+<script src="/live2dw/lib/L2Dwidget.min.js?094cbace49a39548bed64abff5988b05"></script><script>L2Dwidget.init({"pluginRootPath":"live2dw/","pluginJsPath":"lib/","pluginModelPath":"assets/","tagMode":false,"log":false,"model":{"jsonPath":"/live2dw/assets/wanko.model.json"},"display":{"position":"right","width":150,"height":300},"mobile":{"show":true},"react":{"opacity":0.7}});</script></body>
+</html>
