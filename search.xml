@@ -891,6 +891,251 @@
       </tags>
   </entry>
   <entry>
+    <title>Java Nio ServerSocketChannel原理</title>
+    <url>/Java-Nio-SelectionKey/</url>
+    <content><![CDATA[<p>SelectionKey在编程过程中实际使用的并不多，但是这个抽象类确是在Java NIO Selector中很重要，在其他Java NIO中并没有太多的解释，下面来详细看一下。</p>
+<a id="more"></a>
+
+<h4 id="Selector"><a href="#Selector" class="headerlink" title="Selector"></a>Selector</h4><p><strong>是什么？</strong></p>
+<figure class="highlight plain"><table><tr><td class="code"><pre><span class="line">A token representing the registration of a SelectableChannel with a Selector.</span><br></pre></td></tr></table></figure>
+<p>Selector是一种类似于token一样的记录数据。当SelectableChannel在Selector中注册时，会生成一个Selector。</p>
+<figure class="highlight plain"><table><tr><td class="code"><pre><span class="line">A selection key is created each time a channel is registered with a selector.  A key remains valid until it is cancelled by invoking its cancel method, by closing its channel, or by closing its selector. </span><br></pre></td></tr></table></figure>
+<p>当channel在selector上注册时，每次都会生成一个selection key，知道channel被关闭时才会销毁这个对应的key。</p>
+<figure class="highlight plain"><table><tr><td class="code"><pre><span class="line">A channel may be registered at most once with any particular selector</span><br></pre></td></tr></table></figure>
+
+<p>一个channel只能绑定一个特定的selector。</p>
+<h4 id="SelectionKeyImpl"><a href="#SelectionKeyImpl" class="headerlink" title="SelectionKeyImpl"></a>SelectionKeyImpl</h4><p>SelectionKeyImpl继承类SelectionKey，用来绑定channel和selector对象。</p>
+<p>通过保存两个主要的数据channel和selector来实现绑定功能：</p>
+<figure class="highlight plain"><table><tr><td class="code"><pre><span class="line">final SelChImpl channel;                            &#x2F;&#x2F; package-private</span><br><span class="line">public final SelectorImpl selector;</span><br></pre></td></tr></table></figure>
+
+
+<h4 id="流程图"><a href="#流程图" class="headerlink" title="流程图"></a>流程图</h4><p>有点复杂，简单画一下流程图来直观的看一下。</p>
+<p><img src="https://s3.ax1x.com/2021/01/06/sAoDXj.png" alt="sAoDXj.png"></p>
+<p>下面来看一下从刚开始创建Channel到Selector.select()怎么个过程：</p>
+<p>首先是创建channel和selector：</p>
+<figure class="highlight plain"><table><tr><td class="code"><pre><span class="line">ServerSocketChannel serverSocketChannel &#x3D; ServerSocketChannel.open();</span><br><span class="line">serverSocketChannel.configureBlocking(false);</span><br><span class="line">serverSocketChannel.socket().bind(new InetSocketAddress(SERVER_PORT));</span><br><span class="line">Selector selector &#x3D; Selector.open();</span><br><span class="line">serverSocketChannel.register(selector, SelectionKey.OP_ACCEPT);</span><br></pre></td></tr></table></figure>
+
+<p>好，重点就是serverSocketChannel.register方法，将channel绑定到selector中，下面是ServerSocketChannel的继承关系：</p>
+<p><img src="https://s3.ax1x.com/2021/01/06/sATfat.png" alt="sATfat.png"></p>
+<p>好第一个重点类：</p>
+<h4 id="AbstractSelectableChannel"><a href="#AbstractSelectableChannel" class="headerlink" title="AbstractSelectableChannel"></a>AbstractSelectableChannel</h4><p>serverSocketChannel.register就是调用的AbstractSelectableChannel.register：</p>
+<figure class="highlight plain"><table><tr><td class="code"><pre><span class="line">SelectionKey k &#x3D; findKey(sel);</span><br><span class="line">if (k !&#x3D; null) &#123;</span><br><span class="line">    k.interestOps(ops);</span><br><span class="line">    k.attach(att);</span><br><span class="line">&#125;</span><br><span class="line">if (k &#x3D;&#x3D; null) &#123;</span><br><span class="line">    &#x2F;&#x2F; New registration</span><br><span class="line">    synchronized (keyLock) &#123;</span><br><span class="line">        if (!isOpen())</span><br><span class="line">            throw new ClosedChannelException();</span><br><span class="line">        k &#x3D; ((AbstractSelector)sel).register(this, ops, att);</span><br><span class="line">        addKey(k);</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br><span class="line">return k;</span><br></pre></td></tr></table></figure>
+
+<p>AbstractSelectableChannel类中有一个数据为：</p>
+<p><strong>SelectionKey[] keys</strong></p>
+<p>首先是findKey通过查找SelectionKey[] keys是否有key，如果有的话直接返回这个key。<br>第一次传入这个Channel时，没有key的话就到了SelectorImpl这个类。</p>
+<p>这就是第二个重要的类</p>
+<h4 id="SelectorImpl"><a href="#SelectorImpl" class="headerlink" title="SelectorImpl"></a>SelectorImpl</h4><p>Base Selector implementation class。<br>Selector基础的实现类。 </p>
+<p>如果创建一个SelectionKey，就通过这个方法：</p>
+<figure class="highlight plain"><table><tr><td class="code"><pre><span class="line">SelectionKeyImpl k &#x3D; new SelectionKeyImpl((SelChImpl)ch, this);</span><br><span class="line">k.attach(attachment);</span><br><span class="line">synchronized (publicKeys) &#123;</span><br><span class="line">    implRegister(k);</span><br><span class="line">&#125;</span><br><span class="line">k.interestOps(ops);</span><br><span class="line">return k;</span><br></pre></td></tr></table></figure>
+
+<p>在创建SelectionKey的同时，还调用了implRegister(k)这个方法。这个方法在SelectorImpl中做了keys.add(SelectionKeyImpl ski)操作。</p>
+<p>下面来详细介绍一下SelectorImpl这个类：</p>
+<figure class="highlight plain"><table><tr><td class="code"><pre><span class="line">&#x2F;&#x2F; The set of keys with data ready for an operation</span><br><span class="line">protected Set&lt;SelectionKey&gt; selectedKeys;</span><br><span class="line"></span><br><span class="line">&#x2F;&#x2F; The set of keys registered with this Selector</span><br><span class="line">protected HashSet&lt;SelectionKey&gt; keys;</span><br><span class="line"></span><br><span class="line">&#x2F;&#x2F; Public views of the key sets</span><br><span class="line">private Set&lt;SelectionKey&gt; publicKeys;             &#x2F;&#x2F; Immutable</span><br><span class="line">private Set&lt;SelectionKey&gt; publicSelectedKeys;     &#x2F;&#x2F; Removal allowed, but not addition</span><br></pre></td></tr></table></figure>
+
+<p>这个类首先声明了四个Set，上面有英文的注释，但是我们直接看这几个Set被操作的时间点来进行对它的理解：</p>
+<ul>
+<li>selectedKeys：当连接传入时（selector.select()触发时），会去判断里面包含了对应的key，如果没有就添加进去，也就是说这个数据是根据连接的channel最先改变的。</li>
+<li>keys：当channel在selector中注册时（serverSocketChannel.register()）添加，当注册方法触发时，会在SelectorImpl和AbstractSelectableChannel两个类中进行保存。</li>
+<li>publicKeys：= Collections.unmodifiableSet(keys);</li>
+<li>publicSelectedKeys：= Util.ungrowableSet(selectedKeys);</li>
+</ul>
+<p>这里有两个挺有意思的方法：<br>Collections.unmodifiableSet和Util.ungrowableSet()</p>
+<p>unmodifiableSet：不能修改的Set。当调用add，remove，clear时会直接报错。<br><strong>但是，由于publicKeys = keys，也就是说，当keys发生改变时publicKeys才能改变。</strong></p>
+<figure class="highlight plain"><table><tr><td class="code"><pre><span class="line">public boolean add(E e) &#123;</span><br><span class="line">    throw new UnsupportedOperationException();</span><br><span class="line">&#125;</span><br><span class="line">public boolean remove(Object o) &#123;</span><br><span class="line">    throw new UnsupportedOperationException();</span><br><span class="line">&#125;</span><br><span class="line">public void clear() &#123;</span><br><span class="line">    throw new UnsupportedOperationException();</span><br><span class="line">&#125;</span><br><span class="line">······</span><br></pre></td></tr></table></figure>
+
+<p>ungrowableSet：和上面的unmodifiableSet类似，但是区别在于ungrowableSet能够进行删除，不能添加，代码如下。<br><strong>如上面所说的，publicSelectedKeys = selectedKeys，publicSelectedKeys是随着selectedKeys而变化，不能单独变化。</strong></p>
+<figure class="highlight plain"><table><tr><td class="code"><pre><span class="line">public boolean remove(Object o)   &#123; return s.remove(o); &#125;</span><br><span class="line">public boolean add(E o)&#123;</span><br><span class="line">    throw new UnsupportedOperationException();</span><br><span class="line">&#125;</span><br><span class="line">public boolean addAll(Collection&lt;? extends E&gt; coll) &#123;</span><br><span class="line">    throw new UnsupportedOperationException();</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>这么做的原因，上面源码中说的是想，把publicKeys和publicSelectedKeys暴漏出来，但不能修改，这样保护了keys和selectedKeys。（再深层次的原因不知道，可能只有写这代码的人知道吧～～）</p>
+<h4 id="小结"><a href="#小结" class="headerlink" title="小结"></a>小结</h4><p>上文中介绍了AbstractSelectableChannel和SelectorImpl两个类，都存储了SelectionKey，但是区别在哪里呢？</p>
+<p><strong>区别：</strong></p>
+<p>注册时：serverSocketChannel.register(selector, SelectionKey.OP_ACCEPT);</p>
+<p>AbstractSelectableChannel  SelectionKey[] keys</p>
+<table>
+<thead>
+<tr>
+<th>类名</th>
+<th>数据</th>
+<th>注册</th>
+<th>连接建立</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>AbstractSelectableChannel</td>
+<td>SelectionKey[] keys</td>
+<td>add(key)</td>
+<td></td>
+</tr>
+<tr>
+<td>SelectorImpl</td>
+<td>Set&lt;SelectionKey&gt; publicKeys</td>
+<td>add(key)</td>
+<td></td>
+</tr>
+<tr>
+<td>SelectorImpl</td>
+<td>Set&lt;SelectionKey&gt; publicSelectedKeys</td>
+<td></td>
+<td>add(key)</td>
+</tr>
+</tbody></table>
+<p>第一次注册创建的channel是@797，连接建立使用的channel也是@797，使用的是一条通道。<br><img src="https://s3.ax1x.com/2021/01/07/sZIvan.png" alt="sZIvan.png"></p>
+]]></content>
+      <categories>
+        <category>后端</category>
+      </categories>
+      <tags>
+        <tag>Java NIO</tag>
+      </tags>
+  </entry>
+  <entry>
+    <title>Java Pass Socket高速数据转发工具</title>
+    <url>/Java-Nio%E5%AE%9E%E7%8E%B0%E8%87%AA%E5%AE%9A%E4%B9%89%E9%80%9A%E4%BF%A1/</url>
+    <content><![CDATA[<p>Client --&gt; Server --&gt; web的通信模式，如下图：<br><img src="https://s3.ax1x.com/2020/11/24/DtkMi8.png" alt="DtkMi8.png"></p>
+<p>Java Pass Socket高速数据转发通道，高效率的SocketServer通信模式（Socket-SocetServer-WebSocket）。</p>
+<a id="more"></a>
+<p>使用Java Nio实现Java服务端通道通信模式，将此模式与传统的WebSocket进行对比（tomcat-embed-websocket-9.0.36-sources.jar） </p>
+<h2 id="传统Java-Socket"><a href="#传统Java-Socket" class="headerlink" title="传统Java Socket"></a>传统Java Socket</h2><p>由于做web的实时通信，现在流行的做法就是使用WebSocket来与服务端进行通信，WebSocket目前已经集成在tomcat中，在Java中很方便就能够直接使用WebSocket。</p>
+<p>但是tomcat中的WebSocket这种通信方式到底效率是如何的，有的项目是通信数据大、频率低，有的项目是通信数据小、频率高，在此分析一下传统的Java Socket的传输原理，与数据在整个过程中的传输过程。</p>
+<p>并且，在后面还会使用Java Nio来根据数据量小，频率高的情景来实现，一种自定义的Java WebSocket，与tomcat集成中的WebSocket进行对比。</p>
+<h3 id="流程图"><a href="#流程图" class="headerlink" title="流程图"></a>流程图</h3><p>Java Server在整个流程中，接收到了Client传输的Socket，然后通过WebSocket发送给Web端，主要功能是进行一个数据的转发。</p>
+<p>在目前通信频率的高的情境下，服务端并不需要对数据进行操作，最多使服务端对数据进行存储，现在的边缘计算发展迅速的背景下，数据微小的处理，完全可以放在Client中，使Client发送出来的数据，直接传输到Web端进行使用。</p>
+<p>所以，Java Server端将更关注的部分是数据的转发效率，数据的转发效率中重要的部分是对数据的拷贝，现在分析Java IO Server，整个流程中的数据拷贝操作和其他耗时的操作。</p>
+<p><img src="https://s3.ax1x.com/2021/01/04/sC4OZF.png" alt="sC4OZF.png"></p>
+<h3 id="创建客户端-服务端"><a href="#创建客户端-服务端" class="headerlink" title="创建客户端-服务端"></a>创建客户端-服务端</h3><p>使用Java IO创建Client，采用传递数据长度+数据的格式，用于在服务端能够根据数据长度，准确的获取数据包，防止数据在发送接收过程中的粘包问题发生。</p>
+<figure class="highlight plain"><table><tr><td class="code"><pre><span class="line">private void doSendMessage(Socket socket) throws IOException, SQLException, InterruptedException &#123;</span><br><span class="line">    OutputStreamWriter w &#x3D; new OutputStreamWriter(socket.getOutputStream(), StandardCharsets.UTF_8);</span><br><span class="line">    Date date &#x3D; new Date();</span><br><span class="line">    log.info(&quot;date:&quot; + date.getTime());</span><br><span class="line">    for (int i &#x3D; 0; i &lt; 1; i++) &#123;</span><br><span class="line">        AircasNetData aircasNetData &#x3D; list.get(i);</span><br><span class="line">        String data &#x3D; aircasNetData.toString().length() + aircasNetData.toString();</span><br><span class="line">        w.write(data);</span><br><span class="line">        w.flush();</span><br><span class="line">    &#125;</span><br><span class="line">    Thread.sleep(1000);</span><br><span class="line">    w.close();</span><br><span class="line">    socket.close();</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>创建Server端,使用普通的Java.net.ServerSocket类，根据获得数据的长度，来准确的获取数据。</p>
+<figure class="highlight plain"><table><tr><td class="code"><pre><span class="line">public void startServer() throws Exception &#123;</span><br><span class="line">    int port &#x3D; 8886;</span><br><span class="line">    ServerSocket server &#x3D; new ServerSocket(port);</span><br><span class="line">    Socket socket &#x3D; null;</span><br><span class="line">    InputStream inputStream &#x3D; null;</span><br><span class="line">    while (true) &#123;</span><br><span class="line">        socket &#x3D; server.accept();</span><br><span class="line">        newGetData(socket);</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line">private void newGetData(Socket socket) throws Exception &#123;</span><br><span class="line">    InputStream inputStream &#x3D; socket.getInputStream();</span><br><span class="line">    byte[] bytes &#x3D; new byte[3];</span><br><span class="line">    for (; ; ) &#123;</span><br><span class="line">        int len &#x3D; inputStream.read(bytes);</span><br><span class="line">        if (len &lt; 0)</span><br><span class="line">            break;</span><br><span class="line">        String datal &#x3D; new String(bytes);</span><br><span class="line">        System.out.println(datal);</span><br><span class="line">        int dataLen &#x3D; Integer.parseInt(datal);</span><br><span class="line">        byte[] bytes1 &#x3D; new byte[dataLen];</span><br><span class="line">        int len1 &#x3D; inputStream.read(bytes1);</span><br><span class="line">        if (len1 &lt; 0)</span><br><span class="line">            break;</span><br><span class="line">        sendBytes(bytes);&#x2F;&#x2F;发送WebSocket给Web端</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<h3 id="Java-Socket通信原理"><a href="#Java-Socket通信原理" class="headerlink" title="Java Socket通信原理"></a>Java Socket通信原理</h3><p>Java Socket Server主要涉及两部分</p>
+<ul>
+<li>Socket数据接收</li>
+<li>WebSocket数据发送</li>
+</ul>
+<h4 id="程序流程图"><a href="#程序流程图" class="headerlink" title="程序流程图"></a>程序流程图</h4><p>程序运行的每一步的流程图，最详细的，没有之一。。</p>
+<p>先是Server接收Client发送过来的Socekt数据流程图。</p>
+<p><img src="https://s3.ax1x.com/2021/01/04/sCbtW4.png" alt="sCbtW4.png"></p>
+<p>Websocket发送数据方法，实验阶段先只使用Strng类型的数据，使用Object数据的话，Java Pass对比没法控制变量，先透露一下，JPass是使用缓存直接发送。</p>
+<p>项目太大了，完整代码有一些不方便透漏的地方，改天整理一下再放到github上，下面是实现方式：</p>
+<figure class="highlight plain"><table><tr><td class="code"><pre><span class="line">private static CopyOnWriteArraySet&lt;WebSocket&gt; webSockets &#x3D; new CopyOnWriteArraySet&lt;WebSocket&gt;();</span><br><span class="line">public void sendMessage(String message) &#123;</span><br><span class="line">       for (WebSocket item : webSockets) &#123;</span><br><span class="line">           try &#123;</span><br><span class="line">               item.session.getBasicRemote().sendText(message);</span><br><span class="line">           &#125; catch (IOException e) &#123;</span><br><span class="line">               e.printStackTrace();</span><br><span class="line">           &#125;</span><br><span class="line">       &#125;</span><br><span class="line">   &#125;</span><br></pre></td></tr></table></figure>
+
+<p>然后是将数据使用tomcat.WebSocket发送给Web的流程图。</p>
+<p><img src="https://s3.ax1x.com/2021/01/04/sCvcff.png" alt="sCvcff.png"></p>
+<p>整个发送阶段分成了4部分，首先是</p>
+<ul>
+<li>PreSend：发送前期操作。</li>
+<li>Encode：数据编码操作，例如将类型转换成UTF-8等。</li>
+<li>Deflate：数据压缩操作，将传输的数据进行一次数据的压缩。</li>
+<li>Send：发送部分，最终调用native方法，将数据发送到channel中。</li>
+</ul>
+<p>其他部分都好理解，下面着重看一下Deflate部分：</p>
+<p>首先讲一下Deflate的作用和使用方式，Deflate主要功能是将数据进行压缩（看网络上使用数据，能将2TB的数据压缩成500GB的大小）。</p>
+<p>正常流程是浏览器与服务端建立连接时，需要通过Header发送自己能否对数据进行解压缩，然后服务端将数据进行压缩发送，能够减少数据传输量，然后到了浏览器那边再进行解压缩显示。</p>
+<blockquote>
+<p>在握手中使用permessage deflate头来指示连接是否应该使用压缩。<br>当客户端发送websocket请求时，如果客户端浏览器支持，它将在websocketextensions头中减少发送的permessage。基于此头的服务器知道是否支持压缩。<br>如果服务器决定使用压缩，它将使用与ACK消息类似的相同报头进行响应。客户端在接收到响应后，根据服务器的响应决定是否压缩数据。<br>一旦服务器和客户机都决定使用压缩，它们就必须分别使用deflate压缩技术来压缩消息。在创建websocket服务器时，必须使用“perMessageDeflate”选项在服务器上启用压缩。ws-node模块默认启用此功能。ws模块负责头标志，因此您不需要隐式地设置它。</p>
+</blockquote>
+<p>这种压缩传递数据方式，感觉上十分不利于，数据量小，频率高的通信方式，稍后做实验验证一下。</p>
+<h4 id="数据流程图"><a href="#数据流程图" class="headerlink" title="数据流程图"></a>数据流程图</h4><p>数据流程图主要是对整个通信流程中的，拷贝操作进行记录，分析整个工具的数据传输效率。</p>
+<p>原始图：</p>
+<p><img src="https://s3.ax1x.com/2021/01/04/sCWE36.png" alt="sCWE36.png"></p>
+<p>优化图：</p>
+<p><img src="https://s3.ax1x.com/2021/01/05/sFyeeJ.png" alt="sFyeeJ.png"></p>
+<p>整个流程中的拷贝操作：</p>
+<ol>
+<li>copy *nativeSocket_buf to buf[]</li>
+<li>copy buf[] to data</li>
+<li>copy data to CharBuffer part</li>
+<li> encode part to encoderBuffer[8KB]</li>
+<li> new MessagePart(encodeBuffer[8KB])</li>
+<li> get MessagePart from messageParts</li>
+<li> copy uncompressedPart.payload to uncompressedPayload </li>
+<li> copy uncompressedPayload to deflater</li>
+<li> deflater.deflate to compressedPayload</li>
+<li> new MessagePart(…compressedPayload)</li>
+<li> get mp from allCompressedParts</li>
+<li> newOperationState(…buffers)</li>
+<li> copy bufs from ByteBuffer[] srcs</li>
+</ol>
+<p>可以看到，一次websocket的传输，需要进行13次的copy操作，并且有的copy操作提前申请buffer的内存大小为8KB，如果是小数据量，高频率的传输模式下，copy操作将是增加传输时延的最大问题所在，同时也是资源浪费的问题所在。</p>
+<h2 id="JPS-Java-Pass-Socket"><a href="#JPS-Java-Pass-Socket" class="headerlink" title="JPS-Java Pass Socket"></a>JPS-Java Pass Socket</h2><p><img src="https://s3.ax1x.com/2020/11/24/DtAIhT.png" alt="DtAIhT.png"></p>
+<h4 id="通信流程"><a href="#通信流程" class="headerlink" title="通信流程"></a>通信流程</h4><p><img src="https://s3.ax1x.com/2020/11/24/DtE4rd.png" alt="DtE4rd.png"></p>
+<p>由客户端Client发出，然后经过Server端记录，通过WebSocket发送给Web端显示。</p>
+<h4 id="可利用条件"><a href="#可利用条件" class="headerlink" title="可利用条件"></a>可利用条件</h4><p>在工程中，基于现阶段能够利用的条件，有如下4条：</p>
+<ol>
+<li>监控平台中Client数据格式基本一致。可以设置固定的buffer或者byte等，节约资源，提高通信效率。</li>
+<li>Client与Server的通信有多种通信方式，例如gRPC双向流通信、Java io中的Socket、netty等。</li>
+<li>平台有Web端显示，Web端现在成熟高效的通信模式基本就只有WebSocket。Web端配置gRPC比较麻烦。</li>
+<li>既要能够接收发送Web端的WebSocket，并且能够实现Client通过Server快速传输。</li>
+</ol>
+<h4 id="Java-Nio实现目标"><a href="#Java-Nio实现目标" class="headerlink" title="Java Nio实现目标"></a>Java Nio实现目标</h4><p>使用Java Nio来进行实现Server端通道模式的通行方式，实现的愿景有：</p>
+<ol>
+<li>能够快速传输，使Server端作为一个通道，通道在快速传输过程中可以使用多线程方式来进行数据的记录。</li>
+<li>使用一个端口，通过Header中字段来进行区分Client和Web，即把Server端多种通信融合成一种通信模式。</li>
+<li>Client传输的数据，格式一致，通过限制数据格式结合Java Nio中的Channel操作来进一步提高通信速度。</li>
+</ol>
+<h3 id="实现"><a href="#实现" class="headerlink" title="实现"></a>实现</h3><h4 id="实现自定义握手"><a href="#实现自定义握手" class="headerlink" title="实现自定义握手"></a>实现自定义握手</h4><p>WebSocket是通过在Header中发送Upgrade: websocket和Sec-WebSocket-Key等给服务器，使得建立连接。</p>
+<p>在本服务中使用同一端口进行实现，故也需要先发送Header数据，服务器收到之后根据具体的字段进行区分，是客户端发送的Socket通信还是Web发送的WebSocket通信。</p>
+]]></content>
+      <categories>
+        <category>后端</category>
+      </categories>
+      <tags>
+        <tag>Java NIO</tag>
+      </tags>
+  </entry>
+  <entry>
+    <title>Java基础</title>
+    <url>/Java%E5%9F%BA%E7%A1%80/</url>
+    <content><![CDATA[<p>Java常用的知识：</p>
+<ul>
+<li>单例模式</li>
+<li>定时器</li>
+<li>多线程<a id="more"></a>
+
+</li>
+</ul>
+<h3 id="单例模式"><a href="#单例模式" class="headerlink" title="单例模式"></a>单例模式</h3><h4 id="Holder模式"><a href="#Holder模式" class="headerlink" title="Holder模式"></a>Holder模式</h4><figure class="highlight plain"><table><tr><td class="code"><pre><span class="line">public class Singleton &#123;</span><br><span class="line">    &#x2F;**</span><br><span class="line">     * 类级的内部类，也就是静态的成员式内部类，该内部类的实例与外部类的实例</span><br><span class="line">     * 没有绑定关系，而且只有被调用到才会装载，从而实现了延迟加载</span><br><span class="line">     *&#x2F;</span><br><span class="line">    private static class SingletonHolder&#123;</span><br><span class="line">        &#x2F;**</span><br><span class="line">         * 静态初始化器，由JVM来保证线程安全</span><br><span class="line">         *&#x2F;</span><br><span class="line">        private static Singleton instance &#x3D; new Singleton();</span><br><span class="line">    &#125;</span><br><span class="line">    &#x2F;**</span><br><span class="line">     * 私有化构造方法</span><br><span class="line">     *&#x2F;</span><br><span class="line">    private Singleton()&#123;</span><br><span class="line">    &#125;</span><br><span class="line">    public static  Singleton getInstance()&#123;</span><br><span class="line">        return SingletonHolder.instance;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p> 优点：将懒加载和线程安全完美结合的一种方式（无锁）。（推荐）</p>
+<h4 id="饿汉模式"><a href="#饿汉模式" class="headerlink" title="饿汉模式"></a>饿汉模式</h4><figure class="highlight plain"><table><tr><td class="code"><pre><span class="line">public class Singleton &#123;</span><br><span class="line"></span><br><span class="line">&#x2F;&#x2F;4：定义一个静态变量来存储创建好的类实例</span><br><span class="line"></span><br><span class="line">&#x2F;&#x2F;直接在这里创建类实例，只会创建一次</span><br><span class="line"></span><br><span class="line">    private static Singleton instance &#x3D; new Singleton();</span><br><span class="line"></span><br><span class="line">&#x2F;&#x2F;1：私有化构造方法，好在内部控制创建实例的数目</span><br><span class="line"></span><br><span class="line">    private Singleton()&#123;</span><br><span class="line"></span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">&#x2F;&#x2F;2：定义一个方法来为客户端提供类实例</span><br><span class="line"></span><br><span class="line">&#x2F;&#x2F;3：这个方法需要定义成类方法，也就是要加static</span><br><span class="line"></span><br><span class="line">&#x2F;&#x2F;这个方法里面就不需要控制代码了</span><br><span class="line"></span><br><span class="line">    public static Singleton getInstance()&#123;</span><br><span class="line"></span><br><span class="line">&#x2F;&#x2F;5：直接使用已经创建好的实例</span><br><span class="line"></span><br><span class="line">        return instance;</span><br><span class="line"></span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p> 优点：饿汉模式天生是线程安全的，使用时没有延迟。</p>
+<p> 缺点：启动时即创建实例，启动慢，有可能造成资源浪费。</p>
+<h3 id="定时器"><a href="#定时器" class="headerlink" title="定时器"></a>定时器</h3><p>使用Timer的schedule，schedule有3个参数：</p>
+<p>schedule(TimerTask task, long delay, long period)<br>第一个为定时任务，根据业务需要重写TimerTask的run方法即可；</p>
+<p>第二个为延时启动，单位毫秒；</p>
+<p>第三个位多久运行一次，单位毫秒；</p>
+<figure class="highlight plain"><table><tr><td class="code"><pre><span class="line">new Timer().schedule(new TimerTask() &#123;</span><br><span class="line">            @Override</span><br><span class="line">            public void run() &#123;</span><br><span class="line">                try &#123;</span><br><span class="line">                    &#x2F;&#x2F;do Something</span><br><span class="line">                &#125; catch (Exception e) &#123;</span><br><span class="line">                    e.printStackTrace();</span><br><span class="line">                &#125;</span><br><span class="line">            &#125;</span><br><span class="line">        &#125;,0,5L * 60 * 1000);</span><br></pre></td></tr></table></figure>
+
+<h3 id="多线程"><a href="#多线程" class="headerlink" title="多线程"></a>多线程</h3><h4 id="实现Runnable接口"><a href="#实现Runnable接口" class="headerlink" title="实现Runnable接口"></a>实现Runnable接口</h4><figure class="highlight plain"><table><tr><td class="code"><pre><span class="line">package ljz;</span><br><span class="line">class MyThread implements Runnable&#123; &#x2F;&#x2F; 实现Runnable接口，作为线程的实现类</span><br><span class="line">    private String name ;       &#x2F;&#x2F; 表示线程的名称</span><br><span class="line">    public MyThread(String name)&#123;</span><br><span class="line">        this.name &#x3D; name ;      &#x2F;&#x2F; 通过构造方法配置name属性</span><br><span class="line">    &#125;</span><br><span class="line">    public void run()&#123;  &#x2F;&#x2F; 覆写run()方法，作为线程 的操作主体</span><br><span class="line">        for(int i&#x3D;0;i&lt;10;i++)&#123;</span><br><span class="line">            System.out.println(name + &quot;运行，i &#x3D; &quot; + i) ;</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;;</span><br><span class="line">public class RunnableDemo01&#123;</span><br><span class="line">    public static void main(String args[])&#123;</span><br><span class="line">        MyThread mt1 &#x3D; new MyThread(&quot;线程A &quot;) ;    &#x2F;&#x2F; 实例化对象</span><br><span class="line">        MyThread mt2 &#x3D; new MyThread(&quot;线程B &quot;) ;    &#x2F;&#x2F; 实例化对象</span><br><span class="line">        Thread t1 &#x3D; new Thread(mt1) ;       &#x2F;&#x2F; 实例化Thread类对象</span><br><span class="line">        Thread t2 &#x3D; new Thread(mt2) ;       &#x2F;&#x2F; 实例化Thread类对象</span><br><span class="line">        t1.start() ;    &#x2F;&#x2F; 启动多线程</span><br><span class="line">        t2.start() ;    &#x2F;&#x2F; 启动多线程</span><br><span class="line">    &#125;</span><br><span class="line">&#125;;</span><br></pre></td></tr></table></figure>
+
+<h4 id="继承Thread类"><a href="#继承Thread类" class="headerlink" title="继承Thread类"></a>继承Thread类</h4><figure class="highlight plain"><table><tr><td class="code"><pre><span class="line">class MyThread extends Thread&#123;  &#x2F;&#x2F; 继承Thread类，作为线程的实现类</span><br><span class="line">    private String name ;       &#x2F;&#x2F; 表示线程的名称</span><br><span class="line">    public MyThread(String name)&#123;</span><br><span class="line">        this.name &#x3D; name ;      &#x2F;&#x2F; 通过构造方法配置name属性</span><br><span class="line">    &#125;</span><br><span class="line">    public void run()&#123;  &#x2F;&#x2F; 覆写run()方法，作为线程 的操作主体</span><br><span class="line">        for(int i&#x3D;0;i&lt;10;i++)&#123;</span><br><span class="line">            System.out.println(name + &quot;运行，i &#x3D; &quot; + i) ;</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;;</span><br><span class="line">public class ThreadDemo02&#123;</span><br><span class="line">    public static void main(String args[])&#123;</span><br><span class="line">        MyThread mt1 &#x3D; new MyThread(&quot;线程A &quot;) ;    &#x2F;&#x2F; 实例化对象</span><br><span class="line">        MyThread mt2 &#x3D; new MyThread(&quot;线程B &quot;) ;    &#x2F;&#x2F; 实例化对象</span><br><span class="line">        mt1.start() ;   &#x2F;&#x2F; 调用线程主体</span><br><span class="line">        mt2.start() ;   &#x2F;&#x2F; 调用线程主体</span><br><span class="line">    &#125;</span><br><span class="line">&#125;;</span><br></pre></td></tr></table></figure>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+]]></content>
+      <categories>
+        <category>Java</category>
+      </categories>
+      <tags>
+        <tag>Java</tag>
+      </tags>
+  </entry>
+  <entry>
     <title>Java线程池</title>
     <url>/Java%E7%BA%BF%E7%A8%8B%E6%B1%A0/</url>
     <content><![CDATA[<p>Java中线程池对于多线程的处理，能够提高很大的效率，最近在看Java NIO、Netty在此重新学习一下Java中的线程池的使用。</p>
@@ -2406,96 +2651,6 @@ align-content是相对于多行情况下，在单行情况下使用：<figure cl
       </tags>
   </entry>
   <entry>
-    <title>Python实现爬虫</title>
-    <url>/Python%E5%AE%9E%E7%8E%B0%E7%88%AC%E8%99%AB/</url>
-    <content><![CDATA[<p>爬虫学的好，牢饭吃得饱～～</p>
-<p>使用Python实现爬虫，首先根据网上项目入门简单爬虫，然后爬取山东省各地市政府招标网站的信息。</p>
-<a id="more"></a>
-
-<h3 id="简单爬虫"><a href="#简单爬虫" class="headerlink" title="简单爬虫"></a>简单爬虫</h3><p>运行主函数：</p>
-<figure class="highlight plain"><table><tr><td class="code"><pre><span class="line">def main():</span><br><span class="line">    for i in range(1, 14):</span><br><span class="line">        url &#x3D; &#39;https:&#x2F;&#x2F;qiushibaike.com&#x2F;text&#x2F;page&#x2F;&#123;&#125;&#39;.format(i)</span><br><span class="line">        html &#x3D; download_page(url)</span><br><span class="line">        get_content(html, i)</span><br><span class="line"></span><br><span class="line"></span><br><span class="line">if __name__ &#x3D;&#x3D; &#39;__main__&#39;:</span><br><span class="line">    main()</span><br><span class="line"></span><br></pre></td></tr></table></figure>
-
-<p>抓取糗事百科的文字，设置url，将网页下载下来，然后处理下载下来的网页。<br><font color="gray">这里使用到requests和BeautifulSoup包，如果没有的话请使用pip install安装</font></p>
-<figure class="highlight plain"><table><tr><td class="code"><pre><span class="line">import requests</span><br><span class="line">from bs4 import BeautifulSoup</span><br><span class="line"></span><br><span class="line">def download_page(url):</span><br><span class="line">    headers &#x3D; &#123;&quot;User-Agent&quot;: &quot;Mozilla&#x2F;5.0 (Windows NT 10.0; Win64; x64; rv:61.0) Gecko&#x2F;20100101 Firefox&#x2F;61.0&quot;&#125;</span><br><span class="line">    r &#x3D; requests.get(url, headers&#x3D;headers)</span><br><span class="line">    return r.text</span><br></pre></td></tr></table></figure>
-<p>这里的到的r是指的Response网页请求的返回信息,r.text指的就是html代码：</p>
-<figure class="highlight plain"><table><tr><td class="code"><pre><span class="line">&lt;!DOCTYPE html</span><br><span class="line">PUBLIC &quot;-&#x2F;&#x2F;W3C&#x2F;&#x2F;DTD XHTML 1.0 Transitional&#x2F;&#x2F;EN&quot; &quot;http:&#x2F;&#x2F;www.w3.org&#x2F;TR&#x2F;xhtml1&#x2F;DTD&#x2F;xhtml1-transitional.dtd&quot;&gt;</span><br><span class="line">&lt;html xmlns&#x3D;&quot;http:&#x2F;&#x2F;www.w3.org&#x2F;1999&#x2F;xhtml&quot;&gt;</span><br><span class="line">&lt;head&gt;</span><br><span class="line">&lt;meta http-equiv&#x3D;&quot;Content-Type&quot; content&#x3D;&quot;text&#x2F;html; charset&#x3D;utf-8&quot; &#x2F;&gt;</span><br><span class="line">&lt;meta http-equiv&#x3D;&quot;X-UA-Compatible&quot; content&#x3D;&quot;chrome&#x3D;1,IE&#x3D;edge&quot;&gt;</span><br><span class="line">&lt;meta name&#x3D;&quot;renderer&quot; content&#x3D;&quot;webkit&quot; &#x2F;&gt;</span><br><span class="line">&lt;meta name&#x3D;&quot;applicable-device&quot; content&#x3D;&quot;pc&quot;&gt;</span><br><span class="line"></span><br><span class="line">······</span><br><span class="line"></span><br><span class="line">&lt;a href&#x3D;&quot;&#x2F;article&#x2F;123739738&quot; target&#x3D;&quot;_blank&quot; class&#x3D;&quot;contentHerf&quot; onclick&#x3D;&quot;_hmt.push([&#39;_trackEvent&#39;,&#39;web-list-content&#39;,&#39;chick&#39;])&quot;&gt;</span><br><span class="line">&lt;div class&#x3D;&quot;content&quot;&gt;</span><br><span class="line">&lt;span&gt;</span><br><span class="line"></span><br><span class="line"></span><br><span class="line">病房里有个大叔在我们科室住过几次院，科室里的护士他基本上都能认出来！&lt;br&#x2F;&gt;接班的时候他发现是我值班，就跟隔壁床的说他血管不好找，每次都要找我扎 针，说我扎 针技术就是好，最后差点吹嘘到我就是闭着眼睛就能扎上！&lt;br&#x2F;&gt;隔壁床听着有点不信他，他就有点不高兴，立马叫上我，非让我把手上的针给拔了重新扎一下。&lt;br&#x2F;&gt;我劝他别这样，手上的留置针其实还能用，他非不听，后来我没办法，在他期待的眼神里给他扎了两下才扎上！&lt;br&#x2F;&gt;他望着隔壁床尴尬的说，可能晚上光线不好才会扎两下的！</span><br><span class="line"></span><br><span class="line">&lt;&#x2F;span&gt;</span><br></pre></td></tr></table></figure>
-
-<p>接下来是处理网页html数据，将有效的信息摘选出来：</p>
-<ol>
-<li>使用BeautifulSoup，将html转换成soup；</li>
-<li>在网页中查看源代码， 看到想要的数据在content标签下，调用soup.find方法，找到&lt;div id=”content”&gt;标签下的数据；</li>
-<li>找到文章列表con.find_all(‘div’, class_=”article”)，在列表中遍历。</li>
-<li>遍历每条数据，调用save_txt方法，保存到txt中。</li>
-</ol>
-<figure class="highlight plain"><table><tr><td class="code"><pre><span class="line">def get_content(html, page):</span><br><span class="line">    output &#x3D; &quot;第&#123;&#125;页 作者：&#123;&#125; 性别：&#123;&#125; 年龄：&#123;&#125; 点赞：&#123;&#125; 评论：&#123;&#125;\n&#123;&#125;\n------------\n&quot;</span><br><span class="line">    soup &#x3D; BeautifulSoup(html, &#39;html.parser&#39;)</span><br><span class="line">    con &#x3D; soup.find(id&#x3D;&#39;content&#39;)</span><br><span class="line">    con_list &#x3D; con.find_all(&#39;div&#39;, class_&#x3D;&quot;article&quot;)</span><br><span class="line">    for i in con_list:</span><br><span class="line">        author &#x3D; i.find(&#39;h2&#39;).string  # 获取作者名字</span><br><span class="line">        content &#x3D; i.find(&#39;div&#39;, class_&#x3D;&#39;content&#39;).find(&#39;span&#39;).get_text()  # 获取内容</span><br><span class="line">        stats &#x3D; i.find(&#39;div&#39;, class_&#x3D;&#39;stats&#39;)</span><br><span class="line">        vote &#x3D; stats.find(&#39;span&#39;, class_&#x3D;&#39;stats-vote&#39;).find(&#39;i&#39;, class_&#x3D;&#39;number&#39;).string</span><br><span class="line">        comment &#x3D; stats.find(&#39;span&#39;, class_&#x3D;&#39;stats-comments&#39;).find(&#39;i&#39;, class_&#x3D;&#39;number&#39;).string</span><br><span class="line">        author_info &#x3D; i.find(&#39;div&#39;, class_&#x3D;&#39;articleGender&#39;)  # 获取作者 年龄，性别</span><br><span class="line">        if author_info is not None:  # 非匿名用户</span><br><span class="line">            class_list &#x3D; author_info[&#39;class&#39;]</span><br><span class="line">            if &quot;womenIcon&quot; in class_list:</span><br><span class="line">                gender &#x3D; &#39;女&#39;</span><br><span class="line">            elif &quot;manIcon&quot; in class_list:</span><br><span class="line">                gender &#x3D; &#39;男&#39;</span><br><span class="line">            else:</span><br><span class="line">                gender &#x3D; &#39;&#39;</span><br><span class="line">            age &#x3D; author_info.string  # 获取年龄</span><br><span class="line">        else:  # 匿名用户</span><br><span class="line">            gender &#x3D; &#39;&#39;</span><br><span class="line">            age &#x3D; &#39;&#39;</span><br><span class="line"></span><br><span class="line">        save_txt(output.format(page, author, gender, age, vote, comment, content))</span><br><span class="line">        </span><br><span class="line">        </span><br><span class="line">def save_txt(*args):</span><br><span class="line">    for i in args:</span><br><span class="line">        with open(&#39;qiubai.txt&#39;, &#39;a&#39;, encoding&#x3D;&#39;utf-8&#39;) as f:</span><br><span class="line">            f.write(i)        </span><br></pre></td></tr></table></figure>
-
-<p>输出：</p>
-<figure class="highlight plain"><table><tr><td class="code"><pre><span class="line">第1页 作者：</span><br><span class="line">夏有凉风秋望月</span><br><span class="line"> 性别：女 年龄：16 点赞：846 评论：26</span><br><span class="line"></span><br><span class="line"></span><br><span class="line"></span><br><span class="line">小时候，对三国是很迷恋的，对于杀又鸟敬猴这招阳谋很是推崇，平时没少对小伙伴们灌输这个思想。由于我们这伙小伙子不太爱学习，老师被班主任罚站，于是我们决定杀又鸟敬候，于是我们伙在一起蹭着月黑风高把校长办公室的玻璃给砸了，还自报了家门，连校长我们都敢招惹看你班主任敢拿我们怎么样。果然杀又鸟儆猴凑效了，校长和班主任让我们这些小又鸟，让我们在全校的猴面前做检讨和保证。。。。</span><br><span class="line"></span><br><span class="line"></span><br><span class="line">------------</span><br><span class="line">第1页 作者：</span><br><span class="line">无书斋主</span><br><span class="line"> 性别：男 年龄：42 点赞：1066 评论：38</span><br><span class="line"></span><br><span class="line"></span><br><span class="line"></span><br><span class="line">本人糗百上用的陈道明图像，觉得他不但温文尔雅还有真性情……昨天外地出差，一糗友特意赶过来一起聚聚，他还带了两个朋友！……打招呼寒暄三杯酒下肚后，这糗友的朋友:他不是无书吧，无书不是长这样吗？（他指着我糗百图像）……我……我是，你说的是明哥！……</span><br><span class="line"></span><br><span class="line"></span><br><span class="line">------------</span><br></pre></td></tr></table></figure>
-<h3 id="爬虫获取拉钩网数据"><a href="#爬虫获取拉钩网数据" class="headerlink" title="爬虫获取拉钩网数据"></a>爬虫获取拉钩网数据</h3><p>先发代码：</p>
-<figure class="highlight plain"><table><tr><td class="code"><pre><span class="line">import requests</span><br><span class="line">import time</span><br><span class="line">import json</span><br><span class="line"></span><br><span class="line"></span><br><span class="line">def main():</span><br><span class="line">    url_start &#x3D; &quot;https:&#x2F;&#x2F;www.lagou.com&#x2F;jobs&#x2F;list_运维?city&#x3D;%E6%88%90%E9%83%BD&amp;cl&#x3D;false&amp;fromSearch&#x3D;true&amp;labelWords&#x3D;&amp;suginput&#x3D;&quot;</span><br><span class="line">    url_parse &#x3D; &quot;https:&#x2F;&#x2F;www.lagou.com&#x2F;jobs&#x2F;positionAjax.json?city&#x3D;成都&amp;needAddtionalResult&#x3D;false&quot;</span><br><span class="line">    headers &#x3D; &#123;</span><br><span class="line">        &#39;Accept&#39;: &#39;application&#x2F;json, text&#x2F;javascript, *&#x2F;*; q&#x3D;0.01&#39;,</span><br><span class="line">        &#39;Referer&#39;: &#39;https:&#x2F;&#x2F;www.lagou.com&#x2F;jobs&#x2F;list_%E8%BF%90%E7%BB%B4?city&#x3D;%E6%88%90%E9%83%BD&amp;cl&#x3D;false&amp;fromSearch&#x3D;true&amp;labelWords&#x3D;&amp;suginput&#x3D;&#39;,</span><br><span class="line">        &#39;User-Agent&#39;: &#39;Mozilla&#x2F;5.0 (Windows NT 10.0; Win64; x64) AppleWebKit&#x2F;537.36 (KHTML, like Gecko) Chrome&#x2F;72.0.3626.121 Safari&#x2F;537.36&#39;</span><br><span class="line">    &#125;</span><br><span class="line">    for x in range(1, 5):</span><br><span class="line">        data &#x3D; &#123;</span><br><span class="line">            &#39;first&#39;: &#39;true&#39;,</span><br><span class="line">            &#39;pn&#39;: str(x),</span><br><span class="line">            &#39;kd&#39;: &#39;运维&#39;</span><br><span class="line">                &#125;</span><br><span class="line">        s &#x3D; requests.Session() # 创建一个session对象</span><br><span class="line">        s.get(url_start, headers&#x3D;headers, timeout&#x3D;3)  # 用session对象发出get请求，请求首页获取cookies</span><br><span class="line">        cookie &#x3D; s.cookies  # 为此次获取的cookies</span><br><span class="line">        response &#x3D; s.post(url_parse, data&#x3D;data, headers&#x3D;headers, cookies&#x3D;cookie, timeout&#x3D;3)  # 获取此次文本</span><br><span class="line">        time.sleep(5)</span><br><span class="line">        response.encoding &#x3D; response.apparent_encoding</span><br><span class="line">        text &#x3D; json.loads(response.text)</span><br><span class="line">        info &#x3D; text[&quot;content&quot;][&quot;positionResult&quot;][&quot;result&quot;]</span><br><span class="line">        for i in info:</span><br><span class="line">            print(i[&quot;companyFullName&quot;])</span><br><span class="line">            companyFullName &#x3D; i[&quot;companyFullName&quot;]</span><br><span class="line">            print(i[&quot;positionName&quot;])</span><br><span class="line">            positionName &#x3D; i[&quot;positionName&quot;]</span><br><span class="line">            print(i[&quot;salary&quot;])</span><br><span class="line">            salary &#x3D; i[&quot;salary&quot;]</span><br><span class="line">            print(i[&quot;companySize&quot;])</span><br><span class="line">            companySize &#x3D; i[&quot;companySize&quot;]</span><br><span class="line">            print(i[&quot;skillLables&quot;])</span><br><span class="line">            skillLables &#x3D; i[&quot;skillLables&quot;]</span><br><span class="line">            print(i[&quot;createTime&quot;])</span><br><span class="line">            createTime &#x3D; i[&quot;createTime&quot;]</span><br><span class="line">            print(i[&quot;district&quot;])</span><br><span class="line">            district &#x3D; i[&quot;district&quot;]</span><br><span class="line">            print(i[&quot;stationname&quot;])</span><br><span class="line">            stationname &#x3D; i[&quot;stationname&quot;]</span><br><span class="line"></span><br><span class="line">if __name__ &#x3D;&#x3D; &#39;__main__&#39;:</span><br><span class="line">    main()</span><br><span class="line"></span><br></pre></td></tr></table></figure>
-<p>有很多写法：<br>发现返回结果为访问太频繁，可以认为拉勾网做了一定的反扒技术，下面在慢慢分析一下拉勾网的请求策略：</p>
-<p>参考网上说的可能性</p>
-<ol>
-<li>拉勾网对cookie动了手脚，cookie具有实时性，只能使用一次。</li>
-<li>拉勾网对获取数据请求之前还有获取cookie的前置请求。</li>
-</ol>
-<h4 id="获取ajax请求"><a href="#获取ajax请求" class="headerlink" title="获取ajax请求"></a>获取ajax请求</h4><figure class="highlight plain"><table><tr><td class="code"><pre><span class="line">json &#x3D; requests.post(url, data, headers&#x3D;headers).json()</span><br></pre></td></tr></table></figure>
-
-
-
-<h4 id="写入到excel中"><a href="#写入到excel中" class="headerlink" title="写入到excel中"></a>写入到excel中</h4><figure class="highlight plain"><table><tr><td class="code"><pre><span class="line">from openpyxl import Workbook</span><br><span class="line"></span><br><span class="line">wb &#x3D; Workbook()</span><br><span class="line">wb.save(&#39;&#123;&#125;职位信息.xlsx&#39;.format(lang_name))</span><br></pre></td></tr></table></figure>
-
-
-
-
-
-<h4 id="写入到数据库中"><a href="#写入到数据库中" class="headerlink" title="写入到数据库中"></a>写入到数据库中</h4><figure class="highlight plain"><table><tr><td class="code"><pre><span class="line">import pymysql.cursors</span><br><span class="line"></span><br><span class="line">def get_conn():</span><br><span class="line">    &#39;&#39;&#39;建立数据库连接&#39;&#39;&#39;</span><br><span class="line">    conn &#x3D; pymysql.connect(host&#x3D;&#39;localhost&#39;,</span><br><span class="line">                           user&#x3D;&#39;root&#39;,</span><br><span class="line">                           password&#x3D;&#39;root&#39;,</span><br><span class="line">                           db&#x3D;&#39;python&#39;,</span><br><span class="line">                           charset&#x3D;&#39;utf8mb4&#39;,</span><br><span class="line">                           cursorclass&#x3D;pymysql.cursors.DictCursor)</span><br><span class="line">    return conn</span><br><span class="line"></span><br><span class="line"></span><br><span class="line">def insert(conn, info):</span><br><span class="line">    &#39;&#39;&#39;数据写入数据库&#39;&#39;&#39;</span><br><span class="line">    with conn.cursor() as cursor:</span><br><span class="line">        sql &#x3D; &quot;INSERT INTO &#96;python&#96; (&#96;shortname&#96;, &#96;fullname&#96;, &#96;industryfield&#96;, &#96;companySize&#96;, &#96;salary&#96;, &#96;city&#96;, &#96;education&#96;) VALUES (%s, %s, %s, %s, %s, %s, %s)&quot;</span><br><span class="line">        cursor.execute(sql, info)</span><br><span class="line">    conn.commit()</span><br></pre></td></tr></table></figure>
-
-<h4 id="输出"><a href="#输出" class="headerlink" title="输出"></a>输出</h4><figure class="highlight plain"><table><tr><td class="code"><pre><span class="line">北京中富金石咨询有限公司四川分公司</span><br><span class="line">linux运维工程师</span><br><span class="line">10k-15k</span><br><span class="line">150-500人</span><br><span class="line">[&#39;Linux&#39;, &#39;CI&#x2F;CD&#39;, &#39;Python&#39;, &#39;Ansible&#39;]</span><br><span class="line">2020-11-04 09:27:12</span><br><span class="line">高新区</span><br><span class="line">倪家桥</span><br><span class="line">成都华栖云科技有限公司</span><br><span class="line">高级运维工程师</span><br><span class="line">10k-15k</span><br><span class="line">500-2000人</span><br><span class="line">[&#39;Linux&#39;]</span><br><span class="line">2020-11-04 09:23:18</span><br><span class="line">高新区</span><br><span class="line">天府五街</span><br><span class="line">成都心田花开科技有限公司</span><br><span class="line">高级运维工程师</span><br><span class="line">15k-20k</span><br><span class="line">500-2000人</span><br><span class="line">[&#39;CI&#x2F;CD&#39;, &#39;Python&#39;, &#39;运维开发&#39;, &#39;系统运维&#39;]</span><br><span class="line">2020-11-04 09:04:40</span><br><span class="line">武侯区</span><br><span class="line">桐梓林</span><br><span class="line">新蛋科技（成都）有限公司</span><br><span class="line">运维开发工程师</span><br><span class="line">15k-25k</span><br><span class="line">500-2000人</span><br><span class="line">[&#39;python&#39;, &#39;IT 自动化方向&#39;]</span><br><span class="line">2020-11-04 08:56:22</span><br><span class="line">高新区</span><br><span class="line">天府五街</span><br><span class="line">成都维堰信息技术服务有限公司陕西分公司</span><br><span class="line">数据库运维工程师</span><br><span class="line">10k-15k</span><br><span class="line">150-500人</span><br><span class="line">[&#39;数据库运维&#39;, &#39;DBA&#39;, &#39;Hadoop&#39;, &#39;Oracle&#39;]</span><br><span class="line">2020-11-04 08:42:38</span><br><span class="line">郫县</span><br><span class="line">None</span><br><span class="line">科大讯飞股份有限公司</span><br><span class="line">运维工程师-运营商BU-成都</span><br><span class="line">15k-20k</span><br><span class="line">2000人以上</span><br><span class="line">[&#39;Shell&#39;, &#39;Linux&#39;, &#39;Python&#39;, &#39;MySQL&#39;]</span><br><span class="line">2020-11-04 09:28:02</span><br><span class="line">双流县</span><br><span class="line">兴隆湖</span><br><span class="line">成都心田花开科技有限公司</span><br><span class="line">运维总监</span><br><span class="line">20k-30k</span><br><span class="line">500-2000人</span><br><span class="line">[&#39;运维管理&#39;, &#39;高级技术管理&#39;, &#39;领导力&#39;, &#39;技术管理&#39;]</span><br><span class="line">2020-11-04 09:04:39</span><br><span class="line">武侯区</span><br><span class="line">桐梓林</span><br><span class="line">深圳前海中电慧安科技有限公司</span><br><span class="line">运维工程师（四川地区）</span><br><span class="line">6k-12k</span><br><span class="line">50-150人</span><br><span class="line">[&#39;MongoDB&#39;, &#39;大数据运维&#39;, &#39;MySql&#39;, &#39;Tomcat&#39;]</span><br><span class="line">2020-11-04 08:57:23</span><br><span class="line">高新区</span><br><span class="line">天府五街</span><br><span class="line">成都华栖云科技有限公司</span><br><span class="line">中级售后运维工程师</span><br><span class="line">8k-12k</span><br><span class="line">500-2000人</span><br><span class="line">[&#39;Linux&#39;, &#39;MySQL&#39;, &#39;SQLServer&#39;, &#39;Oracle&#39;]</span><br><span class="line">2020-11-04 09:23:18</span><br><span class="line">高新区</span><br><span class="line">天府五街</span><br><span class="line">北京字节跳动科技有限公司</span><br><span class="line">分布式存储运维开发工程师</span><br><span class="line">20k-40k</span><br><span class="line">2000人以上</span><br><span class="line">[]</span><br><span class="line">2020-11-04 03:27:45</span><br><span class="line">武侯区</span><br><span class="line">天府五街</span><br><span class="line">北京字节跳动科技有限公司</span><br><span class="line">运维研发工程师</span><br><span class="line">30k-60k</span><br><span class="line">2000人以上</span><br><span class="line">[]</span><br><span class="line">2020-11-04 03:22:22</span><br><span class="line">高新区</span><br><span class="line">天府五街</span><br><span class="line">博睿天下（成都）科技有限责任公司</span><br><span class="line">运维工程师</span><br><span class="line">10k-15k</span><br><span class="line">50-150人</span><br><span class="line">[&#39;DevOps&#x2F;AIOps&#39;]</span><br><span class="line">2020-11-04 08:51:53</span><br><span class="line">高新区</span><br><span class="line">天府三街</span><br><span class="line">成都云智天下科技股份有限公司</span><br><span class="line">系统运维工程师</span><br><span class="line">9k-11k</span><br><span class="line">50-150人</span><br><span class="line">[&#39;Linux&#39;, &#39;DevOps&#x2F;AIOps&#39;, &#39;CI&#x2F;CD&#39;]</span><br><span class="line">2020-11-04 09:27:48</span><br><span class="line">高新区</span><br><span class="line">红牌楼</span><br><span class="line">四川久远银海软件股份有限公司</span><br><span class="line">软件运维开发工程师</span><br><span class="line">4k-8k</span><br><span class="line">2000人以上</span><br><span class="line">[&#39;Java&#39;, &#39;运维开发&#39;, &#39;系统运维&#39;]</span><br><span class="line">2020-11-04 09:22:48</span><br><span class="line">锦江区</span><br><span class="line">None</span><br><span class="line">成都维堰信息技术服务有限公司陕西分公司</span><br><span class="line">linux运维工程师</span><br><span class="line">8k-15k</span><br><span class="line">150-500人</span><br><span class="line">[&#39;Python&#39;, &#39;现场运维&#39;, &#39;K8s&#x2F;Docker&#39;, &#39;open stack&#39;]</span><br><span class="line">2020-11-04 08:42:34</span><br><span class="line">郫县</span><br><span class="line">None</span><br></pre></td></tr></table></figure>
-
-
-<h3 id="获取济南市政府招标内容"><a href="#获取济南市政府招标内容" class="headerlink" title="获取济南市政府招标内容"></a>获取济南市政府招标内容</h3><p>代码：</p>
-<figure class="highlight plain"><table><tr><td class="code"><pre><span class="line">import requests</span><br><span class="line">from bs4 import BeautifulSoup</span><br><span class="line"></span><br><span class="line"></span><br><span class="line">def download_page(url):</span><br><span class="line">    headers &#x3D; &#123;&quot;User-Agent&quot;: &quot;Mozilla&#x2F;5.0 (Windows NT 10.0; Win64; x64; rv:61.0) Gecko&#x2F;20100101 Firefox&#x2F;61.0&quot;&#125;</span><br><span class="line">    r &#x3D; requests.get(url, headers&#x3D;headers)</span><br><span class="line">    return r.text</span><br><span class="line"></span><br><span class="line"></span><br><span class="line">def get_content(html):</span><br><span class="line">    output &#x3D; &quot;标题：&#123;&#125;   日期：&#123;&#125;\n------------\n&quot;</span><br><span class="line">    soup &#x3D; BeautifulSoup(html, &#39;html.parser&#39;)</span><br><span class="line">    con &#x3D; soup.find(id&#x3D;&#39;content&#39;)</span><br><span class="line">    con_list &#x3D; con.find_all(&#39;li&#39;)</span><br><span class="line">    for i in con_list:</span><br><span class="line">        a &#x3D; i.find(&quot;a&quot;).text</span><br><span class="line">        d &#x3D; i.find(&quot;span&quot;, class_&#x3D;&quot;span2&quot;).text</span><br><span class="line"></span><br><span class="line">        save_txt(output.format(a, d))</span><br><span class="line"></span><br><span class="line"></span><br><span class="line">def save_txt(*args):</span><br><span class="line">    for i in args:</span><br><span class="line">        with open(&#39;jn.txt&#39;, &#39;a&#39;, encoding&#x3D;&#39;utf-8&#39;) as f:</span><br><span class="line">            f.write(i)</span><br><span class="line"></span><br><span class="line"></span><br><span class="line">def main():</span><br><span class="line">    url &#x3D; &#39;http:&#x2F;&#x2F;jnggzy.jinan.gov.cn&#x2F;jnggzyztb&#x2F;front&#x2F;noticelist.do?type&#x3D;1&amp;xuanxiang&#x3D;1&amp;area&#x3D;&#39;</span><br><span class="line">    html &#x3D; download_page(url)</span><br><span class="line">    get_content(html)</span><br><span class="line"></span><br><span class="line"></span><br><span class="line">if __name__ &#x3D;&#x3D; &#39;__main__&#39;:</span><br><span class="line">    main()</span><br></pre></td></tr></table></figure>
-
-
-<p>解析获取内容时可以使用</p>
-<ul>
-<li>i.find(“a”).text</li>
-<li>i.find(“a”).get_text()</li>
-<li>i.find(“a”).string  </li>
-</ul>
-<p>方式来进行获取解析内容，这里只用到了标题名称和日期，将解析的内容写到txt文件中。</p>
-<p><strong>问题：通过上面代码获取到的内容，并不是最新的内容</strong></p>
-<figure class="highlight plain"><table><tr><td class="code"><pre><span class="line">标题：济南市生态环境局济南市部分城镇集中式饮用水水...   日期：2020-06-11</span><br><span class="line">------------</span><br><span class="line">标题：商河县残疾人家庭无障碍改造项目招标公告   日期：2020-05-18</span><br><span class="line">------------</span><br><span class="line">标题：济南职业学院济南职业学院现代学徒制管理...   日期：2020-04-01</span><br><span class="line">------------</span><br><span class="line">标题：济南信息工程学校济南信息工程学校普通图...   日期：2020-01-09</span><br><span class="line">------------</span><br><span class="line">标题：山东省济南市人民检察院山东省济南市人民...   日期：2019-12-20</span><br><span class="line">------------</span><br><span class="line">标题：济南护理职业学院济南护理职业学院消防工...   日期：2019-06-13</span><br><span class="line">------------</span><br><span class="line">标题：济南市济阳区回河街道办事处回跺路改造工程   日期：2019-05-27</span><br><span class="line">------------</span><br><span class="line">标题：济南市排水管理服务中心济南市排水管理服...   日期：2019-01-10</span><br><span class="line">------------</span><br><span class="line">标题：山东省济南中学山东省济南中学软件开发服务竞争...   日期：2018-08-31</span><br><span class="line">------------</span><br><span class="line">标题：济南市食品药品监督管理局济南市食品药品监督管...   日期：2018-08-31</span><br><span class="line">------------</span><br><span class="line">标题：山东省济南第七中学足球训练营采购竞争性磋商公...   日期：2018-08-31</span><br><span class="line">------------</span><br><span class="line">标题：济南市技师学院济南市技师学院空调、电梯维修和...   日期：2018-08-31</span><br><span class="line">------------</span><br><span class="line">标题：济南市农业科学研究院济南市农业科学研究院试验...   日期：2018-08-31</span><br><span class="line">------------</span><br><span class="line">标题：济南信息工程学校济南信息工程学校物业管理服务...   日期：2018-08-31</span><br><span class="line">------------</span><br><span class="line">标题：济南市城乡交通运输委员会济南市主城区道路及公...   日期：2018-08-31</span><br><span class="line">------------</span><br></pre></td></tr></table></figure>
-
-<p><strong>初步估计：</strong><br>网页是通过http://jnggzy.jinan.gov.cn/jnggzyztb/front/search.do这个请求获取最新的内容，并不是打开网页就是最新的数据。</p>
-<p>下一步就是想办法获取search.do这个请求的数据</p>
-<p><strong>步骤一：</strong><br>根据chrome的控制台，将From Data转换成source格式，放在url后方：</p>
-<figure class="highlight plain"><table><tr><td class="code"><pre><span class="line">Form Data：area&#x3D;&amp;type&#x3D;1&amp;xuanxiang&#x3D;%E6%8B%9B%E6%A0%87%E5%85%AC%E5%91%8A&amp;subheading&#x3D;&amp;pagenum&#x3D;1</span><br></pre></td></tr></table></figure>
-
-
-<p><strong>步骤二：</strong><br>配置连接header</p>
-<figure class="highlight plain"><table><tr><td class="code"><pre><span class="line">def download_page(url):</span><br><span class="line">    headers &#x3D; &#123;</span><br><span class="line">        &#39;Accept&#39;: &#39;*&#x2F;*&#39;,</span><br><span class="line">        &#39;Referer&#39;: &#39;http:&#x2F;&#x2F;jnggzy.jinan.gov.cn&#x2F;jnggzyztb&#x2F;front&#x2F;noticelist.do?type&#x3D;1&amp;xuanxiang&#x3D;1&amp;area&#x3D;&#39;,</span><br><span class="line">        &#39;Origin&#39;: &#39;http:&#x2F;&#x2F;jnggzy.jinan.gov.cn&#39;,</span><br><span class="line">        &#39;User-Agent&#39;: &#39;Mozilla&#x2F;5.0 (Macintosh; Intel Mac OS X 10_14_6) AppleWebKit&#x2F;537.36 (KHTML, like Gecko) Chrome&#x2F;86.0.4240.183 Safari&#x2F;537.36&#39;</span><br><span class="line">    &#125;</span><br><span class="line">    r &#x3D; requests.post(url, headers&#x3D;headers, timeout&#x3D;3)</span><br><span class="line">    return json.loads(r.text)</span><br></pre></td></tr></table></figure>
-
-<p><strong>步骤三：</strong><br>解析连接数据</p>
-<figure class="highlight plain"><table><tr><td class="code"><pre><span class="line">def get_content(html):</span><br><span class="line">    output &#x3D; &quot;标题：&#123;&#125;   日期：&#123;&#125;\n------------\n&quot;</span><br><span class="line">    params &#x3D; html.get(&quot;params&quot;)</span><br><span class="line">    result &#x3D; params.get(&quot;str&quot;)</span><br><span class="line">    con_list &#x3D; BeautifulSoup(result).find_all(&quot;li&quot;)</span><br><span class="line">    for i in con_list:</span><br><span class="line">        a &#x3D; i.find(&quot;a&quot;).text</span><br><span class="line">        d &#x3D; i.find(&quot;span&quot;, class_&#x3D;&quot;span2&quot;).text</span><br><span class="line">        save_txt(output.format(a, d))</span><br></pre></td></tr></table></figure>
-<p><strong>步骤四：</strong><br>数据结果</p>
-<figure class="highlight plain"><table><tr><td class="code"><pre><span class="line">标题：【电子全流程】济南市机械化清扫大队车辆保险竞争性磋商公告   日期：2020-11-04</span><br><span class="line">------------</span><br><span class="line">标题：【电子全流程】济南市南部山区管理委员会综合管理执法局济南市...   日期：2020-11-04</span><br><span class="line">------------</span><br><span class="line">标题：【电子全流程】中国共产党济南市委员会宣传部印刷服务竞争性磋...   日期：2020-11-04</span><br><span class="line">------------</span><br><span class="line">标题：【电子全流程】中国共产党济南市委员会宣传部印刷服务竞争性磋...   日期：2020-11-04</span><br><span class="line">------------</span><br><span class="line">标题：【电子全流程】山东省实验中学东校扫描仪竞争性谈判公告   日期：2020-11-04</span><br><span class="line">------------</span><br><span class="line">标题：【电子全流程】莱芜职业技术学院技术测量实训室建设公开招标公...   日期：2020-11-04</span><br><span class="line">------------</span><br><span class="line">标题：【电子全流程】济南市城市管理局济南市固体废弃物分类专项规划...   日期：2020-11-04</span><br><span class="line">------------</span><br><span class="line">标题：【电子全流程】济南市历城区发展和改革局济南市历城区发展和改...   日期：2020-11-04</span><br><span class="line">------------</span><br><span class="line">标题：【电子全流程】莱芜职业技术学院商管系学生创新创业实训室建设...   日期：2020-11-04</span><br><span class="line">------------</span><br><span class="line">标题：【电子全流程】莱芜职业技术学院智能工厂虚拟仿真与云服务实训...   日期：2020-11-04</span><br><span class="line">------------</span><br></pre></td></tr></table></figure>
-<h4 id="获取跳转链接"><a href="#获取跳转链接" class="headerlink" title="获取跳转链接"></a>获取跳转链接</h4><p>获得的数据，只存在一个点击事件，只要将对应的id数据存到数据库中，就能分析点击事件组成跳转链接。</p>
-<figure class="highlight plain"><table><tr><td class="code"><pre><span class="line">&#39;showview(&#39;E6BB8EE65366081B72346771888505B6&#39;,1)&#39;</span><br></pre></td></tr></table></figure>
-<p>使用正则表达式：</p>
-<figure class="highlight plain"><table><tr><td class="code"><pre><span class="line">rex &#x3D; &quot;(&#39;(.+?)&#39;,&quot;</span><br></pre></td></tr></table></figure>
-<p>直接获取到E6BB8EE65366081B72346771888505B6，将id存到数据库中，在前端显示时，组合成跳转链接。</p>
-<h4 id="写入数据库"><a href="#写入数据库" class="headerlink" title="写入数据库"></a>写入数据库</h4><p>连接数据库,使用pymysql包建立连接：</p>
-<figure class="highlight plain"><table><tr><td class="code"><pre><span class="line">import pymysql.cursors</span><br><span class="line"></span><br><span class="line"></span><br><span class="line">def get_conn():</span><br><span class="line">    &#39;&#39;&#39;建立数据库连接&#39;&#39;&#39;</span><br><span class="line">    conn &#x3D; pymysql.connect(host&#x3D;&#39;localhost&#39;,</span><br><span class="line">                           user&#x3D;&#39;root&#39;,</span><br><span class="line">                           password&#x3D;&#39;******&#39;,</span><br><span class="line">                           db&#x3D;&#39;spider&#39;,</span><br><span class="line">                           charset&#x3D;&#39;utf8mb4&#39;,</span><br><span class="line">                           cursorclass&#x3D;pymysql.cursors.DictCursor)</span><br><span class="line">    return conn</span><br></pre></td></tr></table></figure>
-
-<p>将数据传入insert方法，我这里传入的是一个元组类型：</p>
-<figure class="highlight plain"><table><tr><td class="code"><pre><span class="line">def insert(conn, *info):</span><br><span class="line">    &#39;&#39;&#39;数据写入数据库&#39;&#39;&#39;</span><br><span class="line">    with conn.cursor() as cursor:</span><br><span class="line">        sql &#x3D; &quot;INSERT INTO &#96;jinanshizhengfu&#96; (&#96;title&#96;, &#96;link&#96;, &#96;date&#96;, &#96;city&#96;) VALUES (%s, %s, %s, %s)&quot;</span><br><span class="line">        n &#x3D; cursor.execute(sql, info)</span><br><span class="line">    conn.commit()</span><br></pre></td></tr></table></figure>]]></content>
-      <categories>
-        <category>Python</category>
-      </categories>
-  </entry>
-  <entry>
     <title>ASM4.0</title>
     <url>/ASM4-0/</url>
     <content><![CDATA[<p>ASM库的目标是生成、转换和分析已编译的Java类，这些类以字节数组的形式表示(因为它们存储在磁盘上并加载到Java虚拟机中)。</p>
@@ -2718,8 +2873,8 @@ align-content是相对于多行情况下，在单行情况下使用：<figure cl
         <category>后端</category>
       </categories>
       <tags>
-        <tag>Java</tag>
         <tag>ASM</tag>
+        <tag>Java</tag>
       </tags>
   </entry>
   <entry>
@@ -3307,7 +3462,41 @@ align-content是相对于多行情况下，在单行情况下使用：<figure cl
 <p>运行的时候就能够直接这样运行：</p>
 <figure class="highlight plain"><table><tr><td class="code"><pre><span class="line">$ &#x2F;etc&#x2F;init.d&#x2F;yourapp start|stop|restart</span><br><span class="line"></span><br><span class="line">或</span><br><span class="line"></span><br><span class="line">$ service aircas-monitor start</span><br></pre></td></tr></table></figure>
 
+<h4 id="配置nginx"><a href="#配置nginx" class="headerlink" title="配置nginx"></a>配置nginx</h4><h5 id="安装相关依赖"><a href="#安装相关依赖" class="headerlink" title="安装相关依赖"></a>安装相关依赖</h5><figure class="highlight plain"><table><tr><td class="code"><pre><span class="line">&#x2F;&#x2F;gcc是linux下的编译器</span><br><span class="line">$ yum -y install gcc</span><br><span class="line"></span><br><span class="line">&#x2F;&#x2F;pcre是一个perl库，包括perl兼容的正则表达式库，nginx的http模块使用pcre来解析正则表达式，所以需要安装pcre库。</span><br><span class="line">$ yum install -y pcre pcre-devel</span><br><span class="line"></span><br><span class="line">&#x2F;&#x2F;zlib库提供了很多种压缩和解压缩方式nginx使用zlib对http包的内容进行gzip，所以需要安装</span><br><span class="line">$ yum install -y zlib zlib-devel</span><br><span class="line"></span><br><span class="line">&#x2F;&#x2F;openssl是web安全通信的基石</span><br><span class="line">$ yum install -y openssl openssl-devel</span><br></pre></td></tr></table></figure>
 
+<h5 id="下载nginx包"><a href="#下载nginx包" class="headerlink" title="下载nginx包"></a>下载nginx包</h5><figure class="highlight plain"><table><tr><td class="code"><pre><span class="line">$ wget http:&#x2F;&#x2F;nginx.org&#x2F;download&#x2F;nginx-1.9.9.tar.gz  </span><br></pre></td></tr></table></figure>
+
+<p>解压</p>
+<figure class="highlight plain"><table><tr><td class="code"><pre><span class="line">$ tar -zxvf  nginx-1.9.9.tar.gz</span><br></pre></td></tr></table></figure>
+
+<p>进入到目录编译</p>
+<figure class="highlight plain"><table><tr><td class="code"><pre><span class="line">$ .&#x2F;configure</span><br><span class="line"> </span><br><span class="line">$ make</span><br><span class="line"> </span><br><span class="line">$ make install</span><br></pre></td></tr></table></figure>
+
+<p><strong>nginx默认安装目录是：/usr/local/nginx</strong></p>
+<h5 id="启动nginx"><a href="#启动nginx" class="headerlink" title="启动nginx"></a>启动nginx</h5><p>需要进入到/usr/local/nginx/sbin目录中启动</p>
+<figure class="highlight plain"><table><tr><td class="code"><pre><span class="line">$ cd &#x2F;usr&#x2F;local&#x2F;nginx&#x2F;sbin</span><br><span class="line">$ .&#x2F;nginx</span><br></pre></td></tr></table></figure>
+
+<p>停止的话可以使用</p>
+<figure class="highlight plain"><table><tr><td class="code"><pre><span class="line">$ .&#x2F;nginx -s quit</span><br><span class="line">$ .&#x2F;nginx -s reload</span><br></pre></td></tr></table></figure>
+
+<h5 id="修改nginx配置文件"><a href="#修改nginx配置文件" class="headerlink" title="修改nginx配置文件"></a>修改nginx配置文件</h5><p>将路径配置到自己的主页上，然后添加上try_files就能够解决，直接访问非主页404的问题。然后在重启nginx。</p>
+<figure class="highlight plain"><table><tr><td class="code"><pre><span class="line">location &#x2F; &#123;</span><br><span class="line">    root   &#x2F;aircas&#x2F;dist;</span><br><span class="line">    index  index.html index.htm;</span><br><span class="line">    try_files $uri $uri&#x2F; &#x2F;index.html; </span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+
+
+<h5 id="配置systemctl服务启动"><a href="#配置systemctl服务启动" class="headerlink" title="配置systemctl服务启动"></a>配置systemctl服务启动</h5><p>在系统目录中创建.service文件</p>
+<figure class="highlight plain"><table><tr><td class="code"><pre><span class="line">$ vi &#x2F;lib&#x2F;systemd&#x2F;system&#x2F;nginx.service</span><br></pre></td></tr></table></figure>
+<p>文件内容是根据本次安装nginx位置</p>
+<figure class="highlight plain"><table><tr><td class="code"><pre><span class="line">[Unit]</span><br><span class="line">Description&#x3D;The nginx HTTP and reverse proxy server</span><br><span class="line">After&#x3D;network.target</span><br><span class="line"></span><br><span class="line">[Service]</span><br><span class="line">Type&#x3D;forking</span><br><span class="line">ExecStart&#x3D;&#x2F;usr&#x2F;local&#x2F;nginx&#x2F;sbin&#x2F;nginx</span><br><span class="line">ExecStop&#x3D;&#x2F;usr&#x2F;local&#x2F;nginx&#x2F;sbin&#x2F;nginx -s quit</span><br><span class="line">ExecReload&#x3D;&#x2F;usr&#x2F;local&#x2F;nginx&#x2F;sbin&#x2F;nginx -s reload</span><br><span class="line">PrivateTmp&#x3D;true</span><br><span class="line"></span><br><span class="line">[Install]</span><br><span class="line">WantedBy&#x3D;multi-user.target</span><br></pre></td></tr></table></figure>
+
+<p>重新加载systemd</p>
+<figure class="highlight plain"><table><tr><td class="code"><pre><span class="line">$ systemctl daemon-reload</span><br></pre></td></tr></table></figure>
+
+<p>设置完之后就能通过命令来使用nginx</p>
+<figure class="highlight plain"><table><tr><td class="code"><pre><span class="line">启动命令</span><br><span class="line">$ sytstemctl start nginx.service</span><br><span class="line"></span><br><span class="line">终止命令</span><br><span class="line">$ systemctl stop nginx.service</span><br></pre></td></tr></table></figure>
+
+
+<p><strong>如果用yum install命令安装的，yum命令会自动创建nginx.service文件,这里是使用源码安装的，需要自己创建nginx.service文件</strong></p>
 <h4 id="附"><a href="#附" class="headerlink" title="附"></a>附</h4><h5 id="jar包修改"><a href="#jar包修改" class="headerlink" title="jar包修改"></a>jar包修改</h5><p>将jar包解压，解压命令：</p>
 <figure class="highlight plain"><table><tr><td class="code"><pre><span class="line">$ unzip ***.jar -d A</span><br></pre></td></tr></table></figure>
 

@@ -1,0 +1,576 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=2">
+<meta name="theme-color" content="#222">
+<meta name="generator" content="Hexo 5.2.0">
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/my_boy.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/my_boy.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/my_boy.png">
+  <link rel="mask-icon" href="/images/my_boy.png" color="#222">
+
+<link rel="stylesheet" href="/css/main.css">
+
+
+<link rel="stylesheet" href="/lib/font-awesome/css/all.min.css">
+  <link rel="stylesheet" href="/lib/pace/pace-theme-minimal.min.css">
+  <script src="/lib/pace/pace.min.js"></script>
+
+<script id="hexo-configurations">
+    var NexT = window.NexT || {};
+    var CONFIG = {"hostname":"wtlizzz.github.io","root":"/","scheme":"Mist","version":"7.8.0","exturl":false,"sidebar":{"position":"left","display":"post","padding":18,"offset":12,"onmobile":false},"copycode":{"enable":true,"show_result":true,"style":"flat"},"back2top":{"enable":true,"sidebar":false,"scrollpercent":false},"bookmark":{"enable":false,"color":"#222","save":"auto"},"fancybox":false,"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"algolia":{"hits":{"per_page":10},"labels":{"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}},"localsearch":{"enable":true,"trigger":"auto","top_n_per_article":-1,"unescape":false,"preload":false},"motion":{"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}},"path":"search.xml"};
+  </script>
+
+  <meta name="description" content="Client --&gt; Server --&gt; web的通信模式，如下图： Java Pass Socket高速数据转发通道，高效率的SocketServer通信模式（Socket-SocetServer-WebSocket）。">
+<meta property="og:type" content="article">
+<meta property="og:title" content="Java Pass Socket高速数据转发工具">
+<meta property="og:url" content="https://wtlizzz.github.io/Java-Nio%E5%AE%9E%E7%8E%B0%E8%87%AA%E5%AE%9A%E4%B9%89%E9%80%9A%E4%BF%A1/index.html">
+<meta property="og:site_name" content="文韬">
+<meta property="og:description" content="Client --&gt; Server --&gt; web的通信模式，如下图： Java Pass Socket高速数据转发通道，高效率的SocketServer通信模式（Socket-SocetServer-WebSocket）。">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="https://s3.ax1x.com/2020/11/24/DtkMi8.png">
+<meta property="og:image" content="https://s3.ax1x.com/2021/01/04/sC4OZF.png">
+<meta property="og:image" content="https://s3.ax1x.com/2021/01/04/sCbtW4.png">
+<meta property="og:image" content="https://s3.ax1x.com/2021/01/04/sCvcff.png">
+<meta property="og:image" content="https://s3.ax1x.com/2021/01/04/sCWE36.png">
+<meta property="og:image" content="https://s3.ax1x.com/2021/01/05/sFyeeJ.png">
+<meta property="og:image" content="https://s3.ax1x.com/2020/11/24/DtAIhT.png">
+<meta property="og:image" content="https://s3.ax1x.com/2020/11/24/DtE4rd.png">
+<meta property="article:published_time" content="2021-01-04T01:42:00.000Z">
+<meta property="article:modified_time" content="2021-01-06T01:42:11.916Z">
+<meta property="article:author" content="Wtli">
+<meta property="article:tag" content="Java NIO">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="https://s3.ax1x.com/2020/11/24/DtkMi8.png">
+
+<link rel="canonical" href="https://wtlizzz.github.io/Java-Nio%E5%AE%9E%E7%8E%B0%E8%87%AA%E5%AE%9A%E4%B9%89%E9%80%9A%E4%BF%A1/">
+
+
+<script id="page-configurations">
+  // https://hexo.io/docs/variables.html
+  CONFIG.page = {
+    sidebar: "",
+    isHome : false,
+    isPost : true,
+    lang   : 'zh-CN'
+  };
+</script>
+
+  <title>Java Pass Socket高速数据转发工具 | 文韬</title>
+  
+
+
+  <script>
+    var _hmt = _hmt || [];
+    (function() {
+      var hm = document.createElement("script");
+      hm.src = "https://hm.baidu.com/hm.js?7f4b8b54f803186c40c333785b8aee31";
+      var s = document.getElementsByTagName("script")[0];
+      s.parentNode.insertBefore(hm, s);
+    })();
+  </script>
+
+
+
+
+  <noscript>
+  <style>
+  .use-motion .brand,
+  .use-motion .menu-item,
+  .sidebar-inner,
+  .use-motion .post-block,
+  .use-motion .pagination,
+  .use-motion .comments,
+  .use-motion .post-header,
+  .use-motion .post-body,
+  .use-motion .collection-header { opacity: initial; }
+
+  .use-motion .site-title,
+  .use-motion .site-subtitle {
+    opacity: initial;
+    top: initial;
+  }
+
+  .use-motion .logo-line-before i { left: initial; }
+  .use-motion .logo-line-after i { right: initial; }
+  </style>
+</noscript>
+
+  <script src="https://apps.bdimg.com/libs/jquery/2.1.4/jquery.min.js">
+  </script>
+</head>
+
+
+<body itemscope itemtype="http://schema.org/WebPage">
+  <div class="container use-motion">
+    <div class="headband"></div>
+
+    <header class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-container">
+  <div class="site-nav-toggle">
+    <div class="toggle" aria-label="切换导航栏">
+      <span class="toggle-line toggle-line-first"></span>
+      <span class="toggle-line toggle-line-middle"></span>
+      <span class="toggle-line toggle-line-last"></span>
+    </div>
+  </div>
+
+  <div class="site-meta">
+
+    <a href="/" class="brand" rel="start">
+      <span class="logo-line-before"><i></i></span>
+      <h1 class="site-title">文韬</h1>
+      <span class="logo-line-after"><i></i></span>
+    </a>
+      <p class="site-subtitle" itemprop="description">始终如一</p>
+  </div>
+
+  <div class="site-nav-right">
+    <div class="toggle popup-trigger">
+        <i class="fa fa-search fa-fw fa-lg"></i>
+    </div>
+  </div>
+</div>
+
+
+
+
+<nav class="site-nav">
+  <ul id="menu" class="main-menu menu">
+        <li class="menu-item menu-item-home">
+
+    <a href="/" rel="section"><i class="fa fa-home fa-fw"></i>首页</a>
+
+  </li>
+        <li class="menu-item menu-item-目录">
+
+    <a href="/archives/" rel="section"><i class="fa fa-archive fa-fw"></i>目录</a>
+
+  </li>
+        <li class="menu-item menu-item-tags">
+
+    <a href="/tags/" rel="section"><i class="fa fa-tags fa-fw"></i>标签</a>
+
+  </li>
+        <li class="menu-item menu-item-categories">
+
+    <a href="/categories/" rel="section"><i class="fa fa-th fa-fw"></i>分类</a>
+
+  </li>
+        <li class="menu-item menu-item-commonweal">
+
+    <a href="/404/" rel="section"><i class="fa fa-heartbeat fa-fw"></i>公益</a>
+
+  </li>
+        <li class="menu-item menu-item-about">
+
+    <a href="/about/" rel="section"><i class="fa fa-user fa-fw"></i>关于</a>
+
+  </li>
+      <li class="menu-item menu-item-search">
+        <a role="button" class="popup-trigger"><i class="fa fa-search fa-fw"></i>搜索
+        </a>
+      </li>
+  </ul>
+</nav>
+
+
+
+  <div class="search-pop-overlay">
+    <div class="popup search-popup">
+        <div class="search-header">
+  <span class="search-icon">
+    <i class="fa fa-search"></i>
+  </span>
+  <div class="search-input-container">
+    <input autocomplete="off" autocapitalize="off"
+           placeholder="搜索..." spellcheck="false"
+           type="search" class="search-input">
+  </div>
+  <span class="popup-btn-close">
+    <i class="fa fa-times-circle"></i>
+  </span>
+</div>
+<div id="search-result">
+  <div id="no-result">
+    <i class="fa fa-spinner fa-pulse fa-5x fa-fw"></i>
+  </div>
+</div>
+
+    </div>
+  </div>
+
+</div>
+    </header>
+
+    
+  <div class="back-to-top">
+    <i class="fa fa-arrow-up"></i>
+    <span>0%</span>
+  </div>
+
+
+    <main class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          
+
+          <div class="content post posts-expand">
+            
+
+    
+  
+  
+  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="zh-CN">
+    <link itemprop="mainEntityOfPage" href="https://wtlizzz.github.io/Java-Nio%E5%AE%9E%E7%8E%B0%E8%87%AA%E5%AE%9A%E4%B9%89%E9%80%9A%E4%BF%A1/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/avatar.jpg">
+      <meta itemprop="name" content="Wtli">
+      <meta itemprop="description" content="本博客记录博主学习内容">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="文韬">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          Java Pass Socket高速数据转发工具
+        </h1>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-calendar"></i>
+              </span>
+              <span class="post-meta-item-text">发表于</span>
+
+              <time title="创建时间：2021-01 09:42:00" itemprop="dateCreated datePublished" datetime="2021-01-04T09:42:00+08:00">2021-01</time>
+            </span>
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-folder"></i>
+              </span>
+              <span class="post-meta-item-text">分类于</span>
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/%E5%90%8E%E7%AB%AF/" itemprop="url" rel="index"><span itemprop="name">后端</span></a>
+                </span>
+            </span>
+
+          
+            <span class="post-meta-item" title="本文字数">
+              <span class="post-meta-item-icon">
+                <i class="far fa-file-word"></i>
+              </span>
+                <span class="post-meta-item-text">本文字数：</span>
+              <span>4.7k</span>
+            </span>
+            <span class="post-meta-item" title="阅读时长">
+              <span class="post-meta-item-icon">
+                <i class="far fa-clock"></i>
+              </span>
+                <span class="post-meta-item-text">阅读时长 &asymp;</span>
+              <span>4 分钟</span>
+            </span>
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+        <p>Client --&gt; Server --&gt; web的通信模式，如下图：<br><img src="https://s3.ax1x.com/2020/11/24/DtkMi8.png" alt="DtkMi8.png"></p>
+<p>Java Pass Socket高速数据转发通道，高效率的SocketServer通信模式（Socket-SocetServer-WebSocket）。</p>
+<a id="more"></a>
+<p>使用Java Nio实现Java服务端通道通信模式，将此模式与传统的WebSocket进行对比（tomcat-embed-websocket-9.0.36-sources.jar） </p>
+<h2 id="传统Java-Socket"><a href="#传统Java-Socket" class="headerlink" title="传统Java Socket"></a>传统Java Socket</h2><p>由于做web的实时通信，现在流行的做法就是使用WebSocket来与服务端进行通信，WebSocket目前已经集成在tomcat中，在Java中很方便就能够直接使用WebSocket。</p>
+<p>但是tomcat中的WebSocket这种通信方式到底效率是如何的，有的项目是通信数据大、频率低，有的项目是通信数据小、频率高，在此分析一下传统的Java Socket的传输原理，与数据在整个过程中的传输过程。</p>
+<p>并且，在后面还会使用Java Nio来根据数据量小，频率高的情景来实现，一种自定义的Java WebSocket，与tomcat集成中的WebSocket进行对比。</p>
+<h3 id="流程图"><a href="#流程图" class="headerlink" title="流程图"></a>流程图</h3><p>Java Server在整个流程中，接收到了Client传输的Socket，然后通过WebSocket发送给Web端，主要功能是进行一个数据的转发。</p>
+<p>在目前通信频率的高的情境下，服务端并不需要对数据进行操作，最多使服务端对数据进行存储，现在的边缘计算发展迅速的背景下，数据微小的处理，完全可以放在Client中，使Client发送出来的数据，直接传输到Web端进行使用。</p>
+<p>所以，Java Server端将更关注的部分是数据的转发效率，数据的转发效率中重要的部分是对数据的拷贝，现在分析Java IO Server，整个流程中的数据拷贝操作和其他耗时的操作。</p>
+<p><img src="https://s3.ax1x.com/2021/01/04/sC4OZF.png" alt="sC4OZF.png"></p>
+<h3 id="创建客户端-服务端"><a href="#创建客户端-服务端" class="headerlink" title="创建客户端-服务端"></a>创建客户端-服务端</h3><p>使用Java IO创建Client，采用传递数据长度+数据的格式，用于在服务端能够根据数据长度，准确的获取数据包，防止数据在发送接收过程中的粘包问题发生。</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br></pre></td><td class="code"><pre><span class="line">private void doSendMessage(Socket socket) throws IOException, SQLException, InterruptedException &#123;</span><br><span class="line">    OutputStreamWriter w &#x3D; new OutputStreamWriter(socket.getOutputStream(), StandardCharsets.UTF_8);</span><br><span class="line">    Date date &#x3D; new Date();</span><br><span class="line">    log.info(&quot;date:&quot; + date.getTime());</span><br><span class="line">    for (int i &#x3D; 0; i &lt; 1; i++) &#123;</span><br><span class="line">        AircasNetData aircasNetData &#x3D; list.get(i);</span><br><span class="line">        String data &#x3D; aircasNetData.toString().length() + aircasNetData.toString();</span><br><span class="line">        w.write(data);</span><br><span class="line">        w.flush();</span><br><span class="line">    &#125;</span><br><span class="line">    Thread.sleep(1000);</span><br><span class="line">    w.close();</span><br><span class="line">    socket.close();</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>创建Server端,使用普通的Java.net.ServerSocket类，根据获得数据的长度，来准确的获取数据。</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br></pre></td><td class="code"><pre><span class="line">public void startServer() throws Exception &#123;</span><br><span class="line">    int port &#x3D; 8886;</span><br><span class="line">    ServerSocket server &#x3D; new ServerSocket(port);</span><br><span class="line">    Socket socket &#x3D; null;</span><br><span class="line">    InputStream inputStream &#x3D; null;</span><br><span class="line">    while (true) &#123;</span><br><span class="line">        socket &#x3D; server.accept();</span><br><span class="line">        newGetData(socket);</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line">private void newGetData(Socket socket) throws Exception &#123;</span><br><span class="line">    InputStream inputStream &#x3D; socket.getInputStream();</span><br><span class="line">    byte[] bytes &#x3D; new byte[3];</span><br><span class="line">    for (; ; ) &#123;</span><br><span class="line">        int len &#x3D; inputStream.read(bytes);</span><br><span class="line">        if (len &lt; 0)</span><br><span class="line">            break;</span><br><span class="line">        String datal &#x3D; new String(bytes);</span><br><span class="line">        System.out.println(datal);</span><br><span class="line">        int dataLen &#x3D; Integer.parseInt(datal);</span><br><span class="line">        byte[] bytes1 &#x3D; new byte[dataLen];</span><br><span class="line">        int len1 &#x3D; inputStream.read(bytes1);</span><br><span class="line">        if (len1 &lt; 0)</span><br><span class="line">            break;</span><br><span class="line">        sendBytes(bytes);&#x2F;&#x2F;发送WebSocket给Web端</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<h3 id="Java-Socket通信原理"><a href="#Java-Socket通信原理" class="headerlink" title="Java Socket通信原理"></a>Java Socket通信原理</h3><p>Java Socket Server主要涉及两部分</p>
+<ul>
+<li>Socket数据接收</li>
+<li>WebSocket数据发送</li>
+</ul>
+<h4 id="程序流程图"><a href="#程序流程图" class="headerlink" title="程序流程图"></a>程序流程图</h4><p>程序运行的每一步的流程图，最详细的，没有之一。。</p>
+<p>先是Server接收Client发送过来的Socekt数据流程图。</p>
+<p><img src="https://s3.ax1x.com/2021/01/04/sCbtW4.png" alt="sCbtW4.png"></p>
+<p>Websocket发送数据方法，实验阶段先只使用Strng类型的数据，使用Object数据的话，Java Pass对比没法控制变量，先透露一下，JPass是使用缓存直接发送。</p>
+<p>项目太大了，完整代码有一些不方便透漏的地方，改天整理一下再放到github上，下面是实现方式：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line">private static CopyOnWriteArraySet&lt;WebSocket&gt; webSockets &#x3D; new CopyOnWriteArraySet&lt;WebSocket&gt;();</span><br><span class="line">public void sendMessage(String message) &#123;</span><br><span class="line">       for (WebSocket item : webSockets) &#123;</span><br><span class="line">           try &#123;</span><br><span class="line">               item.session.getBasicRemote().sendText(message);</span><br><span class="line">           &#125; catch (IOException e) &#123;</span><br><span class="line">               e.printStackTrace();</span><br><span class="line">           &#125;</span><br><span class="line">       &#125;</span><br><span class="line">   &#125;</span><br></pre></td></tr></table></figure>
+
+<p>然后是将数据使用tomcat.WebSocket发送给Web的流程图。</p>
+<p><img src="https://s3.ax1x.com/2021/01/04/sCvcff.png" alt="sCvcff.png"></p>
+<p>整个发送阶段分成了4部分，首先是</p>
+<ul>
+<li>PreSend：发送前期操作。</li>
+<li>Encode：数据编码操作，例如将类型转换成UTF-8等。</li>
+<li>Deflate：数据压缩操作，将传输的数据进行一次数据的压缩。</li>
+<li>Send：发送部分，最终调用native方法，将数据发送到channel中。</li>
+</ul>
+<p>其他部分都好理解，下面着重看一下Deflate部分：</p>
+<p>首先讲一下Deflate的作用和使用方式，Deflate主要功能是将数据进行压缩（看网络上使用数据，能将2TB的数据压缩成500GB的大小）。</p>
+<p>正常流程是浏览器与服务端建立连接时，需要通过Header发送自己能否对数据进行解压缩，然后服务端将数据进行压缩发送，能够减少数据传输量，然后到了浏览器那边再进行解压缩显示。</p>
+<blockquote>
+<p>在握手中使用permessage deflate头来指示连接是否应该使用压缩。<br>当客户端发送websocket请求时，如果客户端浏览器支持，它将在websocketextensions头中减少发送的permessage。基于此头的服务器知道是否支持压缩。<br>如果服务器决定使用压缩，它将使用与ACK消息类似的相同报头进行响应。客户端在接收到响应后，根据服务器的响应决定是否压缩数据。<br>一旦服务器和客户机都决定使用压缩，它们就必须分别使用deflate压缩技术来压缩消息。在创建websocket服务器时，必须使用“perMessageDeflate”选项在服务器上启用压缩。ws-node模块默认启用此功能。ws模块负责头标志，因此您不需要隐式地设置它。</p>
+</blockquote>
+<p>这种压缩传递数据方式，感觉上十分不利于，数据量小，频率高的通信方式，稍后做实验验证一下。</p>
+<h4 id="数据流程图"><a href="#数据流程图" class="headerlink" title="数据流程图"></a>数据流程图</h4><p>数据流程图主要是对整个通信流程中的，拷贝操作进行记录，分析整个工具的数据传输效率。</p>
+<p>原始图：</p>
+<p><img src="https://s3.ax1x.com/2021/01/04/sCWE36.png" alt="sCWE36.png"></p>
+<p>优化图：</p>
+<p><img src="https://s3.ax1x.com/2021/01/05/sFyeeJ.png" alt="sFyeeJ.png"></p>
+<p>整个流程中的拷贝操作：</p>
+<ol>
+<li>copy *nativeSocket_buf to buf[]</li>
+<li>copy buf[] to data</li>
+<li>copy data to CharBuffer part</li>
+<li> encode part to encoderBuffer[8KB]</li>
+<li> new MessagePart(encodeBuffer[8KB])</li>
+<li> get MessagePart from messageParts</li>
+<li> copy uncompressedPart.payload to uncompressedPayload </li>
+<li> copy uncompressedPayload to deflater</li>
+<li> deflater.deflate to compressedPayload</li>
+<li> new MessagePart(…compressedPayload)</li>
+<li> get mp from allCompressedParts</li>
+<li> newOperationState(…buffers)</li>
+<li> copy bufs from ByteBuffer[] srcs</li>
+</ol>
+<p>可以看到，一次websocket的传输，需要进行13次的copy操作，并且有的copy操作提前申请buffer的内存大小为8KB，如果是小数据量，高频率的传输模式下，copy操作将是增加传输时延的最大问题所在，同时也是资源浪费的问题所在。</p>
+<h2 id="JPS-Java-Pass-Socket"><a href="#JPS-Java-Pass-Socket" class="headerlink" title="JPS-Java Pass Socket"></a>JPS-Java Pass Socket</h2><p><img src="https://s3.ax1x.com/2020/11/24/DtAIhT.png" alt="DtAIhT.png"></p>
+<h4 id="通信流程"><a href="#通信流程" class="headerlink" title="通信流程"></a>通信流程</h4><p><img src="https://s3.ax1x.com/2020/11/24/DtE4rd.png" alt="DtE4rd.png"></p>
+<p>由客户端Client发出，然后经过Server端记录，通过WebSocket发送给Web端显示。</p>
+<h4 id="可利用条件"><a href="#可利用条件" class="headerlink" title="可利用条件"></a>可利用条件</h4><p>在工程中，基于现阶段能够利用的条件，有如下4条：</p>
+<ol>
+<li>监控平台中Client数据格式基本一致。可以设置固定的buffer或者byte等，节约资源，提高通信效率。</li>
+<li>Client与Server的通信有多种通信方式，例如gRPC双向流通信、Java io中的Socket、netty等。</li>
+<li>平台有Web端显示，Web端现在成熟高效的通信模式基本就只有WebSocket。Web端配置gRPC比较麻烦。</li>
+<li>既要能够接收发送Web端的WebSocket，并且能够实现Client通过Server快速传输。</li>
+</ol>
+<h4 id="Java-Nio实现目标"><a href="#Java-Nio实现目标" class="headerlink" title="Java Nio实现目标"></a>Java Nio实现目标</h4><p>使用Java Nio来进行实现Server端通道模式的通行方式，实现的愿景有：</p>
+<ol>
+<li>能够快速传输，使Server端作为一个通道，通道在快速传输过程中可以使用多线程方式来进行数据的记录。</li>
+<li>使用一个端口，通过Header中字段来进行区分Client和Web，即把Server端多种通信融合成一种通信模式。</li>
+<li>Client传输的数据，格式一致，通过限制数据格式结合Java Nio中的Channel操作来进一步提高通信速度。</li>
+</ol>
+<h3 id="实现"><a href="#实现" class="headerlink" title="实现"></a>实现</h3><h4 id="实现自定义握手"><a href="#实现自定义握手" class="headerlink" title="实现自定义握手"></a>实现自定义握手</h4><p>WebSocket是通过在Header中发送Upgrade: websocket和Sec-WebSocket-Key等给服务器，使得建立连接。</p>
+<p>在本服务中使用同一端口进行实现，故也需要先发送Header数据，服务器收到之后根据具体的字段进行区分，是客户端发送的Socket通信还是Web发送的WebSocket通信。</p>
+
+    </div>
+
+    
+    
+    
+
+      <footer class="post-footer">
+          
+          <div class="post-tags">
+              <a href="/tags/Java-NIO/" rel="tag"><i class="fa fa-tag"></i> Java NIO</a>
+          </div>
+
+        
+
+
+        
+    <div class="post-nav">
+      <div class="post-nav-item">
+    <a href="/Netty%E6%90%9E%E6%87%82%E9%9B%B6%E6%8B%B7%E8%B4%9D/" rel="prev" title="Netty搞懂零拷贝">
+      <i class="fa fa-chevron-left"></i> Netty搞懂零拷贝
+    </a></div>
+      <div class="post-nav-item">
+    <a href="/Java-Nio-SelectionKey/" rel="next" title="Java Nio ServerSocketChannel原理">
+      Java Nio ServerSocketChannel原理 <i class="fa fa-chevron-right"></i>
+    </a></div>
+    </div>
+      </footer>
+    
+  </article>
+  
+  
+  
+
+
+
+          </div>
+          
+
+<script>
+  window.addEventListener('tabs:register', () => {
+    let { activeClass } = CONFIG.comments;
+    if (CONFIG.comments.storage) {
+      activeClass = localStorage.getItem('comments_active') || activeClass;
+    }
+    if (activeClass) {
+      let activeTab = document.querySelector(`a[href="#comment-${activeClass}"]`);
+      if (activeTab) {
+        activeTab.click();
+      }
+    }
+  });
+  if (CONFIG.comments.storage) {
+    window.addEventListener('tabs:click', event => {
+      if (!event.target.matches('.tabs-comment .tab-content .tab-pane')) return;
+      let commentClass = event.target.classList[1];
+      localStorage.setItem('comments_active', commentClass);
+    });
+  }
+</script>
+
+        </div>
+          
+  
+  <div class="toggle sidebar-toggle">
+    <span class="toggle-line toggle-line-first"></span>
+    <span class="toggle-line toggle-line-middle"></span>
+    <span class="toggle-line toggle-line-last"></span>
+  </div>
+
+  <aside class="sidebar">
+    <div class="sidebar-inner">
+
+      <ul class="sidebar-nav motion-element">
+        <li class="sidebar-nav-toc">
+          文章目录
+        </li>
+        <li class="sidebar-nav-overview">
+          站点概览
+        </li>
+      </ul>
+
+      <!--noindex-->
+      <div class="post-toc-wrap sidebar-panel">
+          <div class="post-toc motion-element"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#%E4%BC%A0%E7%BB%9FJava-Socket"><span class="nav-number">1.</span> <span class="nav-text">传统Java Socket</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#%E6%B5%81%E7%A8%8B%E5%9B%BE"><span class="nav-number">1.1.</span> <span class="nav-text">流程图</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E5%88%9B%E5%BB%BA%E5%AE%A2%E6%88%B7%E7%AB%AF-%E6%9C%8D%E5%8A%A1%E7%AB%AF"><span class="nav-number">1.2.</span> <span class="nav-text">创建客户端-服务端</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#Java-Socket%E9%80%9A%E4%BF%A1%E5%8E%9F%E7%90%86"><span class="nav-number">1.3.</span> <span class="nav-text">Java Socket通信原理</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#%E7%A8%8B%E5%BA%8F%E6%B5%81%E7%A8%8B%E5%9B%BE"><span class="nav-number">1.3.1.</span> <span class="nav-text">程序流程图</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#%E6%95%B0%E6%8D%AE%E6%B5%81%E7%A8%8B%E5%9B%BE"><span class="nav-number">1.3.2.</span> <span class="nav-text">数据流程图</span></a></li></ol></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#JPS-Java-Pass-Socket"><span class="nav-number">2.</span> <span class="nav-text">JPS-Java Pass Socket</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#%E9%80%9A%E4%BF%A1%E6%B5%81%E7%A8%8B"><span class="nav-number">2.0.1.</span> <span class="nav-text">通信流程</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#%E5%8F%AF%E5%88%A9%E7%94%A8%E6%9D%A1%E4%BB%B6"><span class="nav-number">2.0.2.</span> <span class="nav-text">可利用条件</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#Java-Nio%E5%AE%9E%E7%8E%B0%E7%9B%AE%E6%A0%87"><span class="nav-number">2.0.3.</span> <span class="nav-text">Java Nio实现目标</span></a></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E5%AE%9E%E7%8E%B0"><span class="nav-number">2.1.</span> <span class="nav-text">实现</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#%E5%AE%9E%E7%8E%B0%E8%87%AA%E5%AE%9A%E4%B9%89%E6%8F%A1%E6%89%8B"><span class="nav-number">2.1.1.</span> <span class="nav-text">实现自定义握手</span></a></li></ol></li></ol></li></ol></div>
+      </div>
+      <!--/noindex-->
+
+      <div class="site-overview-wrap sidebar-panel">
+        <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+    <img class="site-author-image" itemprop="image" alt="Wtli"
+      src="/images/avatar.jpg">
+  <p class="site-author-name" itemprop="name">Wtli</p>
+  <div class="site-description" itemprop="description">本博客记录博主学习内容</div>
+</div>
+<div class="site-state-wrap motion-element">
+  <nav class="site-state">
+      <div class="site-state-item site-state-posts">
+          <a href="/archives">
+          <span class="site-state-item-count">46</span>
+          <span class="site-state-item-name">日志</span>
+        </a>
+      </div>
+      <div class="site-state-item site-state-categories">
+            <a href="/categories/">
+          
+        <span class="site-state-item-count">8</span>
+        <span class="site-state-item-name">分类</span></a>
+      </div>
+      <div class="site-state-item site-state-tags">
+            <a href="/tags/">
+          
+        <span class="site-state-item-count">30</span>
+        <span class="site-state-item-name">标签</span></a>
+      </div>
+  </nav>
+</div>
+
+
+
+      </div>
+
+    </div>
+  </aside>
+  <div id="sidebar-dimmer"></div>
+
+
+      </div>
+      <div class="cat-to-top cd-top faa-float animated"></div>
+
+
+    </main>
+
+    <footer class="footer">
+      <div class="footer-inner">
+        
+
+        
+
+<div class="copyright">
+  
+  &copy; 2020 – 
+  <span itemprop="copyrightYear">2021</span>
+  <span class="with-love">
+    <i class="fa fa-heart"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">Wtli</span>
+</div>
+
+        
+
+
+
+
+
+
+
+
+      </div>
+    </footer>
+  </div>
+
+  
+  <script src="/lib/anime.min.js"></script>
+  <script src="/lib/velocity/velocity.min.js"></script>
+  <script src="/lib/velocity/velocity.ui.min.js"></script>
+
+<script src="/js/utils.js"></script>
+
+<script src="/js/motion.js"></script>
+
+
+<script src="/js/schemes/muse.js"></script>
+
+
+<script src="/js/next-boot.js"></script>
+
+
+
+
+  
+
+
+
+
+  
+<script src="/js/local-search.js"></script>
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+
+  
+
+<script src="/live2dw/lib/L2Dwidget.min.js?094cbace49a39548bed64abff5988b05"></script><script>L2Dwidget.init({"pluginRootPath":"live2dw/","pluginJsPath":"lib/","pluginModelPath":"assets/","tagMode":false,"log":false,"model":{"jsonPath":"/live2dw/assets/wanko.model.json"},"display":{"position":"right","width":150,"height":300},"mobile":{"show":true},"react":{"opacity":0.7}});</script></body>
+</html>
