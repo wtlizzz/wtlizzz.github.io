@@ -12,9 +12,19 @@
   cursor: url("/images/cursor.ico"), pointer;
   opacity: 1;
 }
+@media (max-width: 991px) {
+  .cd-top {
+    display: none;
+  }
+}
 .cd-top.cd-is-visible {
   opacity: 1;
   top: -226px;
+}
+@media (max-width: 991px) {
+  .cd-top.cd-is-visible {
+    display: none;
+  }
 }
 .faa-float.animated,
 .faa-float.animated-hover:hover,
@@ -1235,7 +1245,7 @@ pre .javascript .function {
 }
 .links-of-author a::before,
 .links-of-author span.exturl::before {
-  background: #ffb4ac;
+  background: #2a7d9d;
   border-radius: 50%;
   content: ' ';
   display: inline-block;
