@@ -29,15 +29,15 @@
 <meta property="og:site_name" content="文韬">
 <meta property="og:description" content="Docker的简单实践一个webserver--nginx。">
 <meta property="og:locale" content="zh_CN">
-<meta property="og:image" content="https://s1.ax1x.com/2020/09/27/0k1Umt.png">
-<meta property="og:image" content="https://s1.ax1x.com/2020/09/27/0k3lBq.png">
-<meta property="og:image" content="https://s1.ax1x.com/2020/09/27/0k0unS.png">
+<meta property="og:image" content="https://wtlizzz.github.io/images/pasted-13.png">
+<meta property="og:image" content="https://wtlizzz.github.io/images/pasted-14.png">
+<meta property="og:image" content="https://wtlizzz.github.io/images/pasted-15.png">
 <meta property="article:published_time" content="2020-09-27T07:36:00.000Z">
-<meta property="article:modified_time" content="2020-09-28T02:43:11.382Z">
+<meta property="article:modified_time" content="2021-02-25T06:42:00.358Z">
 <meta property="article:author" content="Wtli">
 <meta property="article:tag" content="Docker">
 <meta name="twitter:card" content="summary">
-<meta name="twitter:image" content="https://s1.ax1x.com/2020/09/27/0k1Umt.png">
+<meta name="twitter:image" content="https://wtlizzz.github.io/images/pasted-13.png">
 
 <link rel="canonical" href="https://wtlizzz.github.io/Docker%E5%AE%9E%E8%B7%B5/">
 
@@ -291,7 +291,7 @@
 </ol>
 <p>如果是在Linux 本机运行的 Docker，或者如果使用的是 Docker for Mac、Docker for Windows，那么可以直接访问：<a target="_blank" rel="noopener" href="http://localhost/">http://localhost</a>   如果使用的是 Docker Toolbox，或者是在虚拟机、云服务器上安装的Docker，则需要将 localhost 换为虚拟机地址或者实际云服务器地址。</p>
 <p>然后我们可以看到nginx欢迎界面：</p>
-<p><a target="_blank" rel="noopener" href="https://imgchr.com/i/0k1Umt"><img src="https://s1.ax1x.com/2020/09/27/0k1Umt.png" alt="0k1Umt.png"></a></p>
+<p><img src="/images/pasted-13.png" alt="upload successful"></p>
 <p>现在，假设我们非常不喜欢这个欢迎页面，我们希望改成欢迎 Docker 的文字，我 们可以使用 docker exec 命令进入容器，修改其内容。</p>
 <figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">$ docker exec -it webserver bash</span><br></pre></td></tr></table></figure>
 
@@ -300,7 +300,8 @@
 
 <p>我们修改了容器的文件，也就是改动了容器的存储层。我们可以通过命令看到具体的改动。</p>
 <figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">$ docker diff</span><br></pre></td></tr></table></figure>
-<p>运行之后我们可以看到webserver容器的改动<br><img src="https://s1.ax1x.com/2020/09/27/0k3lBq.png" alt="0k3lBq.png"></p>
+<p>运行之后我们可以看到webserver容器的改动</p>
+<p><img src="/images/pasted-14.png" alt="upload successful"></p>
 <ul>
 <li>A    创建了文件或目录  </li>
 <li>D    删除了文件或目录  </li>
@@ -329,8 +330,7 @@
 <p>在Dockerfile 文件所在目录执行：</p>
 <figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">$ docker build -t nginx:v3 .</span><br></pre></td></tr></table></figure>
 
-
-<p><img src="https://s1.ax1x.com/2020/09/27/0k0unS.png" alt="0k0unS.png"></p>
+<p><img src="/images/pasted-15.png" alt="upload successful"></p>
 <h4 id="镜像构建上下文（Context）"><a href="#镜像构建上下文（Context）" class="headerlink" title="镜像构建上下文（Context）"></a>镜像构建上下文（Context）</h4><p>如果注意，会看到 docker build 命令最后有一个 ‘.’ 。 ‘.’ 表示当前目录，而 Dockerfile 就在当前目录，因此不少初学者以为这个路径是在指定 Dockerfile 所在路径，这么理解其实是不准确的。如果对应上面的命令格式，你可能会发现，这是在指定上下文路径。</p>
 <p>首先我们要理解 docker build 的工作原理。Docker 在运行时分为 Docker 引擎 （也就是服务端守护进程）和客户端工具。Docker 的引擎提供了一组 REST API， 被称为 Docker Remote API，而如 docker 命令这样的客户端工具，则是通过这组 API 与 Docker 引擎交互，从而完成各种功能。因此，虽然表面上我们好像是在 本机执行各种 docker 功能，但实际上，一切都是使用的远程调用形式在服务端 （Docker 引擎）完成。也因为这种 C/S 设计，让我们操作远程服务器的 Docker 引擎变得轻而易举。</p>
 <p>当我们进行镜像构建的时候，并非所有定制都会通过 RUN 指令完成，经常会需要 将一些本地文件复制进镜像，比如通过 COPY 指令、 ADD 指令等。而 docker build 命令构建镜像，其实并非在本地构建，而是在服务端，也就是 Docker 引擎 中构建的。</p>

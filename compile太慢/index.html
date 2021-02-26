@@ -29,16 +29,16 @@
 <meta property="og:site_name" content="文韬">
 <meta property="og:description" content="今天做maven项目模块化，依赖其他项目需要install一下重新打jar包，学识太浅耽误了几分钟，在此学习下maven常用命令。">
 <meta property="og:locale" content="zh_CN">
-<meta property="og:image" content="https://s1.ax1x.com/2020/08/27/dfzTKO.png">
-<meta property="og:image" content="https://s1.ax1x.com/2020/08/27/dfz7rD.png">
-<meta property="og:image" content="https://s1.ax1x.com/2020/08/27/dfzqVH.png">
+<meta property="og:image" content="https://wtlizzz.github.io/images/pasted-31.png">
+<meta property="og:image" content="https://wtlizzz.github.io/images/pasted-32.png">
+<meta property="og:image" content="https://wtlizzz.github.io/images/pasted-33.png">
 <meta property="article:published_time" content="2020-08-03T04:51:00.000Z">
-<meta property="article:modified_time" content="2020-08-27T01:46:59.043Z">
+<meta property="article:modified_time" content="2021-02-25T06:51:04.559Z">
 <meta property="article:author" content="Wtli">
 <meta property="article:tag" content="maven">
 <meta property="article:tag" content="IDEA">
 <meta name="twitter:card" content="summary">
-<meta name="twitter:image" content="https://s1.ax1x.com/2020/08/27/dfzTKO.png">
+<meta name="twitter:image" content="https://wtlizzz.github.io/images/pasted-31.png">
 
 <link rel="canonical" href="https://wtlizzz.github.io/compile%E5%A4%AA%E6%85%A2/">
 
@@ -284,7 +284,7 @@
 
 <p>Idea中maven的功能大部分就这几个：<br>❀ clean<br>❀ validate<br>❀ compile<br>❀ test<br>❀ package<br>❀ verify<br>❀ install<br>❀ site<br>❀ deploy  </p>
 <h3 id="常用命令介绍"><a href="#常用命令介绍" class="headerlink" title="常用命令介绍"></a>常用命令介绍</h3><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">$ maven clean ：清除以前编译的代码，删除target目录和相关内容删除</span><br></pre></td></tr></table></figure>
-<p><img src="https://s1.ax1x.com/2020/08/27/dfzTKO.png" alt="dfzTKO.png"></p>
+<p><img src="/images/pasted-31.png" alt="upload successful"></p>
 <figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">$ maven validate </span><br></pre></td></tr></table></figure>
 <figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">$ maven compile ：编译项目主目录下边的代码（main下的代码）–下载main相关代码依赖的外部资源</span><br></pre></td></tr></table></figure>
 <figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">$ maven test ：编译项目主目录下边的test代码（编译test之前一定编译main代码，保证main正常编译成功）–下载test依赖的外部资源 前提需要执行mvn compile（若不主动执行，命令会自动执行mvn compile）</span><br></pre></td></tr></table></figure>
@@ -292,9 +292,9 @@
 <figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">$ maven verify </span><br></pre></td></tr></table></figure>
 <figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">$ maven install ：把编译好的class文件和下载的jar都打成一个完整的*.jar文件，直接使用jar包可以进行部署</span><br></pre></td></tr></table></figure>
 <figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">$ maven site : 生成项目报告，站点，发布站点。</span><br></pre></td></tr></table></figure>
-<p><a target="_blank" rel="noopener" href="https://imgchr.com/i/dfz7rD"><img src="https://s1.ax1x.com/2020/08/27/dfz7rD.png" alt="dfz7rD.png"></a></p>
+<p><img src="/images/pasted-32.png" alt="upload successful"></p>
 <figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">$ maven deploy </span><br></pre></td></tr></table></figure>
-<p><a target="_blank" rel="noopener" href="https://imgchr.com/i/dfzqVH"><img src="https://s1.ax1x.com/2020/08/27/dfzqVH.png" alt="dfzqVH.png"></a></p>
+<p><img src="/images/pasted-33.png" alt="upload successful"></p>
 <h3 id="IDEA-maven-compile太慢"><a href="#IDEA-maven-compile太慢" class="headerlink" title="IDEA maven compile太慢"></a>IDEA maven compile太慢</h3><p>添加Ali镜像解决，IDEA maven compile太慢<br>在此记录一下解决方案：</p>
 <p>有的人是单纯配置的maven，在    ~/.m2/setting.xml修改，找到<mirrors>标签处增加</mirrors></p>
 <figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line">&lt;mirror&gt;</span><br><span class="line"></span><br><span class="line">      &lt;id&gt;alimaven&lt;&#x2F;id&gt;</span><br><span class="line"></span><br><span class="line">      &lt;name&gt;aliyun maven&lt;&#x2F;name&gt;</span><br><span class="line"></span><br><span class="line">                  &lt;url&gt;http:&#x2F;&#x2F;maven.aliyun.com&#x2F;nexus&#x2F;content&#x2F;groups&#x2F;public&#x2F;&lt;&#x2F;url&gt;</span><br><span class="line"></span><br><span class="line">      &lt;mirrorOf&gt;central&lt;&#x2F;mirrorOf&gt;       </span><br><span class="line"></span><br><span class="line">&lt;&#x2F;mirror&gt;</span><br></pre></td></tr></table></figure>

@@ -29,23 +29,23 @@
 <meta property="og:site_name" content="文韬">
 <meta property="og:description" content="ASM库的目标是生成、转换和分析已编译的Java类，这些类以字节数组的形式表示(因为它们存储在磁盘上并加载到Java虚拟机中)。 本文将对ASM进行深入学习。">
 <meta property="og:locale" content="zh_CN">
-<meta property="og:image" content="https://s1.ax1x.com/2020/09/23/wjzAud.png">
-<meta property="og:image" content="https://s1.ax1x.com/2020/09/23/wjzHat.png">
-<meta property="og:image" content="https://s1.ax1x.com/2020/09/23/wjzOG8.png">
-<meta property="og:image" content="https://s1.ax1x.com/2020/09/23/wvpl0s.png">
-<meta property="og:image" content="https://s1.ax1x.com/2020/09/23/wvpUcF.png">
-<meta property="og:image" content="https://s1.ax1x.com/2020/09/23/wvpg1O.png">
-<meta property="og:image" content="https://s1.ax1x.com/2020/09/24/wzpbjO.png">
-<meta property="og:image" content="https://s1.ax1x.com/2020/09/24/wz9FKS.png">
-<meta property="og:image" content="https://s1.ax1x.com/2020/09/24/wzPKnU.png">
+<meta property="og:image" content="https://wtlizzz.github.io/images/pasted-19.png">
+<meta property="og:image" content="https://wtlizzz.github.io/images/pasted-20.png">
+<meta property="og:image" content="https://wtlizzz.github.io/images/pasted-21.png">
+<meta property="og:image" content="https://wtlizzz.github.io/images/pasted-22.png">
+<meta property="og:image" content="https://wtlizzz.github.io/images/pasted-23.png">
+<meta property="og:image" content="https://wtlizzz.github.io/images/pasted-24.png">
+<meta property="og:image" content="https://wtlizzz.github.io/images/pasted-25.png">
+<meta property="og:image" content="https://wtlizzz.github.io/images/pasted-26.png">
+<meta property="og:image" content="https://wtlizzz.github.io/images/pasted-27.png">
 <meta property="og:image" content="https://s1.ax1x.com/2020/09/24/wz3JXD.png">
 <meta property="article:published_time" content="2020-09-23T06:26:00.000Z">
-<meta property="article:modified_time" content="2020-11-30T09:18:19.698Z">
+<meta property="article:modified_time" content="2021-02-25T06:47:48.130Z">
 <meta property="article:author" content="Wtli">
 <meta property="article:tag" content="ASM">
 <meta property="article:tag" content="Java">
 <meta name="twitter:card" content="summary">
-<meta name="twitter:image" content="https://s1.ax1x.com/2020/09/23/wjzAud.png">
+<meta name="twitter:image" content="https://wtlizzz.github.io/images/pasted-19.png">
 
 <link rel="canonical" href="https://wtlizzz.github.io/ASM4-0/">
 
@@ -361,19 +361,20 @@
 </li>
 </ul>
 <p>另一个非常重要的结构差异是，编译后的类包含常量池部分。此池是一个数组，包含类中出现的所有数字、字符串和类型常量。这些常量只定义了一次，在常量池部分中，并由它们在类文件的所有其他部分中的索引引用。 ASM隐藏了与常量池相关的所有细节，因此您不必为此烦恼。下图总结了一个已编译类的总体结构。Java虚拟机规范第4节描述了确切的结构。</p>
-<p><img src="https://s1.ax1x.com/2020/09/23/wjzAud.png" alt="wjzAud.png"></p>
+<p><img src="/images/pasted-19.png" alt="upload successful"></p>
 <p>在许多情况下，类型被限制为类或接口类型。例如，类的超类、类实现的接口或方法抛出的异常不能是基本类型或数组类型，而必须是类或接口类型。这些类型在具有内部名称的已编译类中表示。类的内部名称只是该类的完全限定名，其中点被替换为斜线。例如，字符串的内部名称是java/lang/String。</p>
 <h4 id="类型描述符"><a href="#类型描述符" class="headerlink" title="类型描述符"></a>类型描述符</h4><p>Z是布尔型，C是char型，B是byte型，S是short型，I是int型，F是float型，J是long型，D是double型。类类型的描述符是这个类的内部名称，前面是L，后面是分号。例如，String的类型描述符是Ljava/lang/String;。最后，数组类型的描述符是一个方括号，后面跟着数组元素类型的描述符。</p>
-<p><img src="https://s1.ax1x.com/2020/09/23/wjzHat.png" alt="wjzHat.png"></p>
+<p><img src="/images/pasted-20.png" alt="upload successful"></p>
 <h4 id="方法描述符"><a href="#方法描述符" class="headerlink" title="方法描述符"></a>方法描述符</h4><p>是用一个字符串描述方法的参数类型和返回类型的类型描述符列表。方法描述符与左括号开始,其次是每个形式参数的类型描述符,紧随其后的是一个右括号,紧随其后的类型描述符返回类型,或者V如果方法返回void方法描述符(不包含方法的名称或参数名称)。</p>
-<p><img src="https://s1.ax1x.com/2020/09/23/wjzOG8.png" alt="wjzOG8.png"></p>
+<p><img src="/images/pasted-21.png" alt="upload successful"></p>
 <p>一旦了解了类型描述符的工作原理，理解方法描述符就很容易了。例如(I)I描述了一个方法，它接受一个int类型的参数并返回一个int。图2.3给出了几个方法描述符示例。</p>
 <h3 id="接口和组件"><a href="#接口和组件" class="headerlink" title="接口和组件"></a>接口和组件</h3><p>用于生成和转换已编译类的ASM API基于ClassVisitor抽象类。使用一个方法调用访问简单的部分，该方法调用的参数描述了它们的内容，并且返回void。内容可以是任意长度和复杂性的部分，通过返回一个辅助visitor类的初始方法调用进行访问。</p>
 <p> visitAnnotation、visitField和visitMethod方法就是这样，它们分别返回一个AnnotationVisitor、一个FieldVisitor和一个MethodVisitor。</p>
-<p><img src="https://s1.ax1x.com/2020/09/23/wvpl0s.png" alt="wvpl0s.png"></p>
-<p>返回一个辅助的AnnotationVisitor，如在ClassVisitor中。这些辅助访问器的创建和使用将在下一章进行解释:实际上，本章仅限于可以单独使用ClassVisitor类解决的简单问题。<br><img src="https://s1.ax1x.com/2020/09/23/wvpUcF.png" alt="wvpUcF.png"></p>
+<p><img src="/images/pasted-22.png" alt="upload successful"></p>
+<p>返回一个辅助的AnnotationVisitor，如在ClassVisitor中。这些辅助访问器的创建和使用将在下一章进行解释:实际上，本章仅限于可以单独使用ClassVisitor类解决的简单问题。</p>
+<p><img src="/images/pasted-23.png" alt="upload successful"></p>
 <p>ClassVisitor类的方法必须按照以下顺序调用，在这个类的Javadoc中指定:</p>
-<p><img src="https://s1.ax1x.com/2020/09/23/wvpg1O.png" alt="wvpg1O.png"></p>
+<p><img src="/images/pasted-24.png" alt="upload successful"></p>
 <p>这意味着必须首先调用visit，然后最多调用一个visitSource，然后最多调用一个visitOuterClass，然后对visitAnnotation和visitAttribute的任意数量的调用，然后是任意数量的调用，以任何顺序访问visitInnerClass、visitField和visitMethod，并通过访问visitEnd的单个调用终止。</p>
 <p>ASM提供了三个基于ClassVisitor API的核心组件来生成和转换类，分别是<strong>ClassReader、ClassWriter、ClassVisitor:</strong></p>
 <ul>
@@ -409,12 +410,13 @@
 <figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">byte[] b1 &#x3D; ...;</span><br><span class="line">ClassWriter cw &#x3D; new ClassWriter(0);</span><br><span class="line">ClassReader cr &#x3D; new ClassReader(b1);</span><br><span class="line">cr.accept(cw, 0);</span><br><span class="line">byte[] b2 &#x3D; cw.toByteArray(); &#x2F;&#x2F; b2 represents the same class as b1</span><br></pre></td></tr></table></figure>
 <p>这本身并不是很有趣(复制字节数组有更简单的方法!)，但是请稍等。下一步是在类阅读器和类编写器之间引入一个类访问器:</p>
 <figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line">byte[] b1 &#x3D; ...;</span><br><span class="line">ClassWriter cw &#x3D; new ClassWriter(0); &#x2F;&#x2F; cv forwards all events to cw</span><br><span class="line">ClassVisitor cv &#x3D; new ClassVisitor(ASM4, cw) &#123;&#125;;</span><br><span class="line">ClassReader cr &#x3D; new ClassReader(b1);</span><br><span class="line">cr.accept(cv, 0);</span><br><span class="line">byte[] b2 &#x3D; cw.toByteArray(); &#x2F;&#x2F; b2 represents the same class as b1</span><br></pre></td></tr></table></figure>
-<p>下图描述了与上述代码相对应的架构，其中组件用正方形表示，事件用箭头表示(在序列图中使用垂直时间线)。<br><img src="https://s1.ax1x.com/2020/09/24/wzpbjO.png" alt="wzpbjO.png"></p>
+<p>下图描述了与上述代码相对应的架构，其中组件用正方形表示，事件用箭头表示(在序列图中使用垂直时间线)。</p>
+<p><img src="/images/pasted-25.png" alt="upload successful"></p>
 <p>但是，结果不会改变，因为ClassVisitor事件过滤器不会过滤任何东西。但是现在，通过覆盖一些方法，过滤一些事件以便能够转换类就足够了。例如，考虑下面的ClassVisitor子类:</p>
 <figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br></pre></td><td class="code"><pre><span class="line"></span><br><span class="line">public class ChangeVersionAdapter extends ClassVisitor &#123;</span><br><span class="line"></span><br><span class="line">    public ChangeVersionAdapter(ClassVisitor cv) &#123;</span><br><span class="line">        super(ASM4, cv);</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    @Override</span><br><span class="line">    public void visit(int version, int access, String name,</span><br><span class="line">                      String signature, String superName, String[] interfaces) &#123;</span><br><span class="line">        cv.visit(V1_5, access, name, signature, superName, interfaces);</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
 
 <p>这个类只覆盖ClassVisitor类的一个方法。因此，除了对visit方法的调用外，所有的调用都被不加更改地转发给传递给构造函数的类访问器cv。其序列图如图2.7所示。</p>
-<p><img src="https://s1.ax1x.com/2020/09/24/wz9FKS.png" alt="wz9FKS.png"></p>
+<p><img src="/images/pasted-26.png" alt="upload successful"></p>
 <p>通过修改visit方法的其他参数，您可以实现不仅仅是更改类版本的其他转换。例如，您可以将接口添加到已实现接口列表中。也可以更改类的名称，但这需要的不仅仅是更改visit方法中的name参数。实际上，类的名称可以出现在编译后的类中的许多不同位置，而且必须更改所有这些出现的名称才能真正重命名类。</p>
 <h4 id="优化转换类"><a href="#优化转换类" class="headerlink" title="优化转换类"></a>优化转换类</h4><p>前面的转换只改变了原始类中的四个字节。但是，通过上面的代码，b1被完全解析，相应的事件被用来从头构造b2，这不是很有效。复制b1中没有直接转换为b2的部分，而不解析这些部分，也不生成相应的事件，这样效率会高得多。ASM自动执行这种优化方法:</p>
 <ul>
@@ -446,7 +448,7 @@
 
 <p>对称地，几个类适配器可以委托给同一个类访问器(这需要一些预防措施来确保，例如，在这个类访问器上只调用了一次visit和visitEnd方法)。</p>
 <h3 id="工具"><a href="#工具" class="headerlink" title="工具"></a>工具</h3><p>除了ClassVisitor类和相关的ClassReader和ClassWriter组件之外，ASM还在org.objectweb.asm中提供。util包，这是几个在类生成器或适配器开发期间有用的工具，但在运行时不需要它们。ASM还提供了一个实用程序类，用于在运行时操作内部名称、类型描述符和方法描述符。下面介绍了所有这些工具。</p>
-<p><img src="https://s1.ax1x.com/2020/09/24/wzPKnU.png" alt="wzPKnU.png"></p>
+<p><img src="/images/pasted-27.png" alt="upload successful"></p>
 <h4 id="类型"><a href="#类型" class="headerlink" title="类型"></a>类型</h4><p>正如您在前面几节中看到的，ASM API公开了存储在编译类中的Java类型，即作为内部名称或类型描述符。当它们在源代码中出现时，可以将它们公开，以使代码更具可读性。但是这需要在ClassReader和ClassWriter中的两种表示之间进行系统转换，这会降低性能。这就是ASM不透明地将内部名称和类型描述符转换为它们等效的源代码形式的原因。不过，它提供了类型类，以便在必要时手动完成该操作。</p>
 <p>类型对象表示Java类型，可以从类型描述符或类对象构造。类型类还包含表示基本类型的静态变量。例如类型。INT_TYPE是表示int类型的类型对象。</p>
 <p>getInternalName方法返回类型的内部名称。例如Type.getType(String.class). getinternalname()提供了字符串类的内部名称，即。“java / lang / String”。此方法只能用于类或接口类型。</p>

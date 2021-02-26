@@ -29,15 +29,15 @@
 <meta property="og:site_name" content="文韬">
 <meta property="og:description" content="使用SpringBoot+Mysql+Mybatis+Mybatis Generator。">
 <meta property="og:locale" content="zh_CN">
-<meta property="og:image" content="https://s1.ax1x.com/2020/08/27/dhKQgS.png">
+<meta property="og:image" content="https://wtlizzz.github.io/images/pasted-42.png">
 <meta property="article:published_time" content="2020-08-26T05:58:00.000Z">
-<meta property="article:modified_time" content="2020-08-27T03:27:41.295Z">
+<meta property="article:modified_time" content="2021-02-25T06:56:02.800Z">
 <meta property="article:author" content="Wtli">
 <meta property="article:tag" content="SpringBoot">
 <meta property="article:tag" content="Mybatis">
 <meta property="article:tag" content="Mysql">
 <meta name="twitter:card" content="summary">
-<meta name="twitter:image" content="https://s1.ax1x.com/2020/08/27/dhKQgS.png">
+<meta name="twitter:image" content="https://wtlizzz.github.io/images/pasted-42.png">
 
 <link rel="canonical" href="https://wtlizzz.github.io/SpringBoot%E9%9B%86%E6%88%90Mybatis-Mysql/">
 
@@ -371,7 +371,7 @@
 
 </li>
 </ol>
-<p><img src="https://s1.ax1x.com/2020/08/27/dhKQgS.png" alt="dhKQgS.png"></p>
+<p><img src="/images/pasted-42.png" alt="upload successful"></p>
 <h4 id="自定义sql"><a href="#自定义sql" class="headerlink" title="自定义sql"></a>自定义sql</h4><p>使用mybatis generator时，如果不选择覆盖之前的mapper.xml，就会造成代码重复。选择设置覆盖时，又不能在.xml中添加自定义的sql，最好的解决方法就是，重新自定义一个</p>
 <figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">public NetDataMapperCoustom extend NetDataMapper</span><br></pre></td></tr></table></figure>
 <p>然后自定义一个NetDataMapperCoustom.xml，来单独实现sql，这个就不会受到mybatis generator的影响。</p>

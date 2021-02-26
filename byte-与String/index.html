@@ -29,13 +29,13 @@
 <meta property="og:site_name" content="文韬">
 <meta property="og:description" content="记录一次byte[]与String转换遇到的坑。">
 <meta property="og:locale" content="zh_CN">
-<meta property="og:image" content="https://s3.ax1x.com/2020/11/19/DKnrlt.png">
+<meta property="og:image" content="https://wtlizzz.github.io/images/pasted-7.png">
 <meta property="article:published_time" content="2020-11-19T08:59:00.000Z">
-<meta property="article:modified_time" content="2020-12-21T08:56:09.546Z">
+<meta property="article:modified_time" content="2021-02-25T06:37:05.344Z">
 <meta property="article:author" content="Wtli">
 <meta property="article:tag" content="Java">
 <meta name="twitter:card" content="summary">
-<meta name="twitter:image" content="https://s3.ax1x.com/2020/11/19/DKnrlt.png">
+<meta name="twitter:image" content="https://wtlizzz.github.io/images/pasted-7.png">
 
 <link rel="canonical" href="https://wtlizzz.github.io/byte-%E4%B8%8EString/">
 
@@ -285,7 +285,7 @@
 <figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">17:06:15.300 [main] DEBUG com.example.nioChannel.server.SocketClientServer - 123</span><br><span class="line">17:06:15.303 [main] DEBUG com.example.nioChannel.server.SocketClientServer - [B@14514713</span><br><span class="line">17:06:15.303 [main] DEBUG com.example.nioChannel.server.SocketClientServer - [B@14514713</span><br></pre></td></tr></table></figure>
 
 <p>调试，查看byte[]中的数据：</p>
-<p><img src="https://s3.ax1x.com/2020/11/19/DKnrlt.png" alt="DKnrlt.png"></p>
+<p><img src="/images/pasted-7.png" alt="upload successful"></p>
 <p>在byte[]中存储的是字符的ascii码。</p>
 <p><strong>String的本质是 private final char value[];<br>例如调用String.indexOf方法，就会根据char[] value来进行数组的查找。</strong></p>
 <h4 id="类别一：new-String-bytes"><a href="#类别一：new-String-bytes" class="headerlink" title="类别一：new String(bytes)"></a>类别一：new String(bytes)</h4><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">public String(byte bytes[], int offset, int length) &#123;</span><br><span class="line">    checkBounds(bytes, offset, length);</span><br><span class="line">    this.value &#x3D; StringCoding.decode(bytes, offset, length);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>

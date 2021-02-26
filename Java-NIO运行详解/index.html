@@ -29,21 +29,21 @@
 <meta property="og:site_name" content="文韬">
 <meta property="og:description" content="本文使用Java NIO实现WebSocket通信，并对Java NIO运行过程进行详细介绍。">
 <meta property="og:locale" content="zh_CN">
-<meta property="og:image" content="https://s1.ax1x.com/2020/10/27/BQEnxA.png">
-<meta property="og:image" content="https://s1.ax1x.com/2020/10/27/BQE3a8.png">
-<meta property="og:image" content="https://s1.ax1x.com/2020/10/27/BQEcRJ.png">
-<meta property="og:image" content="https://s1.ax1x.com/2020/10/30/BtBdtH.png">
-<meta property="og:image" content="https://s3.ax1x.com/2020/11/18/Dml0pR.png">
-<meta property="og:image" content="https://s3.ax1x.com/2020/11/18/DmJLSH.png">
-<meta property="og:image" content="https://s3.ax1x.com/2020/11/18/DmYSTf.png">
-<meta property="og:image" content="https://s1.ax1x.com/2020/10/29/BGUcWT.png">
-<meta property="og:image" content="https://s1.ax1x.com/2020/10/29/BGU7Y6.png">
+<meta property="og:image" content="https://wtlizzz.github.io/images/pasted-51.png">
+<meta property="og:image" content="https://wtlizzz.github.io/images/pasted-52.png">
+<meta property="og:image" content="https://wtlizzz.github.io/images/pasted-53.png">
+<meta property="og:image" content="https://wtlizzz.github.io/images/pasted-54.png">
+<meta property="og:image" content="https://wtlizzz.github.io/images/pasted-55.png">
+<meta property="og:image" content="https://wtlizzz.github.io/images/pasted-56.png">
+<meta property="og:image" content="https://wtlizzz.github.io/images/pasted-57.png">
+<meta property="og:image" content="https://wtlizzz.github.io/images/pasted-58.png">
+<meta property="og:image" content="https://wtlizzz.github.io/images/pasted-59.png">
 <meta property="article:published_time" content="2020-10-27T01:42:00.000Z">
-<meta property="article:modified_time" content="2021-01-05T09:10:48.399Z">
+<meta property="article:modified_time" content="2021-02-26T00:22:45.779Z">
 <meta property="article:author" content="Wtli">
 <meta property="article:tag" content="Java NIO">
 <meta name="twitter:card" content="summary">
-<meta name="twitter:image" content="https://s1.ax1x.com/2020/10/27/BQEnxA.png">
+<meta name="twitter:image" content="https://wtlizzz.github.io/images/pasted-51.png">
 
 <link rel="canonical" href="https://wtlizzz.github.io/Java-NIO%E8%BF%90%E8%A1%8C%E8%AF%A6%E8%A7%A3/">
 
@@ -295,11 +295,12 @@
 
 <p>运行过程</p>
 <ol>
-<li><p>创建了ServerSocketChannel，绑定8888端口。<br><img src="https://s1.ax1x.com/2020/10/27/BQEnxA.png" alt="BQEnxA.png"></p>
+<li>创建了ServerSocketChannel，绑定8888端口。<br><img src="/images/pasted-51.png" alt="upload successful"></li>
+</ol>
+<ol start="2">
+<li><p>打开Selector，没有将ServerSocketChannel注册到Selector。<br><img src="/images/pasted-52.png" alt="upload successful"></p>
 </li>
-<li><p>打开Selector，没有将ServerSocketChannel注册到Selector。<br><img src="https://s1.ax1x.com/2020/10/27/BQE3a8.png" alt="BQE3a8.png"></p>
-</li>
-<li><p>在Selector中注册ServerSocketChannel。<br><img src="https://s1.ax1x.com/2020/10/27/BQEcRJ.png" alt="BQEcRJ.png"></p>
+<li><p>在Selector中注册ServerSocketChannel。<br><img src="/images/pasted-53.png" alt="upload successful"></p>
 </li>
 <li><p>此时的selector.select()并没有数据，进入到等待部分，当请求进入时激活selector.select()方法。</p>
 </li>
@@ -316,7 +317,7 @@
 <p><strong>在服务端解析出通信的header，从header中获取到receiveKey，通过getHandShakeResponse方法，将握手的response写入到channel中，双方就在此时建立连接。</strong></p>
 <figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br></pre></td><td class="code"><pre><span class="line">public class WSProtocol &#123;</span><br><span class="line">    static class Header &#123;</span><br><span class="line">        private Map&lt;String, String&gt; headers &#x3D; new HashMap&lt;&gt;();</span><br><span class="line"></span><br><span class="line">        String getHeader(String key) &#123;</span><br><span class="line">            return headers.get(key);</span><br><span class="line">        &#125;</span><br><span class="line"></span><br><span class="line">        static Header decodeFromString(String headers) &#123;</span><br><span class="line">            Header header &#x3D; new Header();</span><br><span class="line"></span><br><span class="line">            Map&lt;String, String&gt; headerMap &#x3D; new HashMap&lt;&gt;();</span><br><span class="line">            String[] headerArray &#x3D; headers.split(&quot;\r\n&quot;);</span><br><span class="line">            for (String headerLine : headerArray) &#123;</span><br><span class="line">                if (headerLine.contains(&quot;:&quot;)) &#123;</span><br><span class="line">                    int splitPos &#x3D; headerLine.indexOf(&quot;:&quot;);</span><br><span class="line">                    String key &#x3D; headerLine.substring(0, splitPos);</span><br><span class="line">                    String value &#x3D; headerLine.substring(splitPos + 1).trim();</span><br><span class="line">                    headerMap.put(key, value);</span><br><span class="line">                &#125;</span><br><span class="line">            &#125;</span><br><span class="line">            header.headers &#x3D; headerMap;</span><br><span class="line">            return header;</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    static String getHandShakeResponse(String receiveKey) &#123;</span><br><span class="line">        String keyOrigin &#x3D; receiveKey + &quot;258EAFA5-E914-47DA-95CA-C5AB0DC85B11&quot;;</span><br><span class="line">        MessageDigest sha1;</span><br><span class="line">        String accept &#x3D; null;</span><br><span class="line">        try &#123;</span><br><span class="line">            sha1 &#x3D; MessageDigest.getInstance(&quot;sha1&quot;);</span><br><span class="line">            sha1.update(keyOrigin.getBytes());</span><br><span class="line">            accept &#x3D; new String(Base64.getEncoder().encode(sha1.digest()));</span><br><span class="line">        &#125; catch (NoSuchAlgorithmException e) &#123;</span><br><span class="line">            e.printStackTrace();</span><br><span class="line">        &#125;</span><br><span class="line">        String echoHeader &#x3D; &quot;&quot;;</span><br><span class="line">        echoHeader +&#x3D; &quot;HTTP&#x2F;1.1 101 Switching Protocols\r\n&quot;;</span><br><span class="line">        echoHeader +&#x3D; &quot;Upgrade: websocket\r\n&quot;;</span><br><span class="line">        echoHeader +&#x3D; &quot;Connection: Upgrade\r\n&quot;;</span><br><span class="line">        echoHeader +&#x3D; &quot;Sec-WebSocket-Accept: &quot; + accept + &quot;\r\n&quot;;</span><br><span class="line">        echoHeader +&#x3D; &quot;\r\n&quot;;</span><br><span class="line"></span><br><span class="line">        return echoHeader;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
 
-<h4 id="Header加密"><a href="#Header加密" class="headerlink" title="Header加密"></a>Header加密</h4><p><img src="https://s1.ax1x.com/2020/10/30/BtBdtH.png" alt="BtBdtH.png"></p>
+<h4 id="Header加密"><a href="#Header加密" class="headerlink" title="Header加密"></a>Header加密</h4><p><img src="/images/pasted-54.png" alt="upload successful"></p>
 <figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br></pre></td><td class="code"><pre><span class="line">  static String getHandShakeResponse(String receiveKey) &#123;</span><br><span class="line">      String keyOrigin &#x3D; receiveKey + &quot;258EAFA5-E914-47DA-95CA-C5AB0DC85B11&quot;;</span><br><span class="line">      MessageDigest sha1;</span><br><span class="line">      String accept &#x3D; null;</span><br><span class="line">      try &#123;</span><br><span class="line">          sha1 &#x3D; MessageDigest.getInstance(&quot;sha1&quot;);</span><br><span class="line">          sha1.update(keyOrigin.getBytes());</span><br><span class="line">          accept &#x3D; new String(Base64.getEncoder().encode(sha1.digest()));</span><br><span class="line">      &#125; catch (NoSuchAlgorithmException e) &#123;</span><br><span class="line">          e.printStackTrace();</span><br><span class="line">      &#125;</span><br><span class="line">······</span><br><span class="line">  &#125;</span><br></pre></td></tr></table></figure>
 
 <ol>
@@ -341,21 +342,18 @@
 <p>下面是获取数据</p>
 <figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">byte[] mask &#x3D; Arrays.copyOfRange(bytesData, 2, 6);</span><br><span class="line">byte[] payloadData &#x3D; Arrays.copyOfRange(bytesData, 6, bytesData.length);</span><br></pre></td></tr></table></figure>
 
-<h3 id="WebSocket包解析"><a href="#WebSocket包解析" class="headerlink" title="WebSocket包解析"></a>WebSocket包解析</h3><p>对WebSocket进行抓包查看，</p>
-<p><img src="https://s3.ax1x.com/2020/11/18/Dml0pR.png" alt="Dml0pR.png"></p>
+<h3 id="WebSocket包解析"><a href="#WebSocket包解析" class="headerlink" title="WebSocket包解析"></a>WebSocket包解析</h3><p>对WebSocket进行抓包查看，<br><img src="/images/pasted-55.png" alt="upload successful"></p>
 <p>建立一个WebSocket连接，首先会通过TCP请求，来进行握手，然后发送HTTP请求建立连接，再使用WebSocket Protocol来进行数据的传输。通过TCP连接来进行心跳保活（大约几秒一次，会发送TCP请求）。</p>
-<p>报文包解析：</p>
-<p><img src="https://s3.ax1x.com/2020/11/18/DmJLSH.png" alt="DmJLSH.png"></p>
-<p>WebSocket前几位分别是：Fin、Reserved、Opcode、Mask、Payload length。之后是Masking-key、Masked payload，下面的Payload就是这次请求携带的Data。</p>
-<p><img src="https://s3.ax1x.com/2020/11/18/DmYSTf.png" alt="DmYSTf.png"></p>
+<p>报文包解析：<br><img src="/images/pasted-56.png" alt="upload successful"></p>
+<p>WebSocket前几位分别是：Fin、Reserved、Opcode、Mask、Payload length。之后是Masking-key、Masked payload，下面的Payload就是这次请求携带的Data。<br><img src="/images/pasted-57.png" alt="upload successful"></p>
 <p><strong>附：</strong><br><strong>FIN：</strong>标识是否为此消息的最后一个数据包，占 1 bit<br><strong>RSV1, RSV2, RSV3:</strong> 用于扩展协议，一般为0，各占1bit<br><strong>Opcode：</strong>数据包类型（frame type），占4bits<br>0x0：标识一个中间数据包<br>0x1：标识一个text类型数据包<br>0x2：标识一个binary类型数据包<br>0x3-7：保留<br>0x8：标识一个断开连接类型数据包<br>0x9：标识一个ping类型数据包<br>0xA：表示一个pong类型数据包<br>0xB-F：保留<br><strong>MASK：</strong>占1bits，用于标识PayloadData是否经过掩码处理。<br><strong>Payload length：</strong>Payload data的长度。<br>1、如果其值在0-125，则是payload的真实长度。<br>2、如果值是126，则后面2个字节形成的16bits无符号整型数的值是payload的真实长度。<br>3、如果值是127，则后面8个字节形成的64bits无符号整型数的值是payload的真实长度。  </p>
 <h3 id="Buffer"><a href="#Buffer" class="headerlink" title="Buffer"></a>Buffer</h3><p>创建ByteBuffer时，Buffer是处于写入状态。</p>
 <figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">        ByteBuffer byteBuffer &#x3D; ByteBuffer.allocate(1024);</span><br><span class="line">&#x2F;&#x2F;        byteBuffer.flip();</span><br><span class="line">        byteBuffer.put(&quot;hlloo&quot;.getBytes());</span><br></pre></td></tr></table></figure>
 
 <p><strong>position=0   position是写入的位置<br> limit=capacity=1024  分别是数据最大的位置和容器最大的位置</strong></p>
-<p><img src="https://s1.ax1x.com/2020/10/29/BGUcWT.png" alt="BGUcWT.png"></p>
+<p><img src="/images/pasted-58.png" alt="upload successful"></p>
 <p><strong>如果在此时调用flip()再写入就会BufferOverflowException报错</strong></p>
-<p><img src="https://s1.ax1x.com/2020/10/29/BGU7Y6.png" alt="BGU7Y6.png"></p>
+<p><img src="/images/pasted-59.png" alt="upload successful"></p>
 <p>看着源码，在解释一遍buffer的属性：</p>
 <figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br></pre></td><td class="code"><pre><span class="line">*   &lt;p&gt; A buffer&#39;s &lt;i&gt;capacity&lt;&#x2F;i&gt; is the number of elements it contains.  The</span><br><span class="line">*   capacity of a buffer is never negative and never changes.  &lt;&#x2F;p&gt;</span><br><span class="line">*</span><br><span class="line">*   &lt;p&gt; A buffer&#39;s &lt;i&gt;limit&lt;&#x2F;i&gt; is the index of the first element that should</span><br><span class="line">*   not be read or written.  A buffer&#39;s limit is never negative and is never</span><br><span class="line">*   greater than its capacity.  &lt;&#x2F;p&gt;</span><br><span class="line">*</span><br><span class="line">*   &lt;p&gt; A buffer&#39;s &lt;i&gt;position&lt;&#x2F;i&gt; is the index of the next element to be</span><br><span class="line">*   read or written.  A buffer&#39;s position is never negative and is never</span><br><span class="line">*   greater than its limit.  &lt;&#x2F;p&gt;</span><br><span class="line"></span><br><span class="line">* &lt;p&gt; A buffer&#39;s &lt;i&gt;mark&lt;&#x2F;i&gt; is the index to which its position will be reset</span><br><span class="line">* when the &#123;@link #reset reset&#125; method is invoked.  The mark is not always</span><br><span class="line">* defined, but when it is defined it is never negative and is never greater</span><br><span class="line">* than the position.  If the mark is defined then it is discarded when the</span><br><span class="line">* position or the limit is adjusted to a value smaller than the mark.  If the</span><br><span class="line">* mark is not defined then invoking the &#123;@link #reset reset&#125; method causes an</span><br><span class="line">* &#123;@link InvalidMarkException&#125; to be thrown.</span><br><span class="line"></span><br></pre></td></tr></table></figure>
 

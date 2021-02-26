@@ -29,14 +29,14 @@
 <meta property="og:site_name" content="文韬">
 <meta property="og:description" content="现在有机会重新系统学习一下Swagger。Swagger是在Api开发中很好用的工具，能将Api以图形化的形式显示。">
 <meta property="og:locale" content="zh_CN">
-<meta property="og:image" content="https://s1.ax1x.com/2020/08/25/d6tBnJ.png">
+<meta property="og:image" content="https://wtlizzz.github.io/images/pasted-41.png">
 <meta property="article:published_time" content="2020-08-24T00:15:00.000Z">
-<meta property="article:modified_time" content="2020-08-25T07:02:06.036Z">
+<meta property="article:modified_time" content="2021-02-25T06:54:46.058Z">
 <meta property="article:author" content="Wtli">
 <meta property="article:tag" content="SpringBoot">
 <meta property="article:tag" content="Swagger">
 <meta name="twitter:card" content="summary">
-<meta name="twitter:image" content="https://s1.ax1x.com/2020/08/25/d6tBnJ.png">
+<meta name="twitter:image" content="https://wtlizzz.github.io/images/pasted-41.png">
 
 <link rel="canonical" href="https://wtlizzz.github.io/Api%E5%9B%BE%E5%BD%A2%E5%8C%96%E7%95%8C%E9%9D%A2Swagger%E4%BD%BF%E7%94%A8/">
 
@@ -291,13 +291,9 @@
 <li>增加controller配置 <figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br></pre></td><td class="code"><pre><span class="line">@RestController</span><br><span class="line">@RequestMapping(&quot;&#x2F;api&#x2F;netData&quot;)</span><br><span class="line">@Api(tags &#x3D; &quot;获取网络请求模块&quot;)</span><br><span class="line">public class NetDataHandler &#123;</span><br><span class="line"></span><br><span class="line">    @Autowired</span><br><span class="line">    private RedisTemplate redisTemplate;</span><br><span class="line"></span><br><span class="line">    @Logger</span><br><span class="line">    @PostMapping(value &#x3D; &quot;&#x2F;register&quot;)</span><br><span class="line">    public ResponseEntity&lt;Object&gt; register(@RequestBody String umsAdminParam) &#123;</span><br><span class="line">        ArrayList&lt;Object&gt; arr &#x3D; new ArrayList();</span><br><span class="line">        for (int i &#x3D; 10000; i &lt; 10003; i++) &#123;</span><br><span class="line">            arr.add(SerializeUtil.unserialize((byte[]) redisTemplate.opsForValue().get(String.valueOf(i))));</span><br><span class="line">        &#125;</span><br><span class="line">        return new ResponseEntity&lt;&gt;(arr, HttpStatus.OK);</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    @Log</span><br><span class="line">    @ApiOperation(value &#x3D; &quot;根据id获取信息&quot;)</span><br><span class="line">    @GetMapping(&quot;&#x2F;&#123;id&#125;&quot;)</span><br><span class="line">    public ResponseEntity&lt;Object&gt; get(@PathVariable String id) &#123;</span><br><span class="line">        return new ResponseEntity&lt;&gt;(&quot;I Get id:&quot; + id, HttpStatus.OK);</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    @Log(&quot;新增机构&quot;)</span><br><span class="line">    @PostMapping(&quot;&#x2F;&#123;id&#125;&quot;)</span><br><span class="line">    public ResponseEntity&lt;Object&gt; post(@PathVariable String id) &#123;</span><br><span class="line">        return new ResponseEntity&lt;&gt;(&quot;I Get id:&quot; + id, HttpStatus.OK);</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure></li>
 <li>实现图</li>
 </ul>
-<p><img src="https://s1.ax1x.com/2020/08/25/d6tBnJ.png" alt="d6tBnJ.png"></p>
+<p><img src="/images/pasted-41.png" alt="upload successful"></p>
 <h3 id="进一步学习"><a href="#进一步学习" class="headerlink" title="进一步学习"></a>进一步学习</h3><h4 id="配置跨域会造成No-Mapping"><a href="#配置跨域会造成No-Mapping" class="headerlink" title="配置跨域会造成No Mapping"></a>配置跨域会造成No Mapping</h4><p>如果在项目中配置了WebMvcConfigurationSupport类，则会造成swagger的error。<br>解决方式，在WebMvcConfigurationSupport继承类中增加方法：</p>
 <figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line">&#x2F;&#x2F;配置swagger</span><br><span class="line">@Override</span><br><span class="line">protected void addResourceHandlers(ResourceHandlerRegistry registry) &#123;</span><br><span class="line">    registry.addResourceHandler(&quot;&#x2F;**&quot;).addResourceLocations(</span><br><span class="line">                &quot;classpath:&#x2F;static&#x2F;&quot;);</span><br><span class="line">    registry.addResourceHandler(&quot;swagger-ui.html&quot;).addResourceLocations(</span><br><span class="line">                &quot;classpath:&#x2F;META-INF&#x2F;resources&#x2F;&quot;);</span><br><span class="line">    registry.addResourceHandler(&quot;&#x2F;webjars&#x2F;**&quot;).addResourceLocations(</span><br><span class="line">                &quot;classpath:&#x2F;META-INF&#x2F;resources&#x2F;webjars&#x2F;&quot;);</span><br><span class="line">    super.addResourceHandlers(registry);</span><br><span class="line">    &#125;</span><br></pre></td></tr></table></figure>
-
-
-
-
     </div>
 
     

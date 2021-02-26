@@ -30,10 +30,10 @@
 <meta property="og:description" content="刚接触Hadoop，本文记录刚开始学习的内容。 Hadoop是一个由Apache基金会所开发的开源分布式系统基础架构。用户可以在不了解分布式底层细节的情况下，开发分布式程序，充分利用集群的威力进行高速运算和存储。">
 <meta property="og:locale" content="zh_CN">
 <meta property="og:image" content="https://s1.ax1x.com/2020/11/11/BjYcuV.jpg">
-<meta property="og:image" content="https://s3.ax1x.com/2020/11/16/DA9HGq.png">
-<meta property="og:image" content="https://s3.ax1x.com/2020/11/16/DA97in.png">
+<meta property="og:image" content="https://wtlizzz.github.io/images/pasted-8.png">
+<meta property="og:image" content="https://wtlizzz.github.io/images/pasted-9.png">
 <meta property="article:published_time" content="2020-11-11T07:44:00.000Z">
-<meta property="article:modified_time" content="2020-12-21T08:56:35.390Z">
+<meta property="article:modified_time" content="2021-02-25T06:38:13.432Z">
 <meta property="article:author" content="Wtli">
 <meta property="article:tag" content="Hadoop">
 <meta name="twitter:card" content="summary">
@@ -557,9 +557,9 @@
 <p><strong>作业输出</strong><br>应用程序可以通过 FileOutputFormat.setCompressOutput(JobConf, boolean) api控制输出是否需要压缩并且可以使用 FileOutputFormat.setOutputCompressorClass(JobConf, Class)api指定CompressionCodec。</p>
 <p>如果作业输出要保存成 SequenceFileOutputFormat格式，需要使用 SequenceFileOutputFormat.setOutputCompressionType(JobConf, SequenceFile.CompressionType)api，来设定 SequenceFile.CompressionType (i.e. RECORD / BLOCK - 默认是RECORD)。</p>
 <h3 id="附Hadoop源码查看"><a href="#附Hadoop源码查看" class="headerlink" title="附Hadoop源码查看"></a>附Hadoop源码查看</h3><p>在idea中点击Hadoop方法，会发现无法查看源码，如下图：</p>
-<p><img src="https://s3.ax1x.com/2020/11/16/DA9HGq.png" alt="DA9HGq.png"></p>
+<p><img src="/images/pasted-8.png" alt="upload successful"></p>
 <p>下载Hadoop的Binary download格式文件，下载后的文件中的例如：hadoop-2.10.1/share/hadoop/xxx/sources中有对应的源码。我这里查看的是common包中的源码，直接点击choose Sources选中hadoop-2.10.1/share/hadoop/common/sources中源码文件即可。</p>
-<p><img src="https://s3.ax1x.com/2020/11/16/DA97in.png" alt="DA97in.png"></p>
+<p><img src="/images/pasted-9.png" alt="upload successful"></p>
 
     </div>
 
