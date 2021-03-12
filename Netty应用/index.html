@@ -29,13 +29,13 @@
 <meta property="og:site_name" content="文韬">
 <meta property="og:description" content="学习Netty权威指南第二版。实践里面饿的代码。">
 <meta property="og:locale" content="zh_CN">
-<meta property="og:image" content="https://s1.ax1x.com/2020/09/21/wHppEF.png">
+<meta property="og:image" content="https://wtlizzz.github.io/images/pasted-67.png">
 <meta property="article:published_time" content="2020-09-21T01:23:00.000Z">
-<meta property="article:modified_time" content="2020-09-25T07:40:39.358Z">
+<meta property="article:modified_time" content="2021-02-26T00:29:50.189Z">
 <meta property="article:author" content="Wtli">
 <meta property="article:tag" content="Netty">
 <meta name="twitter:card" content="summary">
-<meta name="twitter:image" content="https://s1.ax1x.com/2020/09/21/wHppEF.png">
+<meta name="twitter:image" content="https://wtlizzz.github.io/images/pasted-67.png">
 
 <link rel="canonical" href="https://wtlizzz.github.io/Netty%E5%BA%94%E7%94%A8/">
 
@@ -276,7 +276,8 @@
 <li>基于NIO2.0的异步非阻塞（AIO）编程</li>
 </ol>
 <h4 id="HTTP"><a href="#HTTP" class="headerlink" title="HTTP"></a>HTTP</h4><h5 id="io-netty-example-http-snoop"><a href="#io-netty-example-http-snoop" class="headerlink" title="io.netty.example.http.snoop"></a>io.netty.example.http.snoop</h5><p>构建自己的极其轻量级的HTTP客户机和服务器</p>
-<p>代码结构：<br><img src="https://s1.ax1x.com/2020/09/21/wHppEF.png" alt="wHppEF.png"></p>
+<p>代码结构：</p>
+<p><img src="/images/pasted-67.png" alt="upload successful"></p>
 <p>一般的server都会有handler、initializer、server三个类，分别是处理消息类、初始化类、服务器启动类。</p>
 <p>Server:</p>
 <figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br></pre></td><td class="code"><pre><span class="line">&#x2F;**</span><br><span class="line">* An HTTP server that sends back the content of the received HTTP request</span><br><span class="line">* in a pretty plaintext form.</span><br><span class="line">*&#x2F;</span><br><span class="line">public final class HttpSnoopServer &#123;</span><br><span class="line"></span><br><span class="line">    static final boolean SSL &#x3D; System.getProperty(&quot;ssl&quot;) !&#x3D; null;</span><br><span class="line">    static final int PORT &#x3D; Integer.parseInt(System.getProperty(&quot;port&quot;, SSL? &quot;8443&quot; : &quot;8080&quot;));</span><br><span class="line">    public static void main(String[] args) throws Exception &#123;</span><br><span class="line">     &#x2F;&#x2F; Configure SSL.</span><br><span class="line">        final SslContext sslCtx;</span><br><span class="line">        if (SSL) &#123;</span><br><span class="line">           SelfSignedCertificate ssc &#x3D; new SelfSignedCertificate();</span><br><span class="line">            sslCtx &#x3D; SslContextBuilder.forServer(ssc.certificate(), ssc.privateKey()).build();</span><br><span class="line">        &#125; else &#123;</span><br><span class="line">            sslCtx &#x3D; null;</span><br><span class="line">        &#125;</span><br><span class="line">  </span><br><span class="line">        &#x2F;&#x2F; Configure the server.</span><br><span class="line">        EventLoopGroup bossGroup &#x3D; new NioEventLoopGroup(1);</span><br><span class="line">        EventLoopGroup workerGroup &#x3D; new NioEventLoopGroup();</span><br><span class="line">        try &#123;</span><br><span class="line">            ServerBootstrap b &#x3D; new ServerBootstrap();</span><br><span class="line">            b.group(bossGroup, workerGroup)</span><br><span class="line">               .channel(NioServerSocketChannel.class)</span><br><span class="line">               .handler(new LoggingHandler(LogLevel.INFO))</span><br><span class="line">               .childHandler(new HttpSnoopServerInitializer(sslCtx));</span><br><span class="line">  </span><br><span class="line">            Channel ch &#x3D; b.bind(PORT).sync().channel();</span><br><span class="line"> </span><br><span class="line">            System.err.println(&quot;Open your web browser and navigate to &quot; +</span><br><span class="line">                    (SSL? &quot;https&quot; : &quot;http&quot;) + &quot;:&#x2F;&#x2F;127.0.0.1:&quot; + PORT + &#39;&#x2F;&#39;);</span><br><span class="line"></span><br><span class="line">            ch.closeFuture().sync();</span><br><span class="line">        &#125; finally &#123;</span><br><span class="line">            bossGroup.shutdownGracefully();</span><br><span class="line">            workerGroup.shutdownGracefully();</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
@@ -408,20 +409,20 @@
   <nav class="site-state">
       <div class="site-state-item site-state-posts">
           <a href="/archives">
-          <span class="site-state-item-count">46</span>
+          <span class="site-state-item-count">49</span>
           <span class="site-state-item-name">日志</span>
         </a>
       </div>
       <div class="site-state-item site-state-categories">
             <a href="/categories/">
           
-        <span class="site-state-item-count">6</span>
+        <span class="site-state-item-count">7</span>
         <span class="site-state-item-name">分类</span></a>
       </div>
       <div class="site-state-item site-state-tags">
             <a href="/tags/">
           
-        <span class="site-state-item-count">31</span>
+        <span class="site-state-item-count">32</span>
         <span class="site-state-item-name">标签</span></a>
       </div>
   </nav>

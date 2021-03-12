@@ -29,16 +29,16 @@
 <meta property="og:site_name" content="文韬">
 <meta property="og:description" content="随着互联网的发展，网站应用的规模不断扩大，常规的垂直应用架构已无法应对，分布式服务架构以及流动计算架构势在必行，亟需一个治理系统确保架构有条不紊的演进。">
 <meta property="og:locale" content="zh_CN">
-<meta property="og:image" content="https://s1.ax1x.com/2020/09/22/wqq2f1.png">
+<meta property="og:image" content="https://wtlizzz.github.io/images/pasted-64.png">
 <meta property="og:image" content="https://s1.ax1x.com/2020/09/22/wqqh6K.png">
-<meta property="og:image" content="https://s1.ax1x.com/2020/09/22/wqL7uT.png">
-<meta property="og:image" content="https://s1.ax1x.com/2020/09/22/wqOA5d.png">
+<meta property="og:image" content="https://wtlizzz.github.io/images/pasted-65.png">
+<meta property="og:image" content="https://wtlizzz.github.io/images/pasted-66.png">
 <meta property="article:published_time" content="2020-09-22T01:16:00.000Z">
-<meta property="article:modified_time" content="2020-09-28T02:43:35.434Z">
+<meta property="article:modified_time" content="2021-02-26T00:29:16.527Z">
 <meta property="article:author" content="Wtli">
 <meta property="article:tag" content="Dubbo">
 <meta name="twitter:card" content="summary">
-<meta name="twitter:image" content="https://s1.ax1x.com/2020/09/22/wqq2f1.png">
+<meta name="twitter:image" content="https://wtlizzz.github.io/images/pasted-64.png">
 
 <link rel="canonical" href="https://wtlizzz.github.io/Dubbo%E5%85%A5%E9%97%A8/">
 
@@ -282,7 +282,7 @@
         <p>随着互联网的发展，网站应用的规模不断扩大，常规的垂直应用架构已无法应对，分布式服务架构以及流动计算架构势在必行，亟需一个治理系统确保架构有条不紊的演进。</p>
 <a id="more"></a>
 
-<h4 id="背景"><a href="#背景" class="headerlink" title="背景"></a>背景</h4><p><img src="https://s1.ax1x.com/2020/09/22/wqq2f1.png" alt="wqq2f1.png"></p>
+<h4 id="背景"><a href="#背景" class="headerlink" title="背景"></a>背景</h4><p><img src="/images/pasted-64.png" alt="upload successful"></p>
 <p><strong>单一应用架构</strong><br>当网站流量很小时，只需一个应用，将所有功能都部署在一起，以减少部署节点和成本。此时，用于简化增删改查工作量的数据访问框架(ORM)是关键。</p>
 <p><strong>垂直应用架构</strong><br>当访问量逐渐增大，单一应用增加机器带来的加速度越来越小，提升效率的方法之一是将应用拆成互不相干的几个应用，以提升效率。此时，用于加速前端页面开发的Web框架(MVC)是关键。</p>
 <p><strong>分布式服务架构</strong><br>当垂直应用越来越多，应用之间交互不可避免，将核心业务抽取出来，作为独立的服务，逐渐形成稳定的服务中心，使前端应用能更快速的响应多变的市场需求。此时，用于提高业务复用及整合的分布式服务框架(RPC)是关键。</p>
@@ -292,7 +292,7 @@
 <p><strong>当服务越来越多时，服务 URL 配置管理变得非常困难，F5 硬件负载均衡器的单点压力也越来越大。</strong> 此时需要一个服务注册中心，动态地注册和发现服务，使服务的位置透明。并通过在消费方获取服务提供方地址列表，实现软负载均衡和 Failover，降低对 F5 硬件负载均衡器的依赖，也能减少部分成本。</p>
 <p><strong>当进一步发展，服务间依赖关系变得错踪复杂，甚至分不清哪个应用要在哪个应用之前启动，架构师都不能完整的描述应用的架构关系。</strong> 这时，需要自动画出应用间的依赖关系图，以帮助架构师理清关系。</p>
 <p><strong>接着，服务的调用量越来越大，服务的容量问题就暴露出来，这个服务需要多少机器支撑？什么时候该加机器？</strong> 为了解决这些问题，第一步，要将服务现在每天的调用量，响应时间，都统计出来，作为容量规划的参考指标。其次，要可以动态调整权重，在线上，将某台机器的权重一直加大，并在加大的过程中记录响应时间的变化，直到响应时间到达阈值，记录此时的访问量，再以此访问量乘以机器数反推总容量。</p>
-<h4 id="架构"><a href="#架构" class="headerlink" title="架构"></a>架构</h4><p><img src="https://s1.ax1x.com/2020/09/22/wqL7uT.png" alt="wqL7uT.png"></p>
+<h4 id="架构"><a href="#架构" class="headerlink" title="架构"></a>架构</h4><p><img src="/images/pasted-65.png" alt="upload successful"></p>
 <p><strong>调用关系说明</strong></p>
 <ol>
 <li>服务容器负责启动，加载，运行服务提供者。</li>
@@ -325,7 +325,7 @@
 <li>服务提供者无状态，可动态增加机器部署实例，注册中心将推送新的服务提供者信息给消费者</li>
 </ul>
 <h5 id="升级性"><a href="#升级性" class="headerlink" title="升级性"></a>升级性</h5><p>当服务集群规模进一步扩大，带动IT治理结构进一步升级，需要实现动态部署，进行流动计算，现有分布式服务架构不会带来阻力。下图是未来可能的一种架构：</p>
-<p><img src="https://s1.ax1x.com/2020/09/22/wqOA5d.png" alt="wqOA5d.png"></p>
+<p><img src="/images/pasted-66.png" alt="upload successful"></p>
 <p>参考文献：[<a target="_blank" rel="noopener" href="http://dubbo.apache.org/zh-cn/docs/user/preface/architecture.html]">http://dubbo.apache.org/zh-cn/docs/user/preface/architecture.html]</a></p>
 
     </div>
@@ -426,20 +426,20 @@
   <nav class="site-state">
       <div class="site-state-item site-state-posts">
           <a href="/archives">
-          <span class="site-state-item-count">46</span>
+          <span class="site-state-item-count">49</span>
           <span class="site-state-item-name">日志</span>
         </a>
       </div>
       <div class="site-state-item site-state-categories">
             <a href="/categories/">
           
-        <span class="site-state-item-count">6</span>
+        <span class="site-state-item-count">7</span>
         <span class="site-state-item-name">分类</span></a>
       </div>
       <div class="site-state-item site-state-tags">
             <a href="/tags/">
           
-        <span class="site-state-item-count">31</span>
+        <span class="site-state-item-count">32</span>
         <span class="site-state-item-name">标签</span></a>
       </div>
   </nav>
