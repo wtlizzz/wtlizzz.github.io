@@ -885,35 +885,6 @@
       </tags>
   </entry>
   <entry>
-    <title>Java线程池</title>
-    <url>/Java%E7%BA%BF%E7%A8%8B%E6%B1%A0/</url>
-    <content><![CDATA[<p>Java中线程池对于多线程的处理，能够提高很大的效率，最近在看Java NIO、Netty在此重新学习一下Java中的线程池的使用。</p>
-<a id="more"></a>
-
-<p>java.uitl.concurrent.ThreadPoolExecutor类是线程池中最核心的一个类。<br>简单先看一下使用,采用了上一篇文章中的Netty中的伪异步线程池代码：</p>
-<figure class="highlight plain"><table><tr><td class="code"><pre><span class="line">public class TimeServerHandlerExecutePool &#123;</span><br><span class="line"></span><br><span class="line">    private ExecutorService executorService;</span><br><span class="line"></span><br><span class="line">    public TimeServerHandlerExecutePool(int maxPoolSize, int queueSize) &#123;</span><br><span class="line"></span><br><span class="line">        executorService &#x3D; new ThreadPoolExecutor(Runtime.getRuntime().availableProcessors(), maxPoolSize, 120L, TimeUnit.SECONDS, new ArrayBlockingQueue&lt;Runnable&gt;(queueSize));</span><br><span class="line"></span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    public void execute(Runnable task) &#123;</span><br><span class="line">        executorService.execute(task);</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
-
-<p>ThreadPoolExecutor类中提供了四个构造方法：</p>
-<figure class="highlight plain"><table><tr><td class="code"><pre><span class="line">public class ThreadPoolExecutor extends AbstractExecutorService &#123;</span><br><span class="line">    .....</span><br><span class="line">    public ThreadPoolExecutor(int corePoolSize,int maximumPoolSize,long keepAliveTime,TimeUnit unit,</span><br><span class="line">            BlockingQueue&lt;Runnable&gt; workQueue);</span><br><span class="line"> </span><br><span class="line">    public ThreadPoolExecutor(int corePoolSize,int maximumPoolSize,long keepAliveTime,TimeUnit unit,</span><br><span class="line">            BlockingQueue&lt;Runnable&gt; workQueue,ThreadFactory threadFactory);</span><br><span class="line"> </span><br><span class="line">    public ThreadPoolExecutor(int corePoolSize,int maximumPoolSize,long keepAliveTime,TimeUnit unit,</span><br><span class="line">            BlockingQueue&lt;Runnable&gt; workQueue,RejectedExecutionHandler handler);</span><br><span class="line"> </span><br><span class="line">    public ThreadPoolExecutor(int corePoolSize,int maximumPoolSize,long keepAliveTime,TimeUnit unit,</span><br><span class="line">        BlockingQueue&lt;Runnable&gt; workQueue,ThreadFactory threadFactory,RejectedExecutionHandler handler);</span><br><span class="line">    ...</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
-<p>构造方法的参数分别是：corePoolSize、maximumPoolSize、keepAliveTime、unit、workQueue、threadFactory、RejectedExecutionHandler</p>
-<p>corePoolSize:核心线程数量，除非超时数量为0，其他情况是最小存活线程的数量。</p>
-<figure class="highlight plain"><table><tr><td class="code"><pre><span class="line">&#x2F;**</span><br><span class="line"> * Core pool size is the minimum number of workers to keep alive</span><br><span class="line"> * (and not allow to time out etc) unless allowCoreThreadTimeOut</span><br><span class="line"> * is set, in which case the minimum is zero.</span><br><span class="line"> *&#x2F;</span><br><span class="line">private volatile int corePoolSize;</span><br></pre></td></tr></table></figure>
-
-<p>maximumPoolSize：线程池最大线程数，表示在线程池中最多能创建多少个线程；</p>
-<figure class="highlight plain"><table><tr><td class="code"><pre><span class="line">&#x2F;**</span><br><span class="line"> * Maximum pool size. Note that the actual maximum is internally</span><br><span class="line"> * bounded by CAPACITY.</span><br><span class="line"> *&#x2F;</span><br><span class="line">private volatile int maximumPoolSize;</span><br></pre></td></tr></table></figure>
-<p>workQueue:一个阻塞队列，用来存储等待执行的任务，这个参数的选择也很重要，会对线程池的运行过程产生重大影响。</p>
-<figure class="highlight plain"><table><tr><td class="code"><pre><span class="line">&#x2F;**</span><br><span class="line"> * The queue used for holding tasks and handing off to worker</span><br><span class="line"> * threads.  We do not require that workQueue.poll() returning</span><br><span class="line"> * null necessarily means that workQueue.isEmpty(), so rely</span><br><span class="line"> * solely on isEmpty to see if the queue is empty (which we must</span><br><span class="line"> * do for example when deciding whether to transition from</span><br><span class="line"> * SHUTDOWN to TIDYING).  This accommodates special-purpose</span><br><span class="line"> * queues such as DelayQueues for which poll() is allowed to</span><br><span class="line"> * return null even if it may later return non-null when delays</span><br><span class="line"> * expire.</span><br><span class="line"> *&#x2F;</span><br><span class="line">private final BlockingQueue&lt;Runnable&gt; workQueue;</span><br></pre></td></tr></table></figure>
-
-<p>threadFactory：线程工厂，主要用来创建线程；</p>
-]]></content>
-      <categories>
-        <category>后端</category>
-      </categories>
-      <tags>
-        <tag>Java</tag>
-      </tags>
-  </entry>
-  <entry>
     <title>Java基础</title>
     <url>/Java%E5%9F%BA%E7%A1%80/</url>
     <content><![CDATA[<p>Java常用的知识：</p>
@@ -984,6 +955,35 @@
 <h4 id="多线程"><a href="#多线程" class="headerlink" title="多线程"></a>多线程</h4><h5 id="实现Runnable接口"><a href="#实现Runnable接口" class="headerlink" title="实现Runnable接口"></a>实现Runnable接口</h5><figure class="highlight plain"><table><tr><td class="code"><pre><span class="line">package ljz;</span><br><span class="line">class MyThread implements Runnable&#123; &#x2F;&#x2F; 实现Runnable接口，作为线程的实现类</span><br><span class="line">    private String name ;       &#x2F;&#x2F; 表示线程的名称</span><br><span class="line">    public MyThread(String name)&#123;</span><br><span class="line">        this.name &#x3D; name ;      &#x2F;&#x2F; 通过构造方法配置name属性</span><br><span class="line">    &#125;</span><br><span class="line">    public void run()&#123;  &#x2F;&#x2F; 覆写run()方法，作为线程 的操作主体</span><br><span class="line">        for(int i&#x3D;0;i&lt;10;i++)&#123;</span><br><span class="line">            System.out.println(name + &quot;运行，i &#x3D; &quot; + i) ;</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;;</span><br><span class="line">public class RunnableDemo01&#123;</span><br><span class="line">    public static void main(String args[])&#123;</span><br><span class="line">        MyThread mt1 &#x3D; new MyThread(&quot;线程A &quot;) ;    &#x2F;&#x2F; 实例化对象</span><br><span class="line">        MyThread mt2 &#x3D; new MyThread(&quot;线程B &quot;) ;    &#x2F;&#x2F; 实例化对象</span><br><span class="line">        Thread t1 &#x3D; new Thread(mt1) ;       &#x2F;&#x2F; 实例化Thread类对象</span><br><span class="line">        Thread t2 &#x3D; new Thread(mt2) ;       &#x2F;&#x2F; 实例化Thread类对象</span><br><span class="line">        t1.start() ;    &#x2F;&#x2F; 启动多线程</span><br><span class="line">        t2.start() ;    &#x2F;&#x2F; 启动多线程</span><br><span class="line">    &#125;</span><br><span class="line">&#125;;</span><br></pre></td></tr></table></figure>
 
 <h5 id="继承Thread类"><a href="#继承Thread类" class="headerlink" title="继承Thread类"></a>继承Thread类</h5><figure class="highlight plain"><table><tr><td class="code"><pre><span class="line">class MyThread extends Thread&#123;  &#x2F;&#x2F; 继承Thread类，作为线程的实现类</span><br><span class="line">    private String name ;       &#x2F;&#x2F; 表示线程的名称</span><br><span class="line">    public MyThread(String name)&#123;</span><br><span class="line">        this.name &#x3D; name ;      &#x2F;&#x2F; 通过构造方法配置name属性</span><br><span class="line">    &#125;</span><br><span class="line">    public void run()&#123;  &#x2F;&#x2F; 覆写run()方法，作为线程 的操作主体</span><br><span class="line">        for(int i&#x3D;0;i&lt;10;i++)&#123;</span><br><span class="line">            System.out.println(name + &quot;运行，i &#x3D; &quot; + i) ;</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;;</span><br><span class="line">public class ThreadDemo02&#123;</span><br><span class="line">    public static void main(String args[])&#123;</span><br><span class="line">        MyThread mt1 &#x3D; new MyThread(&quot;线程A &quot;) ;    &#x2F;&#x2F; 实例化对象</span><br><span class="line">        MyThread mt2 &#x3D; new MyThread(&quot;线程B &quot;) ;    &#x2F;&#x2F; 实例化对象</span><br><span class="line">        mt1.start() ;   &#x2F;&#x2F; 调用线程主体</span><br><span class="line">        mt2.start() ;   &#x2F;&#x2F; 调用线程主体</span><br><span class="line">    &#125;</span><br><span class="line">&#125;;</span><br></pre></td></tr></table></figure>]]></content>
+      <categories>
+        <category>后端</category>
+      </categories>
+      <tags>
+        <tag>Java</tag>
+      </tags>
+  </entry>
+  <entry>
+    <title>Java线程池</title>
+    <url>/Java%E7%BA%BF%E7%A8%8B%E6%B1%A0/</url>
+    <content><![CDATA[<p>Java中线程池对于多线程的处理，能够提高很大的效率，最近在看Java NIO、Netty在此重新学习一下Java中的线程池的使用。</p>
+<a id="more"></a>
+
+<p>java.uitl.concurrent.ThreadPoolExecutor类是线程池中最核心的一个类。<br>简单先看一下使用,采用了上一篇文章中的Netty中的伪异步线程池代码：</p>
+<figure class="highlight plain"><table><tr><td class="code"><pre><span class="line">public class TimeServerHandlerExecutePool &#123;</span><br><span class="line"></span><br><span class="line">    private ExecutorService executorService;</span><br><span class="line"></span><br><span class="line">    public TimeServerHandlerExecutePool(int maxPoolSize, int queueSize) &#123;</span><br><span class="line"></span><br><span class="line">        executorService &#x3D; new ThreadPoolExecutor(Runtime.getRuntime().availableProcessors(), maxPoolSize, 120L, TimeUnit.SECONDS, new ArrayBlockingQueue&lt;Runnable&gt;(queueSize));</span><br><span class="line"></span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    public void execute(Runnable task) &#123;</span><br><span class="line">        executorService.execute(task);</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>ThreadPoolExecutor类中提供了四个构造方法：</p>
+<figure class="highlight plain"><table><tr><td class="code"><pre><span class="line">public class ThreadPoolExecutor extends AbstractExecutorService &#123;</span><br><span class="line">    .....</span><br><span class="line">    public ThreadPoolExecutor(int corePoolSize,int maximumPoolSize,long keepAliveTime,TimeUnit unit,</span><br><span class="line">            BlockingQueue&lt;Runnable&gt; workQueue);</span><br><span class="line"> </span><br><span class="line">    public ThreadPoolExecutor(int corePoolSize,int maximumPoolSize,long keepAliveTime,TimeUnit unit,</span><br><span class="line">            BlockingQueue&lt;Runnable&gt; workQueue,ThreadFactory threadFactory);</span><br><span class="line"> </span><br><span class="line">    public ThreadPoolExecutor(int corePoolSize,int maximumPoolSize,long keepAliveTime,TimeUnit unit,</span><br><span class="line">            BlockingQueue&lt;Runnable&gt; workQueue,RejectedExecutionHandler handler);</span><br><span class="line"> </span><br><span class="line">    public ThreadPoolExecutor(int corePoolSize,int maximumPoolSize,long keepAliveTime,TimeUnit unit,</span><br><span class="line">        BlockingQueue&lt;Runnable&gt; workQueue,ThreadFactory threadFactory,RejectedExecutionHandler handler);</span><br><span class="line">    ...</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>构造方法的参数分别是：corePoolSize、maximumPoolSize、keepAliveTime、unit、workQueue、threadFactory、RejectedExecutionHandler</p>
+<p>corePoolSize:核心线程数量，除非超时数量为0，其他情况是最小存活线程的数量。</p>
+<figure class="highlight plain"><table><tr><td class="code"><pre><span class="line">&#x2F;**</span><br><span class="line"> * Core pool size is the minimum number of workers to keep alive</span><br><span class="line"> * (and not allow to time out etc) unless allowCoreThreadTimeOut</span><br><span class="line"> * is set, in which case the minimum is zero.</span><br><span class="line"> *&#x2F;</span><br><span class="line">private volatile int corePoolSize;</span><br></pre></td></tr></table></figure>
+
+<p>maximumPoolSize：线程池最大线程数，表示在线程池中最多能创建多少个线程；</p>
+<figure class="highlight plain"><table><tr><td class="code"><pre><span class="line">&#x2F;**</span><br><span class="line"> * Maximum pool size. Note that the actual maximum is internally</span><br><span class="line"> * bounded by CAPACITY.</span><br><span class="line"> *&#x2F;</span><br><span class="line">private volatile int maximumPoolSize;</span><br></pre></td></tr></table></figure>
+<p>workQueue:一个阻塞队列，用来存储等待执行的任务，这个参数的选择也很重要，会对线程池的运行过程产生重大影响。</p>
+<figure class="highlight plain"><table><tr><td class="code"><pre><span class="line">&#x2F;**</span><br><span class="line"> * The queue used for holding tasks and handing off to worker</span><br><span class="line"> * threads.  We do not require that workQueue.poll() returning</span><br><span class="line"> * null necessarily means that workQueue.isEmpty(), so rely</span><br><span class="line"> * solely on isEmpty to see if the queue is empty (which we must</span><br><span class="line"> * do for example when deciding whether to transition from</span><br><span class="line"> * SHUTDOWN to TIDYING).  This accommodates special-purpose</span><br><span class="line"> * queues such as DelayQueues for which poll() is allowed to</span><br><span class="line"> * return null even if it may later return non-null when delays</span><br><span class="line"> * expire.</span><br><span class="line"> *&#x2F;</span><br><span class="line">private final BlockingQueue&lt;Runnable&gt; workQueue;</span><br></pre></td></tr></table></figure>
+
+<p>threadFactory：线程工厂，主要用来创建线程；</p>
+]]></content>
       <categories>
         <category>后端</category>
       </categories>
@@ -1656,6 +1656,14 @@ align-content是相对于多行情况下，在单行情况下使用：<figure cl
       </tags>
   </entry>
   <entry>
+    <title>WebSocket数据解析</title>
+    <url>/WebSocket%E6%95%B0%E6%8D%AE%E8%A7%A3%E6%9E%90/</url>
+    <content><![CDATA[<p>使用wireshark抓包，对websocket进行深入的分析~~</p>
+<p><img src="/images/pasted-2.png" alt="upload successful"></p>
+<a id="more"></a>
+]]></content>
+  </entry>
+  <entry>
     <title>WebSocket源码剖析</title>
     <url>/WebSocket%E6%BA%90%E7%A0%81%E5%89%96%E6%9E%90/</url>
     <content><![CDATA[<p>对Java.WebSocket.Programming这本书进行剖析</p>
@@ -1696,14 +1704,6 @@ align-content是相对于多行情况下，在单行情况下使用：<figure cl
 <p>在TCP连接上向后和向前发送的不同WebSocket协议框架定义了WebSocket的生命周期事件，比如打开和关闭连接，同时也定义了应用程序创建的文本和二进制消息如何在连接上传输。</p>
 <p><img src="/images/pasted-48.png" alt="upload successful"></p>
 <p> 在图中，我们可以看到，我们在服务器上部署了一个逻辑端点，它有两个instance，由两个Endpoint表示，每个Endpoint处理来自两个独立客户机的消息。</p>
-]]></content>
-  </entry>
-  <entry>
-    <title>WebSocket数据解析</title>
-    <url>/WebSocket%E6%95%B0%E6%8D%AE%E8%A7%A3%E6%9E%90/</url>
-    <content><![CDATA[<p>使用wireshark抓包，对websocket进行深入的分析~~</p>
-<p><img src="/images/pasted-2.png" alt="upload successful"></p>
-<a id="more"></a>
 ]]></content>
   </entry>
   <entry>
