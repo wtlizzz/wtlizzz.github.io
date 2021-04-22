@@ -1,0 +1,541 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=2">
+<meta name="theme-color" content="#222">
+<meta name="generator" content="Hexo 5.4.0">
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/my_boy.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/my_boy.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/my_boy.png">
+  <link rel="mask-icon" href="/images/my_boy.png" color="#222">
+
+<link rel="stylesheet" href="/css/main.css">
+
+
+<link rel="stylesheet" href="/lib/font-awesome/css/all.min.css">
+  <link rel="stylesheet" href="/lib/pace/pace-theme-minimal.min.css">
+  <script src="/lib/pace/pace.min.js"></script>
+
+<script id="hexo-configurations">
+    var NexT = window.NexT || {};
+    var CONFIG = {"hostname":"wtlizzz.github.io","root":"/","scheme":"Mist","version":"7.8.0","exturl":false,"sidebar":{"position":"left","display":"post","padding":18,"offset":12,"onmobile":false},"copycode":{"enable":true,"show_result":true,"style":"flat"},"back2top":{"enable":true,"sidebar":false,"scrollpercent":false},"bookmark":{"enable":false,"color":"#222","save":"auto"},"fancybox":false,"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"algolia":{"hits":{"per_page":10},"labels":{"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}},"localsearch":{"enable":true,"trigger":"auto","top_n_per_article":-1,"unescape":false,"preload":false},"motion":{"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}},"path":"search.xml"};
+  </script>
+
+  <meta name="description" content="本文主要对网络相关的概念进行学习记录。  REST RPC HTTP gRPC socket servlet socket soap">
+<meta property="og:type" content="article">
+<meta property="og:title" content="计算机网络入门">
+<meta property="og:url" content="https://wtlizzz.github.io/%E8%AE%A1%E7%AE%97%E6%9C%BA%E7%BD%91%E7%BB%9C%E5%85%A5%E9%97%A8/index.html">
+<meta property="og:site_name" content="文韬">
+<meta property="og:description" content="本文主要对网络相关的概念进行学习记录。  REST RPC HTTP gRPC socket servlet socket soap">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="https://wtlizzz.github.io/images/pasted-38.png">
+<meta property="og:image" content="https://s1.ax1x.com/2020/08/26/dR9wTA.jpg">
+<meta property="og:image" content="https://wtlizzz.github.io/images/pasted-39.png">
+<meta property="og:image" content="https://wtlizzz.github.io/images/pasted-40.png">
+<meta property="article:published_time" content="2020-08-17T09:15:00.000Z">
+<meta property="article:modified_time" content="2021-03-31T10:56:48.000Z">
+<meta property="article:author" content="Wtli">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="https://wtlizzz.github.io/images/pasted-38.png">
+
+<link rel="canonical" href="https://wtlizzz.github.io/%E8%AE%A1%E7%AE%97%E6%9C%BA%E7%BD%91%E7%BB%9C%E5%85%A5%E9%97%A8/">
+
+
+<script id="page-configurations">
+  // https://hexo.io/docs/variables.html
+  CONFIG.page = {
+    sidebar: "",
+    isHome : false,
+    isPost : true,
+    lang   : 'zh-CN'
+  };
+</script>
+
+  <title>计算机网络入门 | 文韬</title>
+  
+
+
+  <script>
+    var _hmt = _hmt || [];
+    (function() {
+      var hm = document.createElement("script");
+      hm.src = "https://hm.baidu.com/hm.js?7f4b8b54f803186c40c333785b8aee31";
+      var s = document.getElementsByTagName("script")[0];
+      s.parentNode.insertBefore(hm, s);
+    })();
+  </script>
+
+
+
+
+  <noscript>
+  <style>
+  .use-motion .brand,
+  .use-motion .menu-item,
+  .sidebar-inner,
+  .use-motion .post-block,
+  .use-motion .pagination,
+  .use-motion .comments,
+  .use-motion .post-header,
+  .use-motion .post-body,
+  .use-motion .collection-header { opacity: initial; }
+
+  .use-motion .site-title,
+  .use-motion .site-subtitle {
+    opacity: initial;
+    top: initial;
+  }
+
+  .use-motion .logo-line-before i { left: initial; }
+  .use-motion .logo-line-after i { right: initial; }
+  </style>
+</noscript>
+
+  <script src="https://apps.bdimg.com/libs/jquery/2.1.4/jquery.min.js">
+  </script>
+</head>
+
+
+<body itemscope itemtype="http://schema.org/WebPage">
+  <div class="container use-motion">
+    <div class="headband"></div>
+
+    <header class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-container">
+  <div class="site-nav-toggle">
+    <div class="toggle" aria-label="切换导航栏">
+      <span class="toggle-line toggle-line-first"></span>
+      <span class="toggle-line toggle-line-middle"></span>
+      <span class="toggle-line toggle-line-last"></span>
+    </div>
+  </div>
+
+  <div class="site-meta">
+
+    <a href="/" class="brand" rel="start">
+      <span class="logo-line-before"><i></i></span>
+      <h1 class="site-title">文韬</h1>
+      <span class="logo-line-after"><i></i></span>
+    </a>
+      <p class="site-subtitle" itemprop="description">始终如一</p>
+  </div>
+
+  <div class="site-nav-right">
+    <div class="toggle popup-trigger">
+        <i class="fa fa-search fa-fw fa-lg"></i>
+    </div>
+  </div>
+</div>
+
+
+
+
+<nav class="site-nav">
+  <ul id="menu" class="main-menu menu">
+        <li class="menu-item menu-item-home">
+
+    <a href="/" rel="section"><i class="fa fa-home fa-fw"></i>首页</a>
+
+  </li>
+        <li class="menu-item menu-item-目录">
+
+    <a href="/archives/" rel="section"><i class="fa fa-archive fa-fw"></i>目录</a>
+
+  </li>
+        <li class="menu-item menu-item-tags">
+
+    <a href="/tags/" rel="section"><i class="fa fa-tags fa-fw"></i>标签</a>
+
+  </li>
+        <li class="menu-item menu-item-categories">
+
+    <a href="/categories/" rel="section"><i class="fa fa-th fa-fw"></i>分类</a>
+
+  </li>
+        <li class="menu-item menu-item-commonweal">
+
+    <a href="/404/" rel="section"><i class="fa fa-heartbeat fa-fw"></i>公益</a>
+
+  </li>
+        <li class="menu-item menu-item-about">
+
+    <a href="/about/" rel="section"><i class="fa fa-user fa-fw"></i>关于</a>
+
+  </li>
+      <li class="menu-item menu-item-search">
+        <a role="button" class="popup-trigger"><i class="fa fa-search fa-fw"></i>搜索
+        </a>
+      </li>
+  </ul>
+</nav>
+
+
+
+  <div class="search-pop-overlay">
+    <div class="popup search-popup">
+        <div class="search-header">
+  <span class="search-icon">
+    <i class="fa fa-search"></i>
+  </span>
+  <div class="search-input-container">
+    <input autocomplete="off" autocapitalize="off"
+           placeholder="搜索..." spellcheck="false"
+           type="search" class="search-input">
+  </div>
+  <span class="popup-btn-close">
+    <i class="fa fa-times-circle"></i>
+  </span>
+</div>
+<div id="search-result">
+  <div id="no-result">
+    <i class="fa fa-spinner fa-pulse fa-5x fa-fw"></i>
+  </div>
+</div>
+
+    </div>
+  </div>
+
+</div>
+    </header>
+
+    
+  <div class="back-to-top">
+    <i class="fa fa-arrow-up"></i>
+    <span>0%</span>
+  </div>
+
+
+    <main class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          
+
+          <div class="content post posts-expand">
+            
+
+    
+  
+  
+  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="zh-CN">
+    <link itemprop="mainEntityOfPage" href="https://wtlizzz.github.io/%E8%AE%A1%E7%AE%97%E6%9C%BA%E7%BD%91%E7%BB%9C%E5%85%A5%E9%97%A8/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/avatar.jpg">
+      <meta itemprop="name" content="Wtli">
+      <meta itemprop="description" content="本博客记录博主学习内容，所有均原创内容">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="文韬">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          计算机网络入门
+        </h1>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-calendar"></i>
+              </span>
+              <span class="post-meta-item-text">发表于</span>
+
+              <time title="创建时间：2020-08 17:15:00" itemprop="dateCreated datePublished" datetime="2020-08-17T17:15:00+08:00">2020-08</time>
+            </span>
+
+          
+            <span class="post-meta-item" title="本文字数">
+              <span class="post-meta-item-icon">
+                <i class="far fa-file-word"></i>
+              </span>
+                <span class="post-meta-item-text">本文字数：</span>
+              <span>2.6k</span>
+            </span>
+            <span class="post-meta-item" title="阅读时长">
+              <span class="post-meta-item-icon">
+                <i class="far fa-clock"></i>
+              </span>
+                <span class="post-meta-item-text">阅读时长 &asymp;</span>
+              <span>2 分钟</span>
+            </span>
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+        <p>本文主要对网络相关的概念进行学习记录。</p>
+<ul>
+<li>REST</li>
+<li>RPC</li>
+<li>HTTP</li>
+<li>gRPC</li>
+<li>socket</li>
+<li>servlet</li>
+<li>socket</li>
+<li>soap</li>
+</ul>
+<span id="more"></span>
+
+<h3 id="网络模型"><a href="#网络模型" class="headerlink" title="网络模型"></a>网络模型</h3><p>首先是OSI(Open System Interconnection)七层模型与TCP/IP五层模型对比</p>
+<p><img src="/images/pasted-38.png" alt="upload successful"></p>
+<p><strong>每层模型功能介绍：</strong></p>
+<ul>
+<li><strong>应用层</strong><br>应用层是网络可向最终用户提供应用服务的唯一窗口，其目的是支持用户联网的应用的要求。由于用户的要求不同，应用层含有支持不同应用的多种应用实体，提供多种应用服务。  </li>
+</ul>
+<p><strong>例如</strong><br>电子邮件（MHS）、文件传输(FTAM)、虚拟终端(VT)、电子数据交换(EDI)等。<br><strong>主要协议</strong><br>FTP(21端口)，SMTP(25端口)，DNS，HTTP（80端口）</p>
+<ul>
+<li><strong>表示层</strong><br>表示层的作用之一是为异种机通信提供一种公共语言，以便能进行互操作。这种类型的服务之所以需要，是因为不同的计算机体系结构使用的数据表示法不同。  </li>
+</ul>
+<p><strong>例如</strong><br>IBM主机使用EBCDIC编码，而大部分PC机使用的是ASCII码。在这种情况下，便需要表示层来完成这种转换。<br><strong>功能</strong><br>1.网络的安全和保密管理；<br>2.文本的压缩与打包；<br>3.虚拟终端协议(VTP)。<br>4.语法转换：将抽象语法转换成传送语法，并在对方实现相反的转换（即将传送语法转换成抽象语法）。涉及的内容有代码转换、字符转换、数据格式的修改，以及对数据结构操作的适应、<strong>数据压缩</strong>、<strong>加密</strong>等。<br>5.语法协商：根据应用层的要求协商选用合适的上下文，即确定传送语法并传送。<br>6.连接管理：包括利用会话层服务建立表示连接，管理在这个连接之上的数据运输和同步控制（利用会话层相应的服务），以及正常地或异常地终止这个连接。</p>
+<ul>
+<li><strong>会话层</strong><br>会话层提供的服务可使应用建立和维持会话，并能使会话获得同步。会话层使用校验点可使通信会话在通信失效时从校验点继续恢复通信，即对信息的交互实现控制。这种能力对于传送大的文件极为重要。  </li>
+</ul>
+<p><strong>功能</strong><br>1.建立会话：A、B两台网络设备之间要通信，要建立一条会话供他们使用，在建立会话的过程中也会有身份验证，权限鉴定等环节；<br>2.保持会话：通信会话建立后，通信双方开始传递数据，当数据传递完成后，OSI会话层不一定会立刻将两者这条通信会话断开，它会根据应用程序和应用层的设置对该会话进行维护，在会话维持期间两者可以随时使用这条会话传输局；<br>3.断开会话：当应用程序或应用层规定的超时时间到期后，OSI会话层才会释放这条会话。或者A、B重启、关机、手动执行断开连接的操作时，OSI会话层也会将A、B之间的会话断开。</p>
+<ul>
+<li><strong>传输层</strong><br>传输层中最为常见的两个协议分别是传输控制协议TCP（Transmission Control Protocol）和用户数据报协议UDP（User Datagram Protocol）  </li>
+</ul>
+<p><strong>功能</strong><br>传输层提供逻辑连接的建立、传输层寻址、数据传输、传输连接释放、流量控制、拥塞控制、多路复用和解复用、崩溃恢复等服务。</p>
+<ul>
+<li><strong>网络层</strong></li>
+</ul>
+<h3 id="REST-amp-amp-RPC"><a href="#REST-amp-amp-RPC" class="headerlink" title="REST &amp;&amp; RPC"></a>REST &amp;&amp; RPC</h3><p><img src="https://s1.ax1x.com/2020/08/26/dR9wTA.jpg" alt="dR9wTA.jpg"></p>
+<h4 id="REST"><a href="#REST" class="headerlink" title="REST"></a>REST</h4><p>REST(REpresentational State Transfer)直接翻译：表现层状态转移。<br>**<br>REST描述的是在网络中client和server的一种交互形式；<br>REST本身不实用，实用的是如何设计 RESTful API（REST风格的网络接口）；<br>**<br><img src="/images/pasted-39.png" alt="upload successful"><br>REST代表表现层状态转移(representational state transfer)。REST用来描述客户端通过某种形式获取服务器的数据，这些数据资源的格式通常是JSON或XML。<strong>一种简单的理解就是：在设计API时，使用路径定位资源，方法定义操作，通过Content-Type和Accept来协商资源的类型。</strong><br>REST也有一些限制:</p>
+<ul>
+<li>REST是无状态的，请求之间没有持久的会话信息</li>
+<li>响应需要声明成可缓存的</li>
+<li>REST关注一致性，如果使用HTTP，需要尽可能使用HTTP的特性，而不是去发明新的公约</li>
+<li>基于REST构建的API就是Restful风格。</li>
+</ul>
+<h4 id="RPC"><a href="#RPC" class="headerlink" title="RPC"></a>RPC</h4><p>RPC(Remote Procedure Call),远程过程调用。调用过程如下图，<br><img src="/images/pasted-40.png" alt="upload successful"></p>
+<p>RPC框架包含4个核心的组件，分别是Client ,Server,Client Stub以及Server Stub。</p>
+<ul>
+<li>客户端（Client），服务的调用方。</li>
+<li>服务端（Server），真正的服务提供者。</li>
+<li>客户端Stub，存放服务端的地址消息，再将客户端的请求参数打包成网络消息，然后通过网络远程发送给服务方。</li>
+<li>服务端Stub，接收客户端发送过来的消息，将消息解包，并调用本地的方法</li>
+</ul>
+<h3 id="gRPC和Http-Api"><a href="#gRPC和Http-Api" class="headerlink" title="gRPC和Http Api"></a>gRPC和Http Api</h3><p>gRPC是以RPC为基础实现的。</p>
+<p>Http Api是以Rest为基础实现的。</p>
+<h3 id="socket-amp-amp-Http"><a href="#socket-amp-amp-Http" class="headerlink" title="socket &amp;&amp; Http"></a>socket &amp;&amp; Http</h3><p>我们在传输数据时，可以只使用（传输层）TCP/IP协议，但是那样的话，如果没有应用层，便无法识别数据内容，如果想要使传输的数据有意义，则必须使用到应用层协议，应用层协议有很多，比如HTTP、FTP、TELNET等，也可以自己定义应用层协议。WEB使用HTTP协议作应用层协议，以封装HTTP文本信息，然后使用TCP/IP做传输层协议将它发到网络上。</p>
+<ul>
+<li>Socket是一个针对TCP和UDP编程的接口，你可以借助它建立TCP连接等等。而TCP和UDP协议属于传输层 。而http是个应用层的协议，它实际上也建立在TCP协议之上(HTTP是轿车，提供了封装或者显示数据的具体形式；Socket是发动机，提供了网络通信的能力)。</li>
+<li>Socket是对TCP/IP协议的封装，Socket本身并不是协议，而是一个调用接口（API），通过Socket，我们才能使用TCP/IP协议。Socket的出现只是使得程序员更方便地使用TCP/IP协议栈而已，是对TCP/IP协议的抽象，从而形成了我们知道的一些最基本的函数接口。</li>
+</ul>
+<h3 id="Servlet"><a href="#Servlet" class="headerlink" title="Servlet"></a>Servlet</h3><h3 id="WebSocket"><a href="#WebSocket" class="headerlink" title="WebSocket"></a>WebSocket</h3><p><strong>websocket 目的：即时通讯，替代轮询</strong></p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">WebSocket protocol 是HTML5一种新的协议。它实现了浏览器与服务器全双工通信(full-duplex)。</span><br></pre></td></tr></table></figure>
+<p>原理:<br>WebSocket同HTTP一样也是应用层的协议，但是它是一种双向通信协议，是建立在TCP之上的。</p>
+<p><strong>连接过程 —— 握手过程</strong></p>
+<ol>
+<li>浏览器、服务器建立TCP连接，三次握手。这是通信的基础，传输控制层，若失败后续都不执行。</li>
+<li>TCP连接成功后，浏览器通过HTTP协议向服务器传送WebSocket支持的版本号等信息。（开始前的HTTP握手）</li>
+<li>服务器收到客户端的握手请求后，同样采用HTTP协议回馈数据。</li>
+<li>当收到了连接成功的消息后，通过TCP通道进行传输通信。</li>
+</ol>
+
+    </div>
+
+    
+    
+    
+
+      <footer class="post-footer">
+
+        
+
+
+        
+    <div class="post-nav">
+      <div class="post-nav-item">
+    <a href="/Docker%E5%9F%BA%E6%9C%AC%E4%BD%BF%E7%94%A8/" rel="prev" title="Docker入门">
+      <i class="fa fa-chevron-left"></i> Docker入门
+    </a></div>
+      <div class="post-nav-item">
+    <a href="/Api%E5%9B%BE%E5%BD%A2%E5%8C%96%E7%95%8C%E9%9D%A2Swagger%E4%BD%BF%E7%94%A8/" rel="next" title="SpringBoot集成Swagger图形化显示Api">
+      SpringBoot集成Swagger图形化显示Api <i class="fa fa-chevron-right"></i>
+    </a></div>
+    </div>
+      </footer>
+    
+  </article>
+  
+  
+  
+
+
+
+          </div>
+          
+
+<script>
+  window.addEventListener('tabs:register', () => {
+    let { activeClass } = CONFIG.comments;
+    if (CONFIG.comments.storage) {
+      activeClass = localStorage.getItem('comments_active') || activeClass;
+    }
+    if (activeClass) {
+      let activeTab = document.querySelector(`a[href="#comment-${activeClass}"]`);
+      if (activeTab) {
+        activeTab.click();
+      }
+    }
+  });
+  if (CONFIG.comments.storage) {
+    window.addEventListener('tabs:click', event => {
+      if (!event.target.matches('.tabs-comment .tab-content .tab-pane')) return;
+      let commentClass = event.target.classList[1];
+      localStorage.setItem('comments_active', commentClass);
+    });
+  }
+</script>
+
+        </div>
+          
+  
+  <div class="toggle sidebar-toggle">
+    <span class="toggle-line toggle-line-first"></span>
+    <span class="toggle-line toggle-line-middle"></span>
+    <span class="toggle-line toggle-line-last"></span>
+  </div>
+
+  <aside class="sidebar">
+    <div class="sidebar-inner">
+
+      <ul class="sidebar-nav motion-element">
+        <li class="sidebar-nav-toc">
+          文章目录
+        </li>
+        <li class="sidebar-nav-overview">
+          站点概览
+        </li>
+      </ul>
+
+      <!--noindex-->
+      <div class="post-toc-wrap sidebar-panel">
+          <div class="post-toc motion-element"><ol class="nav"><li class="nav-item nav-level-3"><a class="nav-link" href="#%E7%BD%91%E7%BB%9C%E6%A8%A1%E5%9E%8B"><span class="nav-number">1.</span> <span class="nav-text">网络模型</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#REST-amp-amp-RPC"><span class="nav-number">2.</span> <span class="nav-text">REST &amp;&amp; RPC</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#REST"><span class="nav-number">2.1.</span> <span class="nav-text">REST</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#RPC"><span class="nav-number">2.2.</span> <span class="nav-text">RPC</span></a></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#gRPC%E5%92%8CHttp-Api"><span class="nav-number">3.</span> <span class="nav-text">gRPC和Http Api</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#socket-amp-amp-Http"><span class="nav-number">4.</span> <span class="nav-text">socket &amp;&amp; Http</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#Servlet"><span class="nav-number">5.</span> <span class="nav-text">Servlet</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#WebSocket"><span class="nav-number">6.</span> <span class="nav-text">WebSocket</span></a></li></ol></div>
+      </div>
+      <!--/noindex-->
+
+      <div class="site-overview-wrap sidebar-panel">
+        <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+    <img class="site-author-image" itemprop="image" alt="Wtli"
+      src="/images/avatar.jpg">
+  <p class="site-author-name" itemprop="name">Wtli</p>
+  <div class="site-description" itemprop="description">本博客记录博主学习内容，所有均原创内容</div>
+</div>
+<div class="site-state-wrap motion-element">
+  <nav class="site-state">
+      <div class="site-state-item site-state-posts">
+          <a href="/archives">
+          <span class="site-state-item-count">54</span>
+          <span class="site-state-item-name">日志</span>
+        </a>
+      </div>
+      <div class="site-state-item site-state-categories">
+            <a href="/categories/">
+          
+        <span class="site-state-item-count">7</span>
+        <span class="site-state-item-name">分类</span></a>
+      </div>
+      <div class="site-state-item site-state-tags">
+            <a href="/tags/">
+          
+        <span class="site-state-item-count">33</span>
+        <span class="site-state-item-name">标签</span></a>
+      </div>
+  </nav>
+</div>
+
+
+
+      </div>
+
+    </div>
+  </aside>
+  <div id="sidebar-dimmer"></div>
+
+
+      </div>
+      <div class="cat-to-top cd-top faa-float animated"></div>
+
+
+    </main>
+
+    <footer class="footer">
+      <div class="footer-inner">
+        
+
+        
+
+<div class="copyright">
+  
+  &copy; 2020 – 
+  <span itemprop="copyrightYear">2021</span>
+  <span class="with-love">
+    <i class="fa fa-heart"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">Wtli</span>
+</div>
+
+        
+
+
+
+
+
+
+
+
+      </div>
+    </footer>
+  </div>
+
+  
+  <script src="/lib/anime.min.js"></script>
+  <script src="/lib/velocity/velocity.min.js"></script>
+  <script src="/lib/velocity/velocity.ui.min.js"></script>
+
+<script src="/js/utils.js"></script>
+
+<script src="/js/motion.js"></script>
+
+
+<script src="/js/schemes/muse.js"></script>
+
+
+<script src="/js/next-boot.js"></script>
+
+
+
+
+  
+
+
+
+
+  
+<script src="/js/local-search.js"></script>
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+
+  
+
+<script src="/live2dw/lib/L2Dwidget.min.js?094cbace49a39548bed64abff5988b05"></script><script>L2Dwidget.init({"pluginRootPath":"live2dw/","pluginJsPath":"lib/","pluginModelPath":"assets/","tagMode":false,"log":false,"model":{"jsonPath":"/live2dw/assets/wanko.model.json"},"display":{"position":"right","width":150,"height":300},"mobile":{"show":false},"react":{"opacity":0.7}});</script></body>
+</html>

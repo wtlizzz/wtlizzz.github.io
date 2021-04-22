@@ -1,0 +1,565 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=2">
+<meta name="theme-color" content="#222">
+<meta name="generator" content="Hexo 5.4.0">
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/my_boy.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/my_boy.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/my_boy.png">
+  <link rel="mask-icon" href="/images/my_boy.png" color="#222">
+
+<link rel="stylesheet" href="/css/main.css">
+
+
+<link rel="stylesheet" href="/lib/font-awesome/css/all.min.css">
+  <link rel="stylesheet" href="/lib/pace/pace-theme-minimal.min.css">
+  <script src="/lib/pace/pace.min.js"></script>
+
+<script id="hexo-configurations">
+    var NexT = window.NexT || {};
+    var CONFIG = {"hostname":"wtlizzz.github.io","root":"/","scheme":"Mist","version":"7.8.0","exturl":false,"sidebar":{"position":"left","display":"post","padding":18,"offset":12,"onmobile":false},"copycode":{"enable":true,"show_result":true,"style":"flat"},"back2top":{"enable":true,"sidebar":false,"scrollpercent":false},"bookmark":{"enable":false,"color":"#222","save":"auto"},"fancybox":false,"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"algolia":{"hits":{"per_page":10},"labels":{"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}},"localsearch":{"enable":true,"trigger":"auto","top_n_per_article":-1,"unescape":false,"preload":false},"motion":{"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}},"path":"search.xml"};
+  </script>
+
+  <meta name="description" content="上一篇博文是分析websocket的启动过程，在研究启动过程就不得不结合SpringBoot的启动过程来进行分析。 本文是对SpringBoot的启动过程进行分析，代码比较多，一起看代码。">
+<meta property="og:type" content="article">
+<meta property="og:title" content="SpringBoot启动过程">
+<meta property="og:url" content="https://wtlizzz.github.io/pringBoot%E5%90%AF%E5%8A%A8%E8%BF%87%E7%A8%8B/index.html">
+<meta property="og:site_name" content="文韬">
+<meta property="og:description" content="上一篇博文是分析websocket的启动过程，在研究启动过程就不得不结合SpringBoot的启动过程来进行分析。 本文是对SpringBoot的启动过程进行分析，代码比较多，一起看代码。">
+<meta property="og:locale" content="zh_CN">
+<meta property="article:published_time" content="2021-04-09T00:49:00.000Z">
+<meta property="article:modified_time" content="2021-04-12T07:11:17.912Z">
+<meta property="article:author" content="Wtli">
+<meta property="article:tag" content="SpringBoot">
+<meta name="twitter:card" content="summary">
+
+<link rel="canonical" href="https://wtlizzz.github.io/pringBoot%E5%90%AF%E5%8A%A8%E8%BF%87%E7%A8%8B/">
+
+
+<script id="page-configurations">
+  // https://hexo.io/docs/variables.html
+  CONFIG.page = {
+    sidebar: "",
+    isHome : false,
+    isPost : true,
+    lang   : 'zh-CN'
+  };
+</script>
+
+  <title>SpringBoot启动过程 | 文韬</title>
+  
+
+
+  <script>
+    var _hmt = _hmt || [];
+    (function() {
+      var hm = document.createElement("script");
+      hm.src = "https://hm.baidu.com/hm.js?7f4b8b54f803186c40c333785b8aee31";
+      var s = document.getElementsByTagName("script")[0];
+      s.parentNode.insertBefore(hm, s);
+    })();
+  </script>
+
+
+
+
+  <noscript>
+  <style>
+  .use-motion .brand,
+  .use-motion .menu-item,
+  .sidebar-inner,
+  .use-motion .post-block,
+  .use-motion .pagination,
+  .use-motion .comments,
+  .use-motion .post-header,
+  .use-motion .post-body,
+  .use-motion .collection-header { opacity: initial; }
+
+  .use-motion .site-title,
+  .use-motion .site-subtitle {
+    opacity: initial;
+    top: initial;
+  }
+
+  .use-motion .logo-line-before i { left: initial; }
+  .use-motion .logo-line-after i { right: initial; }
+  </style>
+</noscript>
+
+  <script src="https://apps.bdimg.com/libs/jquery/2.1.4/jquery.min.js">
+  </script>
+</head>
+
+
+<body itemscope itemtype="http://schema.org/WebPage">
+  <div class="container use-motion">
+    <div class="headband"></div>
+
+    <header class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-container">
+  <div class="site-nav-toggle">
+    <div class="toggle" aria-label="切换导航栏">
+      <span class="toggle-line toggle-line-first"></span>
+      <span class="toggle-line toggle-line-middle"></span>
+      <span class="toggle-line toggle-line-last"></span>
+    </div>
+  </div>
+
+  <div class="site-meta">
+
+    <a href="/" class="brand" rel="start">
+      <span class="logo-line-before"><i></i></span>
+      <h1 class="site-title">文韬</h1>
+      <span class="logo-line-after"><i></i></span>
+    </a>
+      <p class="site-subtitle" itemprop="description">始终如一</p>
+  </div>
+
+  <div class="site-nav-right">
+    <div class="toggle popup-trigger">
+        <i class="fa fa-search fa-fw fa-lg"></i>
+    </div>
+  </div>
+</div>
+
+
+
+
+<nav class="site-nav">
+  <ul id="menu" class="main-menu menu">
+        <li class="menu-item menu-item-home">
+
+    <a href="/" rel="section"><i class="fa fa-home fa-fw"></i>首页</a>
+
+  </li>
+        <li class="menu-item menu-item-目录">
+
+    <a href="/archives/" rel="section"><i class="fa fa-archive fa-fw"></i>目录</a>
+
+  </li>
+        <li class="menu-item menu-item-tags">
+
+    <a href="/tags/" rel="section"><i class="fa fa-tags fa-fw"></i>标签</a>
+
+  </li>
+        <li class="menu-item menu-item-categories">
+
+    <a href="/categories/" rel="section"><i class="fa fa-th fa-fw"></i>分类</a>
+
+  </li>
+        <li class="menu-item menu-item-commonweal">
+
+    <a href="/404/" rel="section"><i class="fa fa-heartbeat fa-fw"></i>公益</a>
+
+  </li>
+        <li class="menu-item menu-item-about">
+
+    <a href="/about/" rel="section"><i class="fa fa-user fa-fw"></i>关于</a>
+
+  </li>
+      <li class="menu-item menu-item-search">
+        <a role="button" class="popup-trigger"><i class="fa fa-search fa-fw"></i>搜索
+        </a>
+      </li>
+  </ul>
+</nav>
+
+
+
+  <div class="search-pop-overlay">
+    <div class="popup search-popup">
+        <div class="search-header">
+  <span class="search-icon">
+    <i class="fa fa-search"></i>
+  </span>
+  <div class="search-input-container">
+    <input autocomplete="off" autocapitalize="off"
+           placeholder="搜索..." spellcheck="false"
+           type="search" class="search-input">
+  </div>
+  <span class="popup-btn-close">
+    <i class="fa fa-times-circle"></i>
+  </span>
+</div>
+<div id="search-result">
+  <div id="no-result">
+    <i class="fa fa-spinner fa-pulse fa-5x fa-fw"></i>
+  </div>
+</div>
+
+    </div>
+  </div>
+
+</div>
+    </header>
+
+    
+  <div class="back-to-top">
+    <i class="fa fa-arrow-up"></i>
+    <span>0%</span>
+  </div>
+
+
+    <main class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          
+
+          <div class="content post posts-expand">
+            
+
+    
+  
+  
+  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="zh-CN">
+    <link itemprop="mainEntityOfPage" href="https://wtlizzz.github.io/pringBoot%E5%90%AF%E5%8A%A8%E8%BF%87%E7%A8%8B/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/avatar.jpg">
+      <meta itemprop="name" content="Wtli">
+      <meta itemprop="description" content="本博客记录博主学习内容，所有均原创内容">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="文韬">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          SpringBoot启动过程
+        </h1>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-calendar"></i>
+              </span>
+              <span class="post-meta-item-text">发表于</span>
+
+              <time title="创建时间：2021-04 08:49:00" itemprop="dateCreated datePublished" datetime="2021-04-09T08:49:00+08:00">2021-04</time>
+            </span>
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-folder"></i>
+              </span>
+              <span class="post-meta-item-text">分类于</span>
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/%E5%90%8E%E7%AB%AF/" itemprop="url" rel="index"><span itemprop="name">后端</span></a>
+                </span>
+            </span>
+
+          
+            <span class="post-meta-item" title="本文字数">
+              <span class="post-meta-item-icon">
+                <i class="far fa-file-word"></i>
+              </span>
+                <span class="post-meta-item-text">本文字数：</span>
+              <span>8k</span>
+            </span>
+            <span class="post-meta-item" title="阅读时长">
+              <span class="post-meta-item-icon">
+                <i class="far fa-clock"></i>
+              </span>
+                <span class="post-meta-item-text">阅读时长 &asymp;</span>
+              <span>7 分钟</span>
+            </span>
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+        <p>上一篇博文是分析websocket的启动过程，在研究启动过程就不得不结合SpringBoot的启动过程来进行分析。</p>
+<p>本文是对SpringBoot的启动过程进行分析，代码比较多，一起看代码。</p>
+<span id="more"></span>
+
+<p>目录是根据启动过程涉及的类进行编号。</p>
+<h4 id="MonitorApplication"><a href="#MonitorApplication" class="headerlink" title="MonitorApplication"></a>MonitorApplication</h4><p>项目名是MonitorApplication。</p>
+<p>首先是MonitorApplication main，项目运行的起点。</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">public static void main(String[] args) throws Exception &#123;</span><br><span class="line">    SpringApplication.run(MonitorApplication.class, args);</span><br><span class="line">    ioServer();</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<h4 id="SpringApplication"><a href="#SpringApplication" class="headerlink" title="SpringApplication"></a>SpringApplication</h4><p>SpringApplication.run方法，返回了一个new SpringApplication.run的实例。</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">public static ConfigurableApplicationContext run(Class&lt;?&gt;[] primarySources, String[] args) &#123;</span><br><span class="line">	return new SpringApplication(primarySources).run(args);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<h5 id="run"><a href="#run" class="headerlink" title="run()"></a>run()</h5><p>new SpringApplication(primarySources).run(args)方法创建了一个新的ApplicationContext上下文，换句话说就是加载了配置文件，在自定义配置下创建了一个运行环境。</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br></pre></td><td class="code"><pre><span class="line">&#x2F;**</span><br><span class="line"> * Run the Spring application, creating and refreshing a new</span><br><span class="line"> * &#123;@link ApplicationContext&#125;.</span><br><span class="line"> * @param args the application arguments (usually passed from a Java main method)</span><br><span class="line"> * @return a running &#123;@link ApplicationContext&#125;</span><br><span class="line"> *&#x2F;</span><br><span class="line">public ConfigurableApplicationContext run(String... args) &#123;</span><br><span class="line">   	StopWatch stopWatch &#x3D; new StopWatch();</span><br><span class="line">	stopWatch.start();</span><br><span class="line">	ConfigurableApplicationContext context &#x3D; null;</span><br><span class="line">	Collection&lt;SpringBootExceptionReporter&gt; exceptionReporters &#x3D; new ArrayList&lt;&gt;();</span><br><span class="line">	configureHeadlessProperty();</span><br><span class="line">	SpringApplicationRunListeners listeners &#x3D; getRunListeners(args);</span><br><span class="line">	listeners.starting();</span><br><span class="line">	try &#123;</span><br><span class="line">		ApplicationArguments applicationArguments &#x3D; new DefaultApplicationArguments(args);</span><br><span class="line">		ConfigurableEnvironment environment &#x3D; prepareEnvironment(listeners, applicationArguments);</span><br><span class="line">		configureIgnoreBeanInfo(environment);</span><br><span class="line">		Banner printedBanner &#x3D; printBanner(environment);</span><br><span class="line">		context &#x3D; createApplicationContext();</span><br><span class="line">		exceptionReporters &#x3D; getSpringFactoriesInstances(SpringBootExceptionReporter.class,</span><br><span class="line">				new Class[] &#123; ConfigurableApplicationContext.class &#125;, context);</span><br><span class="line">		prepareContext(context, environment, listeners, applicationArguments, printedBanner);</span><br><span class="line">		refreshContext(context);</span><br><span class="line">		afterRefresh(context, applicationArguments);</span><br><span class="line">		stopWatch.stop();</span><br><span class="line">		if (this.logStartupInfo) &#123;</span><br><span class="line">			new StartupInfoLogger(this.mainApplicationClass).logStarted(getApplicationLog(), stopWatch);</span><br><span class="line">		&#125;</span><br><span class="line">		listeners.started(context);</span><br><span class="line">		callRunners(context, applicationArguments);</span><br><span class="line">	&#125;</span><br><span class="line">	catch (Throwable ex) &#123;</span><br><span class="line">		handleRunFailure(context, ex, exceptionReporters, listeners);</span><br><span class="line">		throw new IllegalStateException(ex);</span><br><span class="line">	&#125;</span><br><span class="line"></span><br><span class="line">	try &#123;</span><br><span class="line">		listeners.running(context);</span><br><span class="line">	&#125;</span><br><span class="line">	catch (Throwable ex) &#123;</span><br><span class="line">		handleRunFailure(context, ex, exceptionReporters, null);</span><br><span class="line">		throw new IllegalStateException(ex);</span><br><span class="line">	&#125;</span><br><span class="line">	return context;</span><br><span class="line">   </span><br><span class="line">   &#125;</span><br></pre></td></tr></table></figure>
+
+<h5 id="createApplicationContext"><a href="#createApplicationContext" class="headerlink" title="createApplicationContext()"></a>createApplicationContext()</h5><p>创建上下文Context，包括的主要内容：</p>
+<h6 id="创建SERVLET"><a href="#创建SERVLET" class="headerlink" title="创建SERVLET"></a>创建SERVLET</h6><p>在方法里出去前几行的启动初始化配置数据结构，配置环境变量。到了context = createApplicationContext();创建上下文的方法。</p>
+<p>根据application的类型，来生成对应的contextClass，Spring5新增了一个REACTIVE_WEB，字面意思是响应式web，比较新的，网上也有相关框架–webflux的说明。</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br></pre></td><td class="code"><pre><span class="line">createApplicationContext():</span><br><span class="line"></span><br><span class="line">				switch (this.webApplicationType) &#123;</span><br><span class="line">				case SERVLET:</span><br><span class="line">					contextClass &#x3D; Class.forName(DEFAULT_SERVLET_WEB_CONTEXT_CLASS);</span><br><span class="line">					break;</span><br><span class="line">				case REACTIVE:</span><br><span class="line">					contextClass &#x3D; Class.forName(DEFAULT_REACTIVE_WEB_CONTEXT_CLASS);</span><br><span class="line">					break;</span><br><span class="line">				default:</span><br><span class="line">					contextClass &#x3D; Class.forName(DEFAULT_CONTEXT_CLASS);</span><br><span class="line">				&#125;</span><br><span class="line">                return (ConfigurableApplicationContext) BeanUtils.instantiateClass(contextClass);</span><br></pre></td></tr></table></figure>
+
+<h5 id="创建beanFactory"><a href="#创建beanFactory" class="headerlink" title="创建beanFactory"></a>创建beanFactory</h5><p>在GenericApplicationContext类中创建beanFactory。</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">public GenericApplicationContext() &#123;</span><br><span class="line">	this.beanFactory &#x3D; new DefaultListableBeanFactory();</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<h4 id="refresh"><a href="#refresh" class="headerlink" title="refresh"></a>refresh</h4><p>上下文生成之后是准备刷新：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">prepareContext(context, environment, listeners, applicationArguments, printedBanner);</span><br><span class="line">refreshContext(context);</span><br><span class="line">afterRefresh(context, applicationArguments);</span><br></pre></td></tr></table></figure>
+
+<p>简单说明一下三个方法的作用。</p>
+<p>prepareContext：</p>
+<ul>
+<li>设置Environment</li>
+<li>初始化ApplicationContextInitializer</li>
+<li>绑定SpringApplicationRunListeners</li>
+<li>获取getBeanFactory</li>
+</ul>
+<p>refreshContext：这个方法调用的AbstractApplicationContext类中refresh()。 ServletWebServerApplicationContext是在此方法中创建的。</p>
+<ul>
+<li><p>Refresh the underlying {@link ApplicationContext}。（refreshContext）</p>
+</li>
+<li><p>prepareRefresh();（AbstractApplicationContext以下都是）</p>
+</li>
+<li><p>prepareBeanFactory(beanFactory);// Prepare the bean factory for use in this context.</p>
+</li>
+<li><p>postProcessBeanFactory(beanFactory);// Allows post-processing of the bean factory in context subclasses.</p>
+</li>
+<li><p>invokeBeanFactoryPostProcessors(beanFactory);// Invoke factory processors registered as beans in the context.</p>
+</li>
+<li><p>registerBeanPostProcessors(beanFactory);// Register bean processors that intercept bean creation.</p>
+</li>
+<li><p>initMessageSource();// Initialize message source for this context.</p>
+</li>
+<li><p>initApplicationEventMulticaster();// Initialize event multicaster for this context.</p>
+</li>
+<li><p>onRefresh();// Initialize other special beans in specific context subclasses.</p>
+</li>
+<li><p>registerListeners();// Check for listener beans and register them.</p>
+</li>
+<li><p>finishBeanFactoryInitialization(beanFactory);// Instantiate all remaining (non-lazy-init) singletons.</p>
+</li>
+<li><p>finishRefresh();// Last step: publish corresponding event.</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br></pre></td><td class="code"><pre><span class="line">ServletWebServerApplicationContext:</span><br><span class="line"></span><br><span class="line">	@Override</span><br><span class="line">protected void onRefresh() &#123;</span><br><span class="line">	super.onRefresh();</span><br><span class="line">	try &#123;</span><br><span class="line">		createWebServer();</span><br><span class="line">	&#125;</span><br><span class="line">	catch (Throwable ex) &#123;</span><br><span class="line">		throw new ApplicationContextException(&quot;Unable to start web server&quot;, ex);</span><br><span class="line">	&#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+</li>
+</ul>
+<h4 id="AbstractApplicationContext"><a href="#AbstractApplicationContext" class="headerlink" title="AbstractApplicationContext"></a>AbstractApplicationContext</h4><p>下一步到了refreshContext的步骤。</p>
+<p>调用的方法类是ServletWebServerApplicationContext.refresh()  ==&gt;  AbstractApplicationContext.refresh()</p>
+<p>在方法中运行顺序如下：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br></pre></td><td class="code"><pre><span class="line">&#x2F;&#x2F; Prepare this context for refreshing.</span><br><span class="line">			prepareRefresh();</span><br><span class="line"></span><br><span class="line">			&#x2F;&#x2F; Tell the subclass to refresh the internal bean factory.</span><br><span class="line">			ConfigurableListableBeanFactory beanFactory &#x3D; obtainFreshBeanFactory();</span><br><span class="line"></span><br><span class="line">			&#x2F;&#x2F; Prepare the bean factory for use in this context.</span><br><span class="line">			prepareBeanFactory(beanFactory);</span><br><span class="line"></span><br><span class="line">			try &#123;</span><br><span class="line">				&#x2F;&#x2F; Allows post-processing of the bean factory in context subclasses.</span><br><span class="line">				postProcessBeanFactory(beanFactory);</span><br><span class="line"></span><br><span class="line">				&#x2F;&#x2F; Invoke factory processors registered as beans in the context.</span><br><span class="line">				invokeBeanFactoryPostProcessors(beanFactory);</span><br><span class="line"></span><br><span class="line">				&#x2F;&#x2F; Register bean processors that intercept bean creation.</span><br><span class="line">				registerBeanPostProcessors(beanFactory);</span><br><span class="line"></span><br><span class="line">				&#x2F;&#x2F; Initialize message source for this context.</span><br><span class="line">				initMessageSource();</span><br><span class="line"></span><br><span class="line">				&#x2F;&#x2F; Initialize event multicaster for this context.</span><br><span class="line">				initApplicationEventMulticaster();</span><br><span class="line"></span><br><span class="line">				&#x2F;&#x2F; Initialize other special beans in specific context subclasses.</span><br><span class="line">				onRefresh();</span><br><span class="line"></span><br><span class="line">				&#x2F;&#x2F; Check for listener beans and register them.</span><br><span class="line">				registerListeners();</span><br><span class="line"></span><br><span class="line">				&#x2F;&#x2F; Instantiate all remaining (non-lazy-init) singletons.</span><br><span class="line">				finishBeanFactoryInitialization(beanFactory);</span><br><span class="line"></span><br><span class="line">				&#x2F;&#x2F; Last step: publish corresponding event.</span><br><span class="line">				finishRefresh();</span><br><span class="line">			&#125;</span><br></pre></td></tr></table></figure>
+
+<h4 id="ServletWebServerApplicationContext"><a href="#ServletWebServerApplicationContext" class="headerlink" title="ServletWebServerApplicationContext"></a>ServletWebServerApplicationContext</h4><p>AbstractApplicationContext类中refresh方法调用了onRefresh();在子类ServletWebServerApplicationContext中的方法，创建webServer。</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line">@Override</span><br><span class="line">protected void onRefresh() &#123;</span><br><span class="line">	super.onRefresh();</span><br><span class="line">	try &#123;</span><br><span class="line">		createWebServer();</span><br><span class="line">	&#125;</span><br><span class="line">	catch (Throwable ex) &#123;</span><br><span class="line">		throw new ApplicationContextException(&quot;Unable to start web server&quot;, ex);</span><br><span class="line">	&#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<h5 id="createWebServer"><a href="#createWebServer" class="headerlink" title="createWebServer()"></a>createWebServer()</h5><p>创建webServer，主要过程是在BeanFactory中注册。</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br></pre></td><td class="code"><pre><span class="line">private void createWebServer() &#123;</span><br><span class="line">		WebServer webServer &#x3D; this.webServer;</span><br><span class="line">		ServletContext servletContext &#x3D; getServletContext();</span><br><span class="line">		if (webServer &#x3D;&#x3D; null &amp;&amp; servletContext &#x3D;&#x3D; null) &#123;</span><br><span class="line">			ServletWebServerFactory factory &#x3D; getWebServerFactory();</span><br><span class="line">			this.webServer &#x3D; factory.getWebServer(getSelfInitializer());</span><br><span class="line">			getBeanFactory().registerSingleton(&quot;webServerGracefulShutdown&quot;,</span><br><span class="line">					new WebServerGracefulShutdownLifecycle(this.webServer));</span><br><span class="line">			getBeanFactory().registerSingleton(&quot;webServerStartStop&quot;,</span><br><span class="line">					new WebServerStartStopLifecycle(this, this.webServer));</span><br><span class="line">		&#125;</span><br><span class="line">		else if (servletContext !&#x3D; null) &#123;</span><br><span class="line">			try &#123;</span><br><span class="line">				getSelfInitializer().onStartup(servletContext);</span><br><span class="line">			&#125;</span><br><span class="line">			catch (ServletException ex) &#123;</span><br><span class="line">				throw new ApplicationContextException(&quot;Cannot initialize servlet context&quot;, ex);</span><br><span class="line">			&#125;</span><br><span class="line">		&#125;</span><br><span class="line">		initPropertySources();</span><br><span class="line">	&#125;</span><br></pre></td></tr></table></figure>
+
+<p>启动过程到这里就算结束了，以上内容是简单的了解了一下启动的机制。</p>
+<h4 id="附"><a href="#附" class="headerlink" title="附"></a>附</h4><h5 id="SpringApplicationRunListeners"><a href="#SpringApplicationRunListeners" class="headerlink" title="SpringApplicationRunListeners"></a>SpringApplicationRunListeners</h5><p>跑到这主要的逻辑就已经结束，下面是启动listener和runnable。这两个方法在我这个springboot web项目中没有跑到，应该是其他项目能够使用到。</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">listeners.started(context);</span><br><span class="line">callRunners(context, applicationArguments);</span><br></pre></td></tr></table></figure>
+
+<p>在SpringApplicationRunListeners类中running方法：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">void running(ConfigurableApplicationContext context) &#123;</span><br><span class="line">	for (SpringApplicationRunListener listener : this.listeners) &#123;</span><br><span class="line">		listener.running(context);</span><br><span class="line">	&#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<h5 id="EventPublishingRunListener"><a href="#EventPublishingRunListener" class="headerlink" title="EventPublishingRunListener"></a>EventPublishingRunListener</h5><p>running：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">@Override</span><br><span class="line">public void running(ConfigurableApplicationContext context) &#123;</span><br><span class="line">	context.publishEvent(new ApplicationReadyEvent(this.application, this.args, context));</span><br><span class="line">	AvailabilityChangeEvent.publish(context, ReadinessState.ACCEPTING_TRAFFIC);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+
+
+    </div>
+
+    
+    
+    
+
+      <footer class="post-footer">
+          
+          <div class="post-tags">
+              <a href="/tags/SpringBoot/" rel="tag"><i class="fa fa-tag"></i> SpringBoot</a>
+          </div>
+
+        
+
+
+        
+    <div class="post-nav">
+      <div class="post-nav-item">
+    <a href="/pringBoot-websocket%E5%90%AF%E5%8A%A8%E5%89%81%E6%88%90/" rel="prev" title="websocket启动过程">
+      <i class="fa fa-chevron-left"></i> websocket启动过程
+    </a></div>
+      <div class="post-nav-item">
+    <a href="/ebsocket%E6%95%B0%E6%8D%AE%E5%8F%91%E9%80%81%E8%BF%87%E7%A8%8B/" rel="next" title="websocket数据发送过程内部状态变化">
+      websocket数据发送过程内部状态变化 <i class="fa fa-chevron-right"></i>
+    </a></div>
+    </div>
+      </footer>
+    
+  </article>
+  
+  
+  
+
+
+
+          </div>
+          
+
+<script>
+  window.addEventListener('tabs:register', () => {
+    let { activeClass } = CONFIG.comments;
+    if (CONFIG.comments.storage) {
+      activeClass = localStorage.getItem('comments_active') || activeClass;
+    }
+    if (activeClass) {
+      let activeTab = document.querySelector(`a[href="#comment-${activeClass}"]`);
+      if (activeTab) {
+        activeTab.click();
+      }
+    }
+  });
+  if (CONFIG.comments.storage) {
+    window.addEventListener('tabs:click', event => {
+      if (!event.target.matches('.tabs-comment .tab-content .tab-pane')) return;
+      let commentClass = event.target.classList[1];
+      localStorage.setItem('comments_active', commentClass);
+    });
+  }
+</script>
+
+        </div>
+          
+  
+  <div class="toggle sidebar-toggle">
+    <span class="toggle-line toggle-line-first"></span>
+    <span class="toggle-line toggle-line-middle"></span>
+    <span class="toggle-line toggle-line-last"></span>
+  </div>
+
+  <aside class="sidebar">
+    <div class="sidebar-inner">
+
+      <ul class="sidebar-nav motion-element">
+        <li class="sidebar-nav-toc">
+          文章目录
+        </li>
+        <li class="sidebar-nav-overview">
+          站点概览
+        </li>
+      </ul>
+
+      <!--noindex-->
+      <div class="post-toc-wrap sidebar-panel">
+          <div class="post-toc motion-element"><ol class="nav"><li class="nav-item nav-level-4"><a class="nav-link" href="#MonitorApplication"><span class="nav-number">1.</span> <span class="nav-text">MonitorApplication</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#SpringApplication"><span class="nav-number">2.</span> <span class="nav-text">SpringApplication</span></a><ol class="nav-child"><li class="nav-item nav-level-5"><a class="nav-link" href="#run"><span class="nav-number">2.1.</span> <span class="nav-text">run()</span></a></li><li class="nav-item nav-level-5"><a class="nav-link" href="#createApplicationContext"><span class="nav-number">2.2.</span> <span class="nav-text">createApplicationContext()</span></a><ol class="nav-child"><li class="nav-item nav-level-6"><a class="nav-link" href="#%E5%88%9B%E5%BB%BASERVLET"><span class="nav-number">2.2.1.</span> <span class="nav-text">创建SERVLET</span></a></li></ol></li><li class="nav-item nav-level-5"><a class="nav-link" href="#%E5%88%9B%E5%BB%BAbeanFactory"><span class="nav-number">2.3.</span> <span class="nav-text">创建beanFactory</span></a></li></ol></li><li class="nav-item nav-level-4"><a class="nav-link" href="#refresh"><span class="nav-number">3.</span> <span class="nav-text">refresh</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#AbstractApplicationContext"><span class="nav-number">4.</span> <span class="nav-text">AbstractApplicationContext</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#ServletWebServerApplicationContext"><span class="nav-number">5.</span> <span class="nav-text">ServletWebServerApplicationContext</span></a><ol class="nav-child"><li class="nav-item nav-level-5"><a class="nav-link" href="#createWebServer"><span class="nav-number">5.1.</span> <span class="nav-text">createWebServer()</span></a></li></ol></li><li class="nav-item nav-level-4"><a class="nav-link" href="#%E9%99%84"><span class="nav-number">6.</span> <span class="nav-text">附</span></a><ol class="nav-child"><li class="nav-item nav-level-5"><a class="nav-link" href="#SpringApplicationRunListeners"><span class="nav-number">6.1.</span> <span class="nav-text">SpringApplicationRunListeners</span></a></li><li class="nav-item nav-level-5"><a class="nav-link" href="#EventPublishingRunListener"><span class="nav-number">6.2.</span> <span class="nav-text">EventPublishingRunListener</span></a></li></ol></li></ol></div>
+      </div>
+      <!--/noindex-->
+
+      <div class="site-overview-wrap sidebar-panel">
+        <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+    <img class="site-author-image" itemprop="image" alt="Wtli"
+      src="/images/avatar.jpg">
+  <p class="site-author-name" itemprop="name">Wtli</p>
+  <div class="site-description" itemprop="description">本博客记录博主学习内容，所有均原创内容</div>
+</div>
+<div class="site-state-wrap motion-element">
+  <nav class="site-state">
+      <div class="site-state-item site-state-posts">
+          <a href="/archives">
+          <span class="site-state-item-count">54</span>
+          <span class="site-state-item-name">日志</span>
+        </a>
+      </div>
+      <div class="site-state-item site-state-categories">
+            <a href="/categories/">
+          
+        <span class="site-state-item-count">7</span>
+        <span class="site-state-item-name">分类</span></a>
+      </div>
+      <div class="site-state-item site-state-tags">
+            <a href="/tags/">
+          
+        <span class="site-state-item-count">33</span>
+        <span class="site-state-item-name">标签</span></a>
+      </div>
+  </nav>
+</div>
+
+
+
+      </div>
+
+    </div>
+  </aside>
+  <div id="sidebar-dimmer"></div>
+
+
+      </div>
+      <div class="cat-to-top cd-top faa-float animated"></div>
+
+
+    </main>
+
+    <footer class="footer">
+      <div class="footer-inner">
+        
+
+        
+
+<div class="copyright">
+  
+  &copy; 2020 – 
+  <span itemprop="copyrightYear">2021</span>
+  <span class="with-love">
+    <i class="fa fa-heart"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">Wtli</span>
+</div>
+
+        
+
+
+
+
+
+
+
+
+      </div>
+    </footer>
+  </div>
+
+  
+  <script src="/lib/anime.min.js"></script>
+  <script src="/lib/velocity/velocity.min.js"></script>
+  <script src="/lib/velocity/velocity.ui.min.js"></script>
+
+<script src="/js/utils.js"></script>
+
+<script src="/js/motion.js"></script>
+
+
+<script src="/js/schemes/muse.js"></script>
+
+
+<script src="/js/next-boot.js"></script>
+
+
+
+
+  
+
+
+
+
+  
+<script src="/js/local-search.js"></script>
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+
+  
+
+<script src="/live2dw/lib/L2Dwidget.min.js?094cbace49a39548bed64abff5988b05"></script><script>L2Dwidget.init({"pluginRootPath":"live2dw/","pluginJsPath":"lib/","pluginModelPath":"assets/","tagMode":false,"log":false,"model":{"jsonPath":"/live2dw/assets/wanko.model.json"},"display":{"position":"right","width":150,"height":300},"mobile":{"show":false},"react":{"opacity":0.7}});</script></body>
+</html>

@@ -1,0 +1,602 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=2">
+<meta name="theme-color" content="#222">
+<meta name="generator" content="Hexo 5.4.0">
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/my_boy.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/my_boy.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/my_boy.png">
+  <link rel="mask-icon" href="/images/my_boy.png" color="#222">
+
+<link rel="stylesheet" href="/css/main.css">
+
+
+<link rel="stylesheet" href="/lib/font-awesome/css/all.min.css">
+  <link rel="stylesheet" href="/lib/pace/pace-theme-minimal.min.css">
+  <script src="/lib/pace/pace.min.js"></script>
+
+<script id="hexo-configurations">
+    var NexT = window.NexT || {};
+    var CONFIG = {"hostname":"wtlizzz.github.io","root":"/","scheme":"Mist","version":"7.8.0","exturl":false,"sidebar":{"position":"left","display":"post","padding":18,"offset":12,"onmobile":false},"copycode":{"enable":true,"show_result":true,"style":"flat"},"back2top":{"enable":true,"sidebar":false,"scrollpercent":false},"bookmark":{"enable":false,"color":"#222","save":"auto"},"fancybox":false,"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"algolia":{"hits":{"per_page":10},"labels":{"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}},"localsearch":{"enable":true,"trigger":"auto","top_n_per_article":-1,"unescape":false,"preload":false},"motion":{"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}},"path":"search.xml"};
+  </script>
+
+  <meta name="description" content="首先使用VUE-cli新建项目，然后使用ajax请求，调试echarts数据，最后把ajax使用gRPC替换，完成前端。">
+<meta property="og:type" content="article">
+<meta property="og:title" content="Vue爬坑指南">
+<meta property="og:url" content="https://wtlizzz.github.io/Vue%E6%9E%84%E5%BB%BA%E7%BD%91%E7%BB%9C%E6%8B%93%E6%89%91%E5%9B%BE/index.html">
+<meta property="og:site_name" content="文韬">
+<meta property="og:description" content="首先使用VUE-cli新建项目，然后使用ajax请求，调试echarts数据，最后把ajax使用gRPC替换，完成前端。">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="https://wtlizzz.github.io/images/pasted-35.png">
+<meta property="og:image" content="https://s1.ax1x.com/2020/08/12/avAEh6.png">
+<meta property="og:image" content="https://wtlizzz.github.io/images/pasted-36.png">
+<meta property="og:image" content="https://wtlizzz.github.io/images/pasted-37.png">
+<meta property="article:published_time" content="2020-08-11T00:12:00.000Z">
+<meta property="article:modified_time" content="2021-03-31T10:56:48.000Z">
+<meta property="article:author" content="Wtli">
+<meta property="article:tag" content="VUE">
+<meta property="article:tag" content="echarts">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="https://wtlizzz.github.io/images/pasted-35.png">
+
+<link rel="canonical" href="https://wtlizzz.github.io/Vue%E6%9E%84%E5%BB%BA%E7%BD%91%E7%BB%9C%E6%8B%93%E6%89%91%E5%9B%BE/">
+
+
+<script id="page-configurations">
+  // https://hexo.io/docs/variables.html
+  CONFIG.page = {
+    sidebar: "",
+    isHome : false,
+    isPost : true,
+    lang   : 'zh-CN'
+  };
+</script>
+
+  <title>Vue爬坑指南 | 文韬</title>
+  
+
+
+  <script>
+    var _hmt = _hmt || [];
+    (function() {
+      var hm = document.createElement("script");
+      hm.src = "https://hm.baidu.com/hm.js?7f4b8b54f803186c40c333785b8aee31";
+      var s = document.getElementsByTagName("script")[0];
+      s.parentNode.insertBefore(hm, s);
+    })();
+  </script>
+
+
+
+
+  <noscript>
+  <style>
+  .use-motion .brand,
+  .use-motion .menu-item,
+  .sidebar-inner,
+  .use-motion .post-block,
+  .use-motion .pagination,
+  .use-motion .comments,
+  .use-motion .post-header,
+  .use-motion .post-body,
+  .use-motion .collection-header { opacity: initial; }
+
+  .use-motion .site-title,
+  .use-motion .site-subtitle {
+    opacity: initial;
+    top: initial;
+  }
+
+  .use-motion .logo-line-before i { left: initial; }
+  .use-motion .logo-line-after i { right: initial; }
+  </style>
+</noscript>
+
+  <script src="https://apps.bdimg.com/libs/jquery/2.1.4/jquery.min.js">
+  </script>
+</head>
+
+
+<body itemscope itemtype="http://schema.org/WebPage">
+  <div class="container use-motion">
+    <div class="headband"></div>
+
+    <header class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-container">
+  <div class="site-nav-toggle">
+    <div class="toggle" aria-label="切换导航栏">
+      <span class="toggle-line toggle-line-first"></span>
+      <span class="toggle-line toggle-line-middle"></span>
+      <span class="toggle-line toggle-line-last"></span>
+    </div>
+  </div>
+
+  <div class="site-meta">
+
+    <a href="/" class="brand" rel="start">
+      <span class="logo-line-before"><i></i></span>
+      <h1 class="site-title">文韬</h1>
+      <span class="logo-line-after"><i></i></span>
+    </a>
+      <p class="site-subtitle" itemprop="description">始终如一</p>
+  </div>
+
+  <div class="site-nav-right">
+    <div class="toggle popup-trigger">
+        <i class="fa fa-search fa-fw fa-lg"></i>
+    </div>
+  </div>
+</div>
+
+
+
+
+<nav class="site-nav">
+  <ul id="menu" class="main-menu menu">
+        <li class="menu-item menu-item-home">
+
+    <a href="/" rel="section"><i class="fa fa-home fa-fw"></i>首页</a>
+
+  </li>
+        <li class="menu-item menu-item-目录">
+
+    <a href="/archives/" rel="section"><i class="fa fa-archive fa-fw"></i>目录</a>
+
+  </li>
+        <li class="menu-item menu-item-tags">
+
+    <a href="/tags/" rel="section"><i class="fa fa-tags fa-fw"></i>标签</a>
+
+  </li>
+        <li class="menu-item menu-item-categories">
+
+    <a href="/categories/" rel="section"><i class="fa fa-th fa-fw"></i>分类</a>
+
+  </li>
+        <li class="menu-item menu-item-commonweal">
+
+    <a href="/404/" rel="section"><i class="fa fa-heartbeat fa-fw"></i>公益</a>
+
+  </li>
+        <li class="menu-item menu-item-about">
+
+    <a href="/about/" rel="section"><i class="fa fa-user fa-fw"></i>关于</a>
+
+  </li>
+      <li class="menu-item menu-item-search">
+        <a role="button" class="popup-trigger"><i class="fa fa-search fa-fw"></i>搜索
+        </a>
+      </li>
+  </ul>
+</nav>
+
+
+
+  <div class="search-pop-overlay">
+    <div class="popup search-popup">
+        <div class="search-header">
+  <span class="search-icon">
+    <i class="fa fa-search"></i>
+  </span>
+  <div class="search-input-container">
+    <input autocomplete="off" autocapitalize="off"
+           placeholder="搜索..." spellcheck="false"
+           type="search" class="search-input">
+  </div>
+  <span class="popup-btn-close">
+    <i class="fa fa-times-circle"></i>
+  </span>
+</div>
+<div id="search-result">
+  <div id="no-result">
+    <i class="fa fa-spinner fa-pulse fa-5x fa-fw"></i>
+  </div>
+</div>
+
+    </div>
+  </div>
+
+</div>
+    </header>
+
+    
+  <div class="back-to-top">
+    <i class="fa fa-arrow-up"></i>
+    <span>0%</span>
+  </div>
+
+
+    <main class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          
+
+          <div class="content post posts-expand">
+            
+
+    
+  
+  
+  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="zh-CN">
+    <link itemprop="mainEntityOfPage" href="https://wtlizzz.github.io/Vue%E6%9E%84%E5%BB%BA%E7%BD%91%E7%BB%9C%E6%8B%93%E6%89%91%E5%9B%BE/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/avatar.jpg">
+      <meta itemprop="name" content="Wtli">
+      <meta itemprop="description" content="本博客记录博主学习内容，所有均原创内容">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="文韬">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          Vue爬坑指南
+        </h1>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-calendar"></i>
+              </span>
+              <span class="post-meta-item-text">发表于</span>
+
+              <time title="创建时间：2020-08 08:12:00" itemprop="dateCreated datePublished" datetime="2020-08-11T08:12:00+08:00">2020-08</time>
+            </span>
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-folder"></i>
+              </span>
+              <span class="post-meta-item-text">分类于</span>
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/%E5%89%8D%E7%AB%AF/" itemprop="url" rel="index"><span itemprop="name">前端</span></a>
+                </span>
+            </span>
+
+          
+            <span class="post-meta-item" title="本文字数">
+              <span class="post-meta-item-icon">
+                <i class="far fa-file-word"></i>
+              </span>
+                <span class="post-meta-item-text">本文字数：</span>
+              <span>5.6k</span>
+            </span>
+            <span class="post-meta-item" title="阅读时长">
+              <span class="post-meta-item-icon">
+                <i class="far fa-clock"></i>
+              </span>
+                <span class="post-meta-item-text">阅读时长 &asymp;</span>
+              <span>5 分钟</span>
+            </span>
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+        <p>首先使用VUE-cli新建项目，然后使用ajax请求，调试echarts数据，最后把ajax使用gRPC替换，完成前端。</p>
+<span id="more"></span>
+
+<h3 id="使用vue-cli新建项目"><a href="#使用vue-cli新建项目" class="headerlink" title="使用vue-cli新建项目"></a>使用vue-cli新建项目</h3><p>全局安装vue-cli脚手架</p>
+<pre><code>$ cnpm install vue-cli -g
+</code></pre>
+<p>查看vue-cli是否成功</p>
+<pre><code>$ vue list
+</code></pre>
+<p>新建vue项目</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">$ vue intit webpack project-name</span><br></pre></td></tr></table></figure>
+
+
+<h3 id="入坑指南"><a href="#入坑指南" class="headerlink" title="入坑指南"></a>入坑指南</h3><p>解决进入Vue的某些坑～～～</p>
+<!--more-->
+<h4 id="margin-8px"><a href="#margin-8px" class="headerlink" title="margin-8px"></a>margin-8px</h4><p>浏览器自动设置body的margin。在写页面的时候，在App.vue文件style中添加</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">body &#123;</span><br><span class="line">  margin: 0;</span><br><span class="line">&#125;</span><br><span class="line"></span><br></pre></td></tr></table></figure>
+<h4 id="地址栏中去掉"><a href="#地址栏中去掉" class="headerlink" title="地址栏中去掉#"></a>地址栏中去掉#</h4><p>为了让地址栏更加好看，在router下的index.js文件中添加mode。</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line">export default new Router(&#123;</span><br><span class="line">  mode: &#39;history&#39;,</span><br><span class="line">  routes: [</span><br><span class="line">    &#123;</span><br><span class="line">      path: &#39;&#x2F;&#39;,</span><br><span class="line">      name: &#39;TabNetMonitor&#39;,</span><br><span class="line">      component: TabNetMonitor,</span><br><span class="line">    &#125;,</span><br><span class="line">  ],</span><br><span class="line">&#125;);</span><br></pre></td></tr></table></figure>
+<h4 id="意义"><a href="#意义" class="headerlink" title="@意义"></a>@意义</h4><p>在引入文件中，为了能够更加方便的引入，可以使用@标识符，@所代表的目录在webpack.base.conf.js文件中有设置。@路径代表项目中的src文件夹。</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">alias: &#123;</span><br><span class="line">  &#39;vue$&#39;: &#39;vue&#x2F;dist&#x2F;vue.esm.js&#39;,</span><br><span class="line">  &#39;@&#39;: resolve(&#39;src&#39;),</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<h4 id="require报错"><a href="#require报错" class="headerlink" title="require报错"></a>require报错</h4><p>使用eslint来规范自己代码，发现在data中使用require报错，写一个图片，需要引入本地的url，网上都是直接使用require引入。</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">src: require(&#39;..&#x2F;..&#x2F;assets&#x2F;logo2.jpeg&#39;),</span><br></pre></td></tr></table></figure>
+<p>现需要改成使用import引入。</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line">import logo2 from &#39;..&#x2F;..&#x2F;assets&#x2F;logo2.jpeg&#39;;</span><br><span class="line">export default &#123;</span><br><span class="line">  data() &#123;</span><br><span class="line">    return &#123;</span><br><span class="line">      src: logo2,</span><br><span class="line">      fit: &#39;contain&#39;,</span><br><span class="line">    &#125;;</span><br><span class="line">  &#125;,</span><br><span class="line">&#125;;</span><br></pre></td></tr></table></figure>
+<h4 id="使用webstorm配置eslint"><a href="#使用webstorm配置eslint" class="headerlink" title="使用webstorm配置eslint"></a>使用webstorm配置eslint</h4><p>还是熟悉的webstorm好用，更熟悉一些，但是刚从vscode转过来，还需要重新配置eslint。  </p>
+<ul>
+<li><p>首先是在&lt;script&gt;和&lt;style&gt;标签下不添加两个空格，如下图，添加两个标签。<br><img src="/images/pasted-35.png" alt="upload successful"></p>
+</li>
+<li><p>在Tabs and Indents中将4个空格改成2个</p>
+</li>
+</ul>
+<p><font color="gray">小知识：使用</font></p>
+<p><code>&amp;lt; script &amp;gt;</code></p>
+<p>转义字符显示</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">&lt;script&gt;</span><br></pre></td></tr></table></figure>
+
+  
+#### 相对布局
+- flex-direction不起作用
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">flex-direction: row;</span><br><span class="line">justify-content: center;</span><br></pre></td></tr></table></figure>
+需要在父容器中添加
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">display: flex;</span><br></pre></td></tr></table></figure>
+- align-content不起作用
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">align-content: center;</span><br></pre></td></tr></table></figure>
+align-content是相对于多行情况下，在单行情况下使用：
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">align-items: center;</span><br></pre></td></tr></table></figure>
+
+<p><font color="gray">淦！～～和之前ReactNative咋不一样呢</font></p>
+<h4 id="固定布局居中"><a href="#固定布局居中" class="headerlink" title="固定布局居中"></a>固定布局居中</h4><p>使用fix固定布局，配置居中将margin配置成auto，将top/left/buttom/right设置为0。</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line">.main &#123;</span><br><span class="line">  position: fixed;</span><br><span class="line">  margin: auto;</span><br><span class="line">  top: 0;</span><br><span class="line">  left: 0;</span><br><span class="line">  bottom: 0;</span><br><span class="line">  right: 0;</span><br><span class="line">  width: 800px;</span><br><span class="line">  height: 800px;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+
+<h3 id="配置scss"><a href="#配置scss" class="headerlink" title="配置scss"></a>配置scss</h3><p>实在是想写css的嵌套，看了半天还是scss好用，现在Vue中集成scss，安装必要组件</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">$ npm install node-sass --save</span><br><span class="line">$ npm install sass-loader --save</span><br><span class="line">$ npm install style-loader --save</span><br><span class="line">$ npm install sass-resources-loader --save</span><br></pre></td></tr></table></figure>
+<p>在build文件夹下的webpack.base.conf.js的rules里面添加配置</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">&#123;</span><br><span class="line"> 　test: &#x2F;\.sass$&#x2F;,</span><br><span class="line">　 loaders: [&#39;style&#39;, &#39;css&#39;, &#39;sass&#39;]</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>如下图所示：<br><img src="https://s1.ax1x.com/2020/08/12/avAEh6.png" alt="avAEh6.png"></p>
+<p><font color="gray">版本过高还会报错如下图，解决办法,安装低版本。</font></p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">$ npm install sass sass-loader@6.0.6</span><br></pre></td></tr></table></figure>
+<p>  。。。淦</p>
+<p><img src="/images/pasted-36.png" alt="upload successful">  </p>
+<h4 id="scss使用"><a href="#scss使用" class="headerlink" title="scss使用"></a>scss使用</h4><ul>
+<li>使用$声明变量。</li>
+</ul>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line">$link-color: blue;</span><br><span class="line">a &#123;</span><br><span class="line">  color: $link_color;</span><br><span class="line">&#125;</span><br><span class="line">&#x2F;&#x2F;编译后</span><br><span class="line">a &#123;</span><br><span class="line">  color: blue;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+
+<h3 id="使用Echarts绘制简单Demo"><a href="#使用Echarts绘制简单Demo" class="headerlink" title="使用Echarts绘制简单Demo"></a>使用Echarts绘制简单Demo</h3><ul>
+<li>先创建一个区域，设置高度，宽度，width: 600px;height:400px;<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">&lt;template&gt;</span><br><span class="line">&lt;div id&#x3D;&quot;main&quot; style&#x3D;&quot;width: 600px;height:400px;&quot;&gt;</span><br><span class="line">&lt;&#x2F;div&gt;</span><br><span class="line">&lt;&#x2F;template&gt;</span><br></pre></td></tr></table></figure></li>
+<li>第一种写法，使用window.onload()：<br>window.onload() 方法用于在网页加载完毕后立刻执行的操作，即当 HTML 文档加载完毕后，立刻执行某个方法。<br>window.onload() 通常用于 &lt;body&gt; 元素，在页面完全载入后(包括图片、css文件等等)执行脚本代码。<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br></pre></td><td class="code"><pre><span class="line">&lt;script&gt;</span><br><span class="line">window.onload &#x3D; function () &#123;</span><br><span class="line">  const myChart &#x3D; echarts.init(document.getElementById(&#39;main&#39;));</span><br><span class="line">  const option &#x3D; &#123;</span><br><span class="line">    title: &#123;</span><br><span class="line">      text: &#39;ECharts 入门示例&#39;,</span><br><span class="line">    &#125;,</span><br><span class="line">    tooltip: &#123;&#125;,</span><br><span class="line">    legend: &#123;</span><br><span class="line">      data: [&#39;销量&#39;],</span><br><span class="line">    &#125;,</span><br><span class="line">    xAxis: &#123;</span><br><span class="line">      data: [&#39;衬衫&#39;, &#39;羊毛衫&#39;, &#39;雪纺衫&#39;, &#39;裤子&#39;, &#39;高跟鞋&#39;, &#39;袜子&#39;],</span><br><span class="line">    &#125;,</span><br><span class="line">    yAxis: &#123;&#125;,</span><br><span class="line">    series: [&#123;</span><br><span class="line">      name: &#39;销量&#39;,</span><br><span class="line">      type: &#39;bar&#39;,</span><br><span class="line">      data: [5, 20, 36, 10, 10, 20],</span><br><span class="line">    &#125;],</span><br><span class="line">  &#125;;</span><br><span class="line">  myChart.setOption(option);</span><br><span class="line">&#125;;</span><br><span class="line">&lt;&#x2F;script&gt;</span><br></pre></td></tr></table></figure></li>
+<li>第二种写法，更符合Vue使用，在Vue生命周期函数，mounted方法中使用。<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br></pre></td><td class="code"><pre><span class="line">&lt;script&gt;</span><br><span class="line">mounted() &#123;</span><br><span class="line">  this.displayChart();</span><br><span class="line">&#125;,</span><br><span class="line">methods: &#123;</span><br><span class="line">  displayChart() &#123;</span><br><span class="line">    const myChart &#x3D; echarts.init(document.getElementById(&#39;main&#39;));</span><br><span class="line">    const option &#x3D; &#123;</span><br><span class="line">      title: &#123;</span><br><span class="line">        text: &#39;ECharts 入门示例&#39;,</span><br><span class="line">      &#125;,</span><br><span class="line">      tooltip: &#123;&#125;,</span><br><span class="line">      legend: &#123;</span><br><span class="line">        data: [&#39;销量&#39;],</span><br><span class="line">      &#125;,</span><br><span class="line">      xAxis: &#123;</span><br><span class="line">        data: [&#39;衬衫&#39;, &#39;羊毛衫&#39;, &#39;雪纺衫&#39;, &#39;裤子&#39;, &#39;高跟鞋&#39;, &#39;袜子&#39;],</span><br><span class="line">      &#125;,</span><br><span class="line">      yAxis: &#123;&#125;,</span><br><span class="line">      series: [&#123;</span><br><span class="line">        name: &#39;销量&#39;,</span><br><span class="line">        type: &#39;bar&#39;,</span><br><span class="line">        data: [5, 20, 36, 10, 10, 20],</span><br><span class="line">      &#125;],</span><br><span class="line">    &#125;;</span><br><span class="line">    myChart.setOption(option);</span><br><span class="line">  &#125;,</span><br><span class="line">&#125;,</span><br><span class="line">&lt;&#x2F;script&gt;</span><br></pre></td></tr></table></figure></li>
+</ul>
+<p><strong>顺带记录一下Vue生命周期</strong><br>差不多一共8个生命周期钩子函数</p>
+<ul>
+<li>beforeCreate：不能在这个方法里添加请求，加载不到method里面的方法。～</li>
+<li>create：在这个方法里添加axios请求，返回的数据竟然比mounted里面慢，怀疑是axios异步的问题。</li>
+<li>beforeMount</li>
+<li>mounted</li>
+<li>beforeUpdate</li>
+<li>updated</li>
+<li>beforeDestroy</li>
+<li>destroyed</li>
+</ul>
+<p><img src="/images/pasted-37.png" alt="upload successful"></p>
+<h3 id="Vue使用Ajax发送请求"><a href="#Vue使用Ajax发送请求" class="headerlink" title="Vue使用Ajax发送请求"></a>Vue使用Ajax发送请求</h3><ul>
+<li>安装axios<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">$ npm install axios -S</span><br></pre></td></tr></table></figure></li>
+<li>安装qs，方便将json转换成data<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">$ npm install qs.js --save</span><br></pre></td></tr></table></figure></li>
+<li>全局注册,在main.js中增加配置<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">Vue.prototype.$axios &#x3D; axios;</span><br><span class="line">Vue.prototype.qs &#x3D; qs;</span><br></pre></td></tr></table></figure></li>
+<li>使用安全的方法读取数据<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">const &#123; data: items2, data2 &#x3D; 0 &#125; &#x3D; this.netInfo;</span><br></pre></td></tr></table></figure>
+<h3 id="SpringBoot配置跨域"><a href="#SpringBoot配置跨域" class="headerlink" title="SpringBoot配置跨域"></a>SpringBoot配置跨域</h3>简单解决跨域问题，日后再详细研究。新建配置类，重写addCorsMappings方法。<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br></pre></td><td class="code"><pre><span class="line">@Configuration</span><br><span class="line">public class CORSConfiguration extends WebMvcConfigurationSupport &#123;</span><br><span class="line">    @Override</span><br><span class="line">    protected void addCorsMappings(CorsRegistry registry) &#123;</span><br><span class="line">        registry.addMapping(&quot;&#x2F;**&quot;)</span><br><span class="line">                .allowedOrigins(&quot;*&quot;)</span><br><span class="line">                .allowedMethods(&quot;GET&quot;, &quot;HEAD&quot;, &quot;POST&quot;,&quot;PUT&quot;, &quot;DELETE&quot;, &quot;OPTIONS&quot;)</span><br><span class="line">                .allowedHeaders(&quot;*&quot;)</span><br><span class="line">                .exposedHeaders(&quot;access-control-allow-headers&quot;,</span><br><span class="line">                        &quot;access-control-allow-methods&quot;,</span><br><span class="line">                        &quot;access-control-allow-origin&quot;,</span><br><span class="line">                        &quot;access-control-max-age&quot;,</span><br><span class="line">                        &quot;X-Frame-Options&quot;)</span><br><span class="line">                .allowCredentials(false).maxAge(3600);</span><br><span class="line">        super.addCorsMappings(registry);</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<h3 id="使用Echarts绘制圆形拓扑关系图"><a href="#使用Echarts绘制圆形拓扑关系图" class="headerlink" title="使用Echarts绘制圆形拓扑关系图"></a>使用Echarts绘制圆形拓扑关系图</h3></li>
+</ul>
+<ol>
+<li>使用Math函数计算Y坐标。  <blockquote>
+<p>Math.pow() 函数返回基数（base）的指数（exponent）次幂，即 base<sup>exponent</sup>。<br>Math.sqrt() 函数返回一个数的平方根。</p>
+</blockquote>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line">const getY &#x3D; function (x) &#123;</span><br><span class="line">    const y &#x3D; Math.sqrt((1 - Math.pow(x &#x2F; 38, 2)) * Math.pow(30, 2));</span><br><span class="line">    return y;</span><br><span class="line">&#125;;</span><br><span class="line">const getOutY &#x3D; function (x) &#123;</span><br><span class="line">    const y &#x3D; Math.sqrt((1 - Math.pow(x &#x2F; 50, 2)) * Math.pow(42, 2));</span><br><span class="line">    return y;</span><br><span class="line">&#125;;</span><br></pre></td></tr></table></figure>
+当x=0时，y=1；显示在圆心的正上方。圆心的坐标是（0，0）。</li>
+<li></li>
+</ol>
+<h3 id="Vue部署"><a href="#Vue部署" class="headerlink" title="Vue部署"></a>Vue部署</h3><p>如果route使用的history模式，需要去掉，history模式需要配置服务器。</p>
+<ul>
+<li>部署到本地Tomcat上<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">$ npm run build</span><br></pre></td></tr></table></figure>
+<blockquote>
+<p>将生成的dist文件夹，拷贝到tomcat/webapp中，启动tomcat，启动命令在tomcat/bin文件夹中运行.sh文件</p>
+</blockquote>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">$ .&#x2F;startup.sh   &#x2F;&#x2F; 启动</span><br><span class="line">$ .&#x2F;shutdown.sh   &#x2F;&#x2F;停止</span><br></pre></td></tr></table></figure></li>
+<li>部署到github Pages/gitee Pages中<br><font color="gray">由于github连接速度太慢，将github替换为gitee，gitee不好的地方就是不能绑定域名，上传文件不能自动部署，gitee对hexo的编译太慢。。其他的都还好。</font>  <blockquote>
+<p>修改config文件夹中的index.js文件,将assetsPublicPath: ‘/‘修改为’./‘，更改资源访问的目录。</p>
+</blockquote>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">build: &#123;</span><br><span class="line">    assetsPublicPath: &#39;.&#x2F;&#39;,</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure></li>
+</ul>
+
+    </div>
+
+    
+    
+    
+
+      <footer class="post-footer">
+          
+          <div class="post-tags">
+              <a href="/tags/VUE/" rel="tag"><i class="fa fa-tag"></i> VUE</a>
+              <a href="/tags/echarts/" rel="tag"><i class="fa fa-tag"></i> echarts</a>
+          </div>
+
+        
+
+
+        
+    <div class="post-nav">
+      <div class="post-nav-item">
+    <a href="/SpringBoot-AOP%E9%9B%86%E6%88%90/" rel="prev" title="SpringBoot 配置日志">
+      <i class="fa fa-chevron-left"></i> SpringBoot 配置日志
+    </a></div>
+      <div class="post-nav-item">
+    <a href="/Git%E5%B8%B8%E7%94%A8%E5%91%BD%E4%BB%A4/" rel="next" title="Git常用命令">
+      Git常用命令 <i class="fa fa-chevron-right"></i>
+    </a></div>
+    </div>
+      </footer>
+    
+  </article>
+  
+  
+  
+
+
+
+          </div>
+          
+
+<script>
+  window.addEventListener('tabs:register', () => {
+    let { activeClass } = CONFIG.comments;
+    if (CONFIG.comments.storage) {
+      activeClass = localStorage.getItem('comments_active') || activeClass;
+    }
+    if (activeClass) {
+      let activeTab = document.querySelector(`a[href="#comment-${activeClass}"]`);
+      if (activeTab) {
+        activeTab.click();
+      }
+    }
+  });
+  if (CONFIG.comments.storage) {
+    window.addEventListener('tabs:click', event => {
+      if (!event.target.matches('.tabs-comment .tab-content .tab-pane')) return;
+      let commentClass = event.target.classList[1];
+      localStorage.setItem('comments_active', commentClass);
+    });
+  }
+</script>
+
+        </div>
+          
+  
+  <div class="toggle sidebar-toggle">
+    <span class="toggle-line toggle-line-first"></span>
+    <span class="toggle-line toggle-line-middle"></span>
+    <span class="toggle-line toggle-line-last"></span>
+  </div>
+
+  <aside class="sidebar">
+    <div class="sidebar-inner">
+
+      <ul class="sidebar-nav motion-element">
+        <li class="sidebar-nav-toc">
+          文章目录
+        </li>
+        <li class="sidebar-nav-overview">
+          站点概览
+        </li>
+      </ul>
+
+      <!--noindex-->
+      <div class="post-toc-wrap sidebar-panel">
+          <div class="post-toc motion-element"><ol class="nav"><li class="nav-item nav-level-3"><a class="nav-link" href="#%E4%BD%BF%E7%94%A8vue-cli%E6%96%B0%E5%BB%BA%E9%A1%B9%E7%9B%AE"><span class="nav-number">1.</span> <span class="nav-text">使用vue-cli新建项目</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E5%85%A5%E5%9D%91%E6%8C%87%E5%8D%97"><span class="nav-number">2.</span> <span class="nav-text">入坑指南</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#margin-8px"><span class="nav-number">2.1.</span> <span class="nav-text">margin-8px</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#%E5%9C%B0%E5%9D%80%E6%A0%8F%E4%B8%AD%E5%8E%BB%E6%8E%89"><span class="nav-number">2.2.</span> <span class="nav-text">地址栏中去掉#</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#%E6%84%8F%E4%B9%89"><span class="nav-number">2.3.</span> <span class="nav-text">@意义</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#require%E6%8A%A5%E9%94%99"><span class="nav-number">2.4.</span> <span class="nav-text">require报错</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#%E4%BD%BF%E7%94%A8webstorm%E9%85%8D%E7%BD%AEeslint"><span class="nav-number">2.5.</span> <span class="nav-text">使用webstorm配置eslint</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#%E5%9B%BA%E5%AE%9A%E5%B8%83%E5%B1%80%E5%B1%85%E4%B8%AD"><span class="nav-number">2.6.</span> <span class="nav-text">固定布局居中</span></a></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E9%85%8D%E7%BD%AEscss"><span class="nav-number">3.</span> <span class="nav-text">配置scss</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#scss%E4%BD%BF%E7%94%A8"><span class="nav-number">3.1.</span> <span class="nav-text">scss使用</span></a></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E4%BD%BF%E7%94%A8Echarts%E7%BB%98%E5%88%B6%E7%AE%80%E5%8D%95Demo"><span class="nav-number">4.</span> <span class="nav-text">使用Echarts绘制简单Demo</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#Vue%E4%BD%BF%E7%94%A8Ajax%E5%8F%91%E9%80%81%E8%AF%B7%E6%B1%82"><span class="nav-number">5.</span> <span class="nav-text">Vue使用Ajax发送请求</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#SpringBoot%E9%85%8D%E7%BD%AE%E8%B7%A8%E5%9F%9F"><span class="nav-number">6.</span> <span class="nav-text">SpringBoot配置跨域</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E4%BD%BF%E7%94%A8Echarts%E7%BB%98%E5%88%B6%E5%9C%86%E5%BD%A2%E6%8B%93%E6%89%91%E5%85%B3%E7%B3%BB%E5%9B%BE"><span class="nav-number">7.</span> <span class="nav-text">使用Echarts绘制圆形拓扑关系图</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#Vue%E9%83%A8%E7%BD%B2"><span class="nav-number">8.</span> <span class="nav-text">Vue部署</span></a></li></ol></div>
+      </div>
+      <!--/noindex-->
+
+      <div class="site-overview-wrap sidebar-panel">
+        <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+    <img class="site-author-image" itemprop="image" alt="Wtli"
+      src="/images/avatar.jpg">
+  <p class="site-author-name" itemprop="name">Wtli</p>
+  <div class="site-description" itemprop="description">本博客记录博主学习内容，所有均原创内容</div>
+</div>
+<div class="site-state-wrap motion-element">
+  <nav class="site-state">
+      <div class="site-state-item site-state-posts">
+          <a href="/archives">
+          <span class="site-state-item-count">54</span>
+          <span class="site-state-item-name">日志</span>
+        </a>
+      </div>
+      <div class="site-state-item site-state-categories">
+            <a href="/categories/">
+          
+        <span class="site-state-item-count">7</span>
+        <span class="site-state-item-name">分类</span></a>
+      </div>
+      <div class="site-state-item site-state-tags">
+            <a href="/tags/">
+          
+        <span class="site-state-item-count">33</span>
+        <span class="site-state-item-name">标签</span></a>
+      </div>
+  </nav>
+</div>
+
+
+
+      </div>
+
+    </div>
+  </aside>
+  <div id="sidebar-dimmer"></div>
+
+
+      </div>
+      <div class="cat-to-top cd-top faa-float animated"></div>
+
+
+    </main>
+
+    <footer class="footer">
+      <div class="footer-inner">
+        
+
+        
+
+<div class="copyright">
+  
+  &copy; 2020 – 
+  <span itemprop="copyrightYear">2021</span>
+  <span class="with-love">
+    <i class="fa fa-heart"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">Wtli</span>
+</div>
+
+        
+
+
+
+
+
+
+
+
+      </div>
+    </footer>
+  </div>
+
+  
+  <script src="/lib/anime.min.js"></script>
+  <script src="/lib/velocity/velocity.min.js"></script>
+  <script src="/lib/velocity/velocity.ui.min.js"></script>
+
+<script src="/js/utils.js"></script>
+
+<script src="/js/motion.js"></script>
+
+
+<script src="/js/schemes/muse.js"></script>
+
+
+<script src="/js/next-boot.js"></script>
+
+
+
+
+  
+
+
+
+
+  
+<script src="/js/local-search.js"></script>
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+
+  
+
+<script src="/live2dw/lib/L2Dwidget.min.js?094cbace49a39548bed64abff5988b05"></script><script>L2Dwidget.init({"pluginRootPath":"live2dw/","pluginJsPath":"lib/","pluginModelPath":"assets/","tagMode":false,"log":false,"model":{"jsonPath":"/live2dw/assets/wanko.model.json"},"display":{"position":"right","width":150,"height":300},"mobile":{"show":false},"react":{"opacity":0.7}});</script></body>
+</html>
