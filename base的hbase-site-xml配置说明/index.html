@@ -1,0 +1,608 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=2">
+<meta name="theme-color" content="#222">
+<meta name="generator" content="Hexo 5.4.0">
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/my_boy.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/my_boy.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/my_boy.png">
+  <link rel="mask-icon" href="/images/my_boy.png" color="#222">
+
+<link rel="stylesheet" href="/css/main.css">
+
+
+<link rel="stylesheet" href="/lib/font-awesome/css/all.min.css">
+  <link rel="stylesheet" href="/lib/pace/pace-theme-minimal.min.css">
+  <script src="/lib/pace/pace.min.js"></script>
+
+<script id="hexo-configurations">
+    var NexT = window.NexT || {};
+    var CONFIG = {"hostname":"wtlizzz.github.io","root":"/","scheme":"Mist","version":"7.8.0","exturl":false,"sidebar":{"position":"left","display":"post","padding":18,"offset":12,"onmobile":false},"copycode":{"enable":true,"show_result":true,"style":"flat"},"back2top":{"enable":true,"sidebar":false,"scrollpercent":false},"bookmark":{"enable":false,"color":"#222","save":"auto"},"fancybox":false,"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"algolia":{"hits":{"per_page":10},"labels":{"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}},"localsearch":{"enable":true,"trigger":"auto","top_n_per_article":-1,"unescape":false,"preload":false},"motion":{"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}},"path":"search.xml"};
+  </script>
+
+  <meta name="description" content="hbase-site配置说明">
+<meta property="og:type" content="article">
+<meta property="og:title" content="hbase的hbase-site.xml配置说明">
+<meta property="og:url" content="https://wtlizzz.github.io/base%E7%9A%84hbase-site-xml%E9%85%8D%E7%BD%AE%E8%AF%B4%E6%98%8E/index.html">
+<meta property="og:site_name" content="文韬">
+<meta property="og:description" content="hbase-site配置说明">
+<meta property="og:locale" content="zh_CN">
+<meta property="article:published_time" content="2021-04-24T05:26:00.000Z">
+<meta property="article:modified_time" content="2021-04-24T05:27:39.008Z">
+<meta property="article:author" content="Wtli">
+<meta property="article:tag" content="hadoop">
+<meta property="article:tag" content="hbase">
+<meta name="twitter:card" content="summary">
+
+<link rel="canonical" href="https://wtlizzz.github.io/base%E7%9A%84hbase-site-xml%E9%85%8D%E7%BD%AE%E8%AF%B4%E6%98%8E/">
+
+
+<script id="page-configurations">
+  // https://hexo.io/docs/variables.html
+  CONFIG.page = {
+    sidebar: "",
+    isHome : false,
+    isPost : true,
+    lang   : 'zh-CN'
+  };
+</script>
+
+  <title>hbase的hbase-site.xml配置说明 | 文韬</title>
+  
+
+
+  <script>
+    var _hmt = _hmt || [];
+    (function() {
+      var hm = document.createElement("script");
+      hm.src = "https://hm.baidu.com/hm.js?7f4b8b54f803186c40c333785b8aee31";
+      var s = document.getElementsByTagName("script")[0];
+      s.parentNode.insertBefore(hm, s);
+    })();
+  </script>
+
+
+
+
+  <noscript>
+  <style>
+  .use-motion .brand,
+  .use-motion .menu-item,
+  .sidebar-inner,
+  .use-motion .post-block,
+  .use-motion .pagination,
+  .use-motion .comments,
+  .use-motion .post-header,
+  .use-motion .post-body,
+  .use-motion .collection-header { opacity: initial; }
+
+  .use-motion .site-title,
+  .use-motion .site-subtitle {
+    opacity: initial;
+    top: initial;
+  }
+
+  .use-motion .logo-line-before i { left: initial; }
+  .use-motion .logo-line-after i { right: initial; }
+  </style>
+</noscript>
+
+  <script src="https://apps.bdimg.com/libs/jquery/2.1.4/jquery.min.js">
+  </script>
+</head>
+
+
+<body itemscope itemtype="http://schema.org/WebPage">
+  <div class="container use-motion">
+    <div class="headband"></div>
+
+    <header class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-container">
+  <div class="site-nav-toggle">
+    <div class="toggle" aria-label="切换导航栏">
+      <span class="toggle-line toggle-line-first"></span>
+      <span class="toggle-line toggle-line-middle"></span>
+      <span class="toggle-line toggle-line-last"></span>
+    </div>
+  </div>
+
+  <div class="site-meta">
+
+    <a href="/" class="brand" rel="start">
+      <span class="logo-line-before"><i></i></span>
+      <h1 class="site-title">文韬</h1>
+      <span class="logo-line-after"><i></i></span>
+    </a>
+      <p class="site-subtitle" itemprop="description">始终如一</p>
+  </div>
+
+  <div class="site-nav-right">
+    <div class="toggle popup-trigger">
+        <i class="fa fa-search fa-fw fa-lg"></i>
+    </div>
+  </div>
+</div>
+
+
+
+
+<nav class="site-nav">
+  <ul id="menu" class="main-menu menu">
+        <li class="menu-item menu-item-home">
+
+    <a href="/" rel="section"><i class="fa fa-home fa-fw"></i>首页</a>
+
+  </li>
+        <li class="menu-item menu-item-目录">
+
+    <a href="/archives/" rel="section"><i class="fa fa-archive fa-fw"></i>目录</a>
+
+  </li>
+        <li class="menu-item menu-item-tags">
+
+    <a href="/tags/" rel="section"><i class="fa fa-tags fa-fw"></i>标签</a>
+
+  </li>
+        <li class="menu-item menu-item-categories">
+
+    <a href="/categories/" rel="section"><i class="fa fa-th fa-fw"></i>分类</a>
+
+  </li>
+        <li class="menu-item menu-item-commonweal">
+
+    <a href="/404/" rel="section"><i class="fa fa-heartbeat fa-fw"></i>公益</a>
+
+  </li>
+        <li class="menu-item menu-item-about">
+
+    <a href="/about/" rel="section"><i class="fa fa-user fa-fw"></i>关于</a>
+
+  </li>
+      <li class="menu-item menu-item-search">
+        <a role="button" class="popup-trigger"><i class="fa fa-search fa-fw"></i>搜索
+        </a>
+      </li>
+  </ul>
+</nav>
+
+
+
+  <div class="search-pop-overlay">
+    <div class="popup search-popup">
+        <div class="search-header">
+  <span class="search-icon">
+    <i class="fa fa-search"></i>
+  </span>
+  <div class="search-input-container">
+    <input autocomplete="off" autocapitalize="off"
+           placeholder="搜索..." spellcheck="false"
+           type="search" class="search-input">
+  </div>
+  <span class="popup-btn-close">
+    <i class="fa fa-times-circle"></i>
+  </span>
+</div>
+<div id="search-result">
+  <div id="no-result">
+    <i class="fa fa-spinner fa-pulse fa-5x fa-fw"></i>
+  </div>
+</div>
+
+    </div>
+  </div>
+
+</div>
+    </header>
+
+    
+  <div class="back-to-top">
+    <i class="fa fa-arrow-up"></i>
+    <span>0%</span>
+  </div>
+
+
+    <main class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          
+
+          <div class="content post posts-expand">
+            
+
+    
+  
+  
+  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="zh-CN">
+    <link itemprop="mainEntityOfPage" href="https://wtlizzz.github.io/base%E7%9A%84hbase-site-xml%E9%85%8D%E7%BD%AE%E8%AF%B4%E6%98%8E/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/avatar.jpg">
+      <meta itemprop="name" content="Wtli">
+      <meta itemprop="description" content="本博客记录博主学习内容，所有均原创内容">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="文韬">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          hbase的hbase-site.xml配置说明
+        </h1>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-calendar"></i>
+              </span>
+              <span class="post-meta-item-text">发表于</span>
+
+              <time title="创建时间：2021-04 13:26:00" itemprop="dateCreated datePublished" datetime="2021-04-24T13:26:00+08:00">2021-04</time>
+            </span>
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-folder"></i>
+              </span>
+              <span class="post-meta-item-text">分类于</span>
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/%E5%90%8E%E7%AB%AF/" itemprop="url" rel="index"><span itemprop="name">后端</span></a>
+                </span>
+                  ，
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/%E5%90%8E%E7%AB%AF/%E5%A4%A7%E6%95%B0%E6%8D%AE/" itemprop="url" rel="index"><span itemprop="name">大数据</span></a>
+                </span>
+            </span>
+
+          
+            <span class="post-meta-item" title="本文字数">
+              <span class="post-meta-item-icon">
+                <i class="far fa-file-word"></i>
+              </span>
+                <span class="post-meta-item-text">本文字数：</span>
+              <span>24k</span>
+            </span>
+            <span class="post-meta-item" title="阅读时长">
+              <span class="post-meta-item-icon">
+                <i class="far fa-clock"></i>
+              </span>
+                <span class="post-meta-item-text">阅读时长 &asymp;</span>
+              <span>22 分钟</span>
+            </span>
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+        <p>hbase-site配置说明</p>
+<span id="more"></span>
+
+<h4 id="摘录一"><a href="#摘录一" class="headerlink" title="摘录一"></a>摘录一</h4><p>hbase.rootdir</p>
+<p>这个目录是region server的共享目录，用来持久化HBase。URL需要是’完全正确’的，还要包含文件系统的scheme。例如，要表示hdfs中的’/hbase’目录，namenode 运行在namenode.example.org的9090端口。则需要设置为hdfs://namenode.example.org:9000/hbase。默认情况下HBase是写到/tmp的。不改这个配置，数据会在重启的时候丢失。<br>默认: file:///tmp/hbase-${user.name}/hbase<br>hbase.master.port</p>
+<p>HBase的Master的端口.<br>默认: 60000<br>hbase.cluster.distributed</p>
+<p>HBase的运行模式。false是单机模式，true是分布式模式。若为false,HBase和Zookeeper会运行在同一个JVM里面。<br>默认: false<br>hbase.tmp.dir</p>
+<p>本地文件系统的临时文件夹。可以修改到一个更为持久的目录上。(/tmp会在重启时清楚)<br>默认:${java.io.tmpdir}/hbase-${user.name}<br>hbase.local.dir</p>
+<p>作为本地存储，位于本地文件系统的路径。<br>默认: ${hbase.tmp.dir}/local/<br>hbase.master.info.port</p>
+<p>HBase Master web 界面端口. 设置为-1 意味着你不想让他运行。<br>0.98 版本以后默认: 16010 以前是 60010<br>hbase.master.info.bindAddress</p>
+<p>HBase Master web 界面绑定的端口<br>默认: 0.0.0.0<br>hbase.client.write.buffer</p>
+<p>HTable客户端的写缓冲的默认大小。这个值越大，需要消耗的内存越大。因为缓冲在客户端和服务端都有实例，所以需要消耗客户端和服务端两个地方的内存。得到的好处是，可以减少RPC的次数。可以这样估算服务器端被占用的内存： hbase.client.write.buffer * hbase.regionserver.handler.count<br>默认: 2097152<br>hbase.regionserver.port</p>
+<p>HBase RegionServer绑定的端口<br>0.98 以前默认: 60020 以后默认是：16020<br>hbase.regionserver.info.port</p>
+<p>HBase RegionServer web 界面绑定的端口 设置为 -1 意味这你不想与运行 RegionServer 界面.<br>0.98 以前默认: 60030 以后默认是：16030<br>hbase.regionserver.info.port.auto</p>
+<p>Master或RegionServer是否要动态搜一个可以用的端口来绑定界面。当hbase.regionserver.info.port已经被占用的时候，可以搜一个空闲的端口绑定。这个功能在测试的时候很有用。默认关闭。<br>默认: false<br>hbase.regionserver.info.bindAddress</p>
+<p>HBase RegionServer web 界面的IP地址<br>默认: 0.0.0.0<br>hbase.regionserver.class</p>
+<p>RegionServer 使用的接口。客户端打开代理来连接region server的时候会使用到。<br>默认: org.apache.hadoop.hbase.ipc.HRegionInterface<br>hbase.client.pause</p>
+<p>通常的客户端暂停时间。最多的用法是客户端在重试前的等待时间。比如失败的get操作和region查询操作等都很可能用到。<br>默认: 1000<br>hbase.client.retries.number</p>
+<p>最大重试次数。所有需重试操作的最大值。例如从root region服务器获取root region，Get单元值，行Update操作等等。这是最大重试错误的值。 Default: 10.<br>0.98 以前默认: 10 以后默认是：35<br>hbase.bulkload.retries.number</p>
+<p>最大重试次数。 原子批加载尝试的迭代最大次数。 0 永不放弃。默认: 0.<br>默认: 0<br>hbase.client.scanner.caching</p>
+<p>当调用Scanner的next方法，而值又不在缓存里的时候，从服务端一次获取的行数。越大的值意味着Scanner会快一些，但是会占用更多的内存。当缓冲被占满的时候，next方法调用会越来越慢。慢到一定程度，可能会导致超时。例如超过了hbase.regionserver.lease.period。<br>默认: 100<br>hbase.client.keyvalue.maxsize</p>
+<p>一个KeyValue实例的最大size.这个是用来设置存储文件中的单个entry的大小上界。因为一个KeyValue是不能分割的，所以可以避免因为数据过大导致region不可分割。明智的做法是把它设为可以被最大region size整除的数。如果设置为0或者更小，就会禁用这个检查。默认10MB。<br>默认: 10485760<br>hbase.regionserver.lease.period</p>
+<p>客户端租用HRegion server 期限，即超时阀值。单位是毫秒。默认情况下，客户端必须在这个时间内发一条信息，否则视为死掉。<br>默认: 60000<br>hbase.regionserver.handler.count</p>
+<p>RegionServers受理的RPC Server实例数量。对于Master来说，这个属性是Master受理的handler数量<br>默认: 10<br>hbase.regionserver.msginterval</p>
+<p>RegionServer 发消息给 Master 时间间隔，单位是毫秒<br>默认: 3000<br>hbase.regionserver.optionallogflushinterval</p>
+<p>将Hlog同步到HDFS的间隔。如果Hlog没有积累到一定的数量，到了时间，也会触发同步。默认是1秒，单位毫秒。<br>默认: 1000<br>hbase.regionserver.regionSplitLimit</p>
+<p>region的数量到了这个值后就不会在分裂了。这不是一个region数量的硬性限制。但是起到了一定指导性的作用，到了这个值就该停止分裂了。默认是MAX_INT.就是说不阻止分裂。<br>默认: 2147483647<br>hbase.regionserver.logroll.period</p>
+<p>提交commit log的间隔，不管有没有写足够的值。<br>默认: 3600000<br>hbase.regionserver.hlog.reader.impl</p>
+<p>HLog file reader 的实现.<br>默认: org.apache.hadoop.hbase.regionserver.wal.SequenceFileLogReader<br>hbase.regionserver.hlog.writer.impl</p>
+<p>HLog file writer 的实现.<br>默认: org.apache.hadoop.hbase.regionserver.wal.SequenceFileLogWriter<br>hbase.regionserver.nbreservationblocks</p>
+<p>储备的内存block的数量(译者注:就像石油储备一样)。当发生out of memory 异常的时候，我们可以用这些内存在RegionServer停止之前做清理操作。<br>默认: 4<br>hbase.zookeeper.dns.interface</p>
+<p>当使用DNS的时候，Zookeeper用来上报的IP地址的网络接口名字。<br>默认: default<br>hbase.zookeeper.dns.nameserver</p>
+<p>当使用DNS的时候，Zookeepr使用的DNS的域名或者IP 地址，Zookeeper用它来确定和master用来进行通讯的域名.<br>默认: default<br>hbase.regionserver.dns.interface</p>
+<p>当使用DNS的时候，RegionServer用来上报的IP地址的网络接口名字。<br>默认: default<br>hbase.regionserver.dns.nameserver</p>
+<p>当使用DNS的时候，RegionServer使用的DNS的域名或者IP 地址，RegionServer用它来确定和master用来进行通讯的域名.<br>默认: default<br>hbase.master.dns.interface</p>
+<p>当使用DNS的时候，Master用来上报的IP地址的网络接口名字。<br>默认: default<br>hbase.master.dns.nameserver</p>
+<p>当使用DNS的时候，RegionServer使用的DNS的域名或者IP 地址，Master用它来确定用来进行通讯的域名.<br>默认: default<br>hbase.balancer.period</p>
+<p>Master执行region balancer的间隔。<br>默认: 300000<br>hbase.regions.slop</p>
+<p>当任一区域服务器有average + (average * slop)个分区，将会执行重新均衡。默认 20% slop .<br>默认:0.2<br>hbase.master.logcleaner.ttl</p>
+<p>Hlog存在于.oldlogdir 文件夹的最长时间, 超过了就会被 Master 的线程清理掉.<br>默认: 600000<br>hbase.master.logcleaner.plugins</p>
+<p>LogsCleaner服务会执行的一组LogCleanerDelegat。值用逗号间隔的文本表示。这些WAL/HLog cleaners会按顺序调用。可以把先调用的放在前面。你可以实现自己的LogCleanerDelegat，加到Classpath下，然后在这里写下类的全称。一般都是加在默认值的前面。<br>默认: org.apache.hadoop.hbase.master.TimeToLiveLogCleaner<br>hbase.regionserver.global.memstore.upperLimit</p>
+<p>单个region server的全部memtores的最大值。超过这个值，一个新的update操作会被挂起，强制执行flush操作。<br>默认: 0.4<br>hbase.regionserver.global.memstore.lowerLimit</p>
+<p>当强制执行flush操作的时候，当低于这个值的时候，flush会停止。默认是堆大小的 35% . 如果这个值和 hbase.regionserver.global.memstore.upperLimit 相同就意味着当update操作因为内存限制被挂起时，会尽量少的执行flush(译者注:一旦执行flush，值就会比下限要低，不再执行)<br>默认: 0.35<br>hbase.server.thread.wakefrequency</p>
+<p>service工作的sleep间隔，单位毫秒。 可以作为service线程的sleep间隔，比如log roller.<br>默认: 10000<br>hbase.server.versionfile.writeattempts</p>
+<p>退出前尝试写版本文件的次数。每次尝试由 hbase.server.thread.wakefrequency 毫秒数间隔。<br>默认: 3<br>hbase.hregion.memstore.flush.size</p>
+<p>当memstore的大小超过这个值的时候，会flush到磁盘。这个值被一个线程每隔hbase.server.thread.wakefrequency检查一下。<br>默认:134217728<br>hbase.hregion.preclose.flush.size</p>
+<p>当一个region中的memstore的大小大于这个值的时候，我们又触发了close.会先运行“pre-flush”操作，清理这个需要关闭的memstore，然后将这个region下线。当一个region下线了，我们无法再进行任何写操作。如果一个memstore很大的时候，flush操作会消耗很多时间。”pre-flush”操作意味着在region下线之前，会先把memstore清空。这样在最终执行close操作的时候，flush操作会很快。<br>默认: 5242880<br>hbase.hregion.memstore.block.multiplier</p>
+<p>如果memstore有hbase.hregion.memstore.block.multiplier倍数的hbase.hregion.flush.size的大小，就会阻塞update操作。这是为了预防在update高峰期会导致的失控。如果不设上界，flush的时候会花很长的时间来合并或者分割，最坏的情况就是引发out of memory异常。(译者注:内存操作的速度和磁盘不匹配，需要等一等。原文似乎有误)<br>默认: 2<br>hbase.hregion.memstore.mslab.enabled</p>
+<p>体验特性：启用memStore分配本地缓冲区。这个特性是为了防止在大量写负载的时候堆的碎片过多。这可以减少GC操作的频率。(GC有可能会Stop the world)(译者注：实现的原理相当于预分配内存，而不是每一个值都要从堆里分配)<br>默认: true<br>hbase.hregion.max.filesize</p>
+<p>最大HStoreFile大小。若某个列族的HStoreFile增长达到这个值，这个Hegion会被切割成两个。 默认: 10G.<br>默认:10737418240<br>hbase.hstore.compactionThreshold</p>
+<p>当一个HStore含有多于这个值的HStoreFiles(每一个memstore flush产生一个HStoreFile)的时候，会执行一个合并操作，把这HStoreFiles写成一个。这个值越大，需要合并的时间就越长。<br>默认: 3<br>hbase.hstore.blockingStoreFiles</p>
+<p>当一个HStore含有多于这个值的HStoreFiles(每一个memstore flush产生一个HStoreFile)的时候，会执行一个合并操作，update会阻塞直到合并完成，直到超过了hbase.hstore.blockingWaitTime的值<br>默认: 7<br>hbase.hstore.blockingWaitTime</p>
+<p>hbase.hstore.blockingStoreFiles所限制的StoreFile数量会导致update阻塞，这个时间是来限制阻塞时间的。当超过了这个时间，HRegion会停止阻塞update操作，不过合并还有没有完成。默认为90s.<br>默认: 90000<br>hbase.hstore.compaction.max</p>
+<p>每个“小”合并的HStoreFiles最大数量。<br>默认: 10<br>hbase.hregion.majorcompaction</p>
+<p>一个Region中的所有HStoreFile的major compactions的时间间隔。默认是1天。 设置为0就是禁用这个功能。<br>默认: 86400000<br>hbase.storescanner.parallel.seek.enable</p>
+<p>允许 StoreFileScanner 并行搜索 StoreScanner, 一个在特定条件下降低延迟的特性。<br>默认: false<br>hbase.storescanner.parallel.seek.threads</p>
+<p>并行搜索特性打开后，默认线程池大小。<br>默认: 10<br>hbase.mapreduce.hfileoutputformat.blocksize</p>
+<p>MapReduce中HFileOutputFormat可以写 storefiles/hfiles. 这个值是hfile的blocksize的最小值。通常在HBase写Hfile的时候，bloocksize是由table schema(HColumnDescriptor)决定的，但是在mapreduce写的时候，我们无法获取schema中blocksize。这个值越小，你的索引就越大，你随机访问需要获取的数据就越小。如果你的cell都很小，而且你需要更快的随机访问，可以把这个值调低。<br>默认: 65536<br>hfile.block.cache.size</p>
+<p>分配给HFile/StoreFile的block cache占最大堆(-Xmx setting)的比例。默认0.25意思是分配25%，设置为0就是禁用，但不推荐。<br>默认:0.25<br>hbase.hash.type</p>
+<p>哈希函数使用的哈希算法。可以选择两个值:: murmur (MurmurHash) 和 jenkins (JenkinsHash). 这个哈希是给 bloom filters用的.<br>默认: murmur<br>hfile.block.index.cacheonwrite</p>
+<p>在index写入的时候允许put无根（non-root）的多级索引块到block cache里，默认是false；<br>hfile.index.block.max.size：在多级索引的树形结构里，如果任何一层的block index达到这个配置大小，则block写出，同时<br>替换上新的block，默认是131072；<br>hfile.format.version</p>
+<p>新文件的HFile 格式版本，设置为1来测试向后兼容，默认是2；<br>io.storefile.bloom.block.size</p>
+<p>一个联合布隆过滤器的单一块（chunk）的大小，这个值是一个逼近值，默认是131072；<br>hfile.block.bloom.cacheonwrite</p>
+<p>对于组合布隆过滤器的内联block开启cache-on-write，默认是false<br>hbase.rs.cacheblocksonwrite</p>
+<p>当一个HFile block完成时是否写入block cache，默认是false<br>hbase.rpc.server.engine</p>
+<p>hbase 做rpc server的调度管理类，实现自org.apache.hadoop.ipc.RpcServerEngine，默认是org.apache.hadoop.hbase.ipc.ProtobufRpcServerEngine<br>hbase.ipc.client.tcpnodelay</p>
+<p>默认是true，具体就是在tcp socket连接时设置 no delay<br>hbase.master.keytab.file</p>
+<p>HMaster server验证登录使用的kerberos keytab 文件路径。(译者注：HBase使用Kerberos实现安全)<br>默认:<br>hbase.master.kerberos.principal</p>
+<p>例如. “hbase/<a href="mailto:&#95;&#x48;&#x4f;&#83;&#84;&#64;&#69;&#x58;&#65;&#77;&#x50;&#x4c;&#x45;&#x2e;&#x43;&#x4f;&#77;">&#95;&#x48;&#x4f;&#83;&#84;&#64;&#69;&#x58;&#65;&#77;&#x50;&#x4c;&#x45;&#x2e;&#x43;&#x4f;&#77;</a>“. HMaster运行需要使用 kerberos principal name. principal name 可以在: user/hostname@DOMAIN 中获取. 如果 “_HOST” 被用做hostname portion，需要使用实际运行的hostname来替代它。<br>默认:<br>hbase.regionserver.keytab.file</p>
+<p>HRegionServer验证登录使用的kerberos keytab 文件路径。<br>默认:<br>hbase.regionserver.kerberos.principal</p>
+<p>例如. “hbase/<a href="mailto:&#95;&#72;&#x4f;&#x53;&#84;&#x40;&#69;&#88;&#x41;&#x4d;&#x50;&#x4c;&#69;&#x2e;&#67;&#79;&#77;">&#95;&#72;&#x4f;&#x53;&#84;&#x40;&#69;&#88;&#x41;&#x4d;&#x50;&#x4c;&#69;&#x2e;&#67;&#79;&#77;</a>“. HRegionServer运行需要使用 kerberos principal name. principal name 可以在: user/hostname@DOMAIN 中获取. 如果 “_HOST” 被用做hostname portion，需要使用实际运行的hostname来替代它。在这个文件中必须要有一个entry来描述 hbase.regionserver.keytab.file<br>默认:<br>hadoop.policy.file</p>
+<p>RPC服务器做权限认证时需要的安全策略配置文件，在Hbase security开启后使用，默认是habse-policy.xml；<br>hbase.superuser<br>Hbase security 开启后的超级用户配置，一系列由逗号隔开的user或者group；<br>hbase.auth.key.update.interval<br>Hbase security开启后服务端更新认证key的间隔时间：默认是86400000毫秒；<br>hbase.auth.token.max.lifetime<br>Hbase security开启后，认证token下发后的生存周期，默认是604800000毫秒<br>zookeeper.session.timeout</p>
+<p>ZooKeeper 会话超时.HBase把这个值传递改zk集群，向他推荐一个会话的最大超时时间。详见<a target="_blank" rel="noopener" href="http://hadoop.apache.org/zookeeper/docs/current/zookeeperProgrammers.html#ch_zkSessions">http://hadoop.apache.org/zookeeper/docs/current/zookeeperProgrammers.html#ch_zkSessions</a> “The client sends a requested timeout, the server responds with the timeout that it can give the client. “。 单位是毫秒<br>默认: 180000<br>zookeeper.znode.parent</p>
+<p>ZooKeeper中的HBase的根ZNode。所有的HBase的ZooKeeper会用这个目录配置相对路径。默认情况下，所有的HBase的ZooKeeper文件路径是用相对路径，所以他们会都去这个目录下面。<br>默认: /hbase<br>zookeeper.znode.rootserver</p>
+<p>ZNode 保存的 根region的路径. 这个值是由Master来写，client和regionserver 来读的。如果设为一个相对地址，父目录就是 ${zookeeper.znode.parent}.默认情形下，意味着根region的路径存储在/hbase/root-region-server.<br>默认: root-region-server<br>zookeeper.znode.acl.parent</p>
+<p>root znode的acl，默认acl；<br>hbase.coprocessor.region.classes<br>逗号分隔的Coprocessores列表，会被加载到默认所有表上。在自己实现了一个Coprocessor后，将其添加到Hbase的classpath并加入全限定名。也可以延迟加载，由HTableDescriptor指定；<br>hbase.coprocessor.master.classes</p>
+<p>由HMaster进程加载的coprocessors，逗号分隔，全部实现org.apache.hadoop.hbase.coprocessor.MasterObserver，同coprocessor类似，加入classpath及全限定名；<br>hbase.zookeeper.quorum</p>
+<p>Zookeeper集群的地址列表，用逗号分割。例如：”host1.mydomain.com,host2.mydomain.com,host3.mydomain.com”.默认是localhost,是给伪分布式用的。要修改才能在完全分布式的情况下使用。如果在hbase-env.sh设置了HBASE_MANAGES_ZK，这些ZooKeeper节点就会和HBase一起启动。<br>默认: localhost<br>hbase.zookeeper.peerport</p>
+<p>ZooKeeper节点使用的端口。详细参见：<a target="_blank" rel="noopener" href="http://hadoop.apache.org/zookeeper/docs/r3.1.1/zookeeperStarted.html#sc_RunningReplicatedZooKeeper">http://hadoop.apache.org/zookeeper/docs/r3.1.1/zookeeperStarted.html#sc_RunningReplicatedZooKeeper</a><br>默认: 2888<br>hbase.zookeeper.leaderport</p>
+<p>ZooKeeper用来选择Leader的端口，详细参见：<a target="_blank" rel="noopener" href="http://hadoop.apache.org/zookeeper/docs/r3.1.1/zookeeperStarted.html#sc_RunningReplicatedZooKeeper">http://hadoop.apache.org/zookeeper/docs/r3.1.1/zookeeperStarted.html#sc_RunningReplicatedZooKeeper</a><br>默认: 3888<br>hbase.zookeeper.useMulti</p>
+<p>Instructs HBase to make use of ZooKeeper’s multi-update functionality. This allows certain ZooKeeper operations to complete more quickly and prevents some issues with rare Replication failure scenarios (see the release note of HBASE-2611 for an example). IMPORTANT: only set this to true if all ZooKeeper servers in the cluster are on version 3.4+ and will not be downgraded. ZooKeeper versions before 3.4 do not support multi-update and will not fail gracefully if multi-update is invoked (see ZOOKEEPER-1495).<br>Default: false<br>hbase.zookeeper.property.initLimit</p>
+<p>ZooKeeper的zoo.conf中的配置。 初始化synchronization阶段的ticks数量限制<br>默认: 10<br>hbase.zookeeper.property.syncLimit</p>
+<p>ZooKeeper的zoo.conf中的配置。 发送一个请求到获得承认之间的ticks的数量限制<br>默认: 5<br>hbase.zookeeper.property.dataDir</p>
+<p>ZooKeeper的zoo.conf中的配置。 快照的存储位置<br>默认: ${hbase.tmp.dir}/zookeeper<br>hbase.zookeeper.property.clientPort</p>
+<p>ZooKeeper的zoo.conf中的配置。 客户端连接的端口<br>默认: 2181<br>hbase.zookeeper.property.maxClientCnxns</p>
+<p>ZooKeeper的zoo.conf中的配置。 ZooKeeper集群中的单个节点接受的单个Client(以IP区分)的请求的并发数。这个值可以调高一点，防止在单机和伪分布式模式中出问题。<br>默认: 300<br>hbase.rest.port</p>
+<p>HBase REST server的端口<br>默认: 8080<br>hbase.rest.readonly</p>
+<p>定义REST server的运行模式。可以设置成如下的值： false: 所有的HTTP请求都是被允许的 - GET/PUT/POST/DELETE. true:只有GET请求是被允许的<br>默认: false<br>hbase.defaults.for.version.skip</p>
+<p>Set to true to skip the ‘hbase.defaults.for.version’ check. Setting this to true can be useful in contexts other than the other side of a maven generation; i.e. running in an ide. You’ll want to set this boolean to true to avoid seeing the RuntimException complaint: “hbase-default.xml file seems to be for and old version of HBase (${hbase.version}), this version is X.X.X-SNAPSHOT”<br>Default: false<br>是否跳过hbase.defaults.for.version的检查，默认是false；<br>hbase.coprocessor.abortonerror</p>
+<p>Set to true to cause the hosting server (master or regionserver) to abort if a coprocessor throws a Throwable object that is not IOException or a subclass of IOException. Setting it to true might be useful in development environments where one wants to terminate the server as soon as possible to simplify coprocessor failure analysis.<br>Default: false</p>
+<p>如果coprocessor加载失败或者初始化失败或者抛出Throwable对象，则主机退出。设置为false会让系统继续运行，但是coprocessor的状态会不一致，所以一般debug时才会设置为false，默认是true；<br>hbase.online.schema.update.enable</p>
+<p>Set true to enable online schema changes. This is an experimental feature. There are known issues modifying table schemas at the same time a region split is happening so your table needs to be quiescent or else you have to be running with splits disabled.<br>Default: false</p>
+<p>设置true来允许在线schema变更，默认是true；<br>hbase.table.lock.enable</p>
+<p>Set to true to enable locking the table in zookeeper for schema change operations. Table locking from master prevents concurrent schema modifications to corrupt table state.<br>Default: true</p>
+<p>设置为true来允许在schema变更时zk锁表，锁表可以组织并发的schema变更导致的表状态不一致，默认是true；<br>dfs.support.append</p>
+<p>Does HDFS allow appends to files? This is an hdfs config. set in here so the hdfs client will do append support. You must ensure that this config. is true serverside too when running hbase (You will have to restart your cluster after setting it).<br>Default: true<br>hbase.thrift.minWorkerThreads<br>The “core size” of the thread pool. New threads are created on every connection until this many threads are created.<br>Default: 16</p>
+<p>线程池的core size，在达到这里配置的量级后，新线程才会再新的连接创立时创建，默认是16；<br>hbase.thrift.maxWorkerThreads</p>
+<p>The maximum size of the thread pool. When the pending request queue overflows, new threads are created until their number reaches this number. After that, the server starts dropping connections.<br>Default: 1000</p>
+<p>顾名思义，最大线程数，达到这个数字后，服务器开始drop连接，默认是1000；<br>hbase.thrift.maxQueuedRequests</p>
+<p>The maximum number of pending Thrift connections waiting in the queue. If there are no idle threads in the pool, the server queues requests. Only when the queue overflows, new threads are added, up to hbase.thrift.maxQueuedRequests threads.<br>Default: 1000</p>
+<p>Thrift连接队列的最大数，如果线程池满，会先在这个队列中缓存请求，缓存上限就是该配置，默认是1000；<br>hbase.offheapcache.percentage</p>
+<p>The amount of off heap space to be allocated towards the experimental off heap cache. If you desire the cache to be disabled, simply set this value to 0.<br>Default: 0</p>
+<p>JVM参数-XX:MaxDirectMemorySize的百分比值，默认是0，即不开启堆外分配；<br>hbase.data.umask.enable</p>
+<p>Enable, if true, that file permissions should be assigned to the files written by the regionserver<br>Default: false</p>
+<p>开启后，文件在regionserver写入时会 有权限相关设定，默认是false不开启；<br>hbase.data.umask</p>
+<p>File permissions that should be used to write data files when hbase.data.umask.enable is true<br>Default: 000</p>
+<p>开启上面一项配置后，文件的权限umask，默认是000<br>hbase.metrics.showTableName</p>
+<p>Whether to include the prefix “tbl.tablename” in per-column family metrics. If true, for each metric M, per-cf metrics will be reported for tbl.T.cf.CF.M, if false, per-cf metrics will be aggregated by column-family across tables, and reported for cf.CF.M. In both cases, the aggregated metric M across tables and cfs will be reported.<br>Default: true</p>
+<p>是否为每个指标显示表名前缀，默认是true；<br>hbase.metrics.exposeOperationTimes</p>
+<p>Whether to report metrics about time taken performing an operation on the region server. Get, Put, Delete, Increment, and Append can all have their times exposed through Hadoop metrics per CF and per region.<br>Default: true</p>
+<p>是否进行关于操作在使用时间维度的指标报告，比如GET PUT DELETE INCREMENT等，默认是true；<br>hbase.master.hfilecleaner.plugins</p>
+<p>A comma-separated list of HFileCleanerDelegate invoked by the HFileCleaner service. These HFiles cleaners are called in order, so put the cleaner that prunes the most files in front. To implement your own HFileCleanerDelegate, just put it in HBase’s classpath and add the fully qualified class name here. Always add the above default log cleaners in the list as they will be overwritten in hbase-site.xml.<br>Default: org.apache.hadoop.hbase.master.cleaner.TimeToLiveHFileCleaner</p>
+<p>HFile的清理插件列表，逗号分隔，被HFileService调用，可以自定义，默认org.apache.hadoop.hbase.master.cleaner.TimeToLiveHFileCleaner<br>hbase.regionserver.catalog.timeout</p>
+<p>Timeout value for the Catalog Janitor from the regionserver to META.<br>Default: 600000<br>regionserver的Catalog Janitor访问META的超时时间，默认是600000；<br>hbase.master.catalog.timeout<br>Timeout value for the Catalog Janitor from the master to META.<br>Default: 600000</p>
+<p>Catalog Janitor从master到META的超时时间，我们知道这个Janitor是定时的去META扫描表目录，来决定回收无用的regions，默认是600000；<br>hbase.config.read.zookeeper.config</p>
+<p>Set to true to allow HBaseConfiguration to read the zoo.cfg file for ZooKeeper properties. Switching this to true is not recommended, since the functionality of reading ZK properties from a zoo.cfg file has been deprecated.<br>Default: false</p>
+<p>让hbaseconfig去读zk的config，默认false，也不支持开启，这个功能很搞笑~~个人观点；<br>hbase.snapshot.enabled</p>
+<p>Set to true to allow snapshots to be taken / restored / cloned.<br>Default: true</p>
+<p>是否允许snapshot被使用、存储和克隆，默认是true；<br>hbase.rest.threads.max</p>
+<p>The maximum number of threads of the REST server thread pool. Threads in the pool are reused to process REST requests. This controls the maximum number of requests processed concurrently. It may help to control the memory used by the REST server to avoid OOM issues. If the thread pool is full, incoming requests will be queued up and wait for some free threads. The default is 100.<br>Default: 100</p>
+<p>REST服务器线程池的最大线程数，池满的话新请求会自动排队，限制这个配置可以控制服务器的内存量，预防OOM，默认是100；<br>hbase.rest.threads.min</p>
+<p>The minimum number of threads of the REST server thread pool. The thread pool always has at least these number of threads so the REST server is ready to serve incoming requests. The default is 2.<br>Default: 2</p>
+<p>同上类似，最小线程数，为了确保服务器的服务状态，默认是2；</p>
+<h4 id="摘录二"><a href="#摘录二" class="headerlink" title="摘录二"></a>摘录二</h4><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br><span class="line">65</span><br><span class="line">66</span><br><span class="line">67</span><br><span class="line">68</span><br><span class="line">69</span><br><span class="line">70</span><br><span class="line">71</span><br><span class="line">72</span><br><span class="line">73</span><br><span class="line">74</span><br><span class="line">75</span><br><span class="line">76</span><br><span class="line">77</span><br><span class="line">78</span><br><span class="line">79</span><br><span class="line">80</span><br><span class="line">81</span><br><span class="line">82</span><br><span class="line">83</span><br><span class="line">84</span><br><span class="line">85</span><br><span class="line">86</span><br><span class="line">87</span><br><span class="line">88</span><br><span class="line">89</span><br><span class="line">90</span><br><span class="line">91</span><br><span class="line">92</span><br><span class="line">93</span><br><span class="line">94</span><br><span class="line">95</span><br><span class="line">96</span><br><span class="line">97</span><br><span class="line">98</span><br><span class="line">99</span><br><span class="line">100</span><br><span class="line">101</span><br><span class="line">102</span><br><span class="line">103</span><br><span class="line">104</span><br><span class="line">105</span><br><span class="line">106</span><br><span class="line">107</span><br><span class="line">108</span><br><span class="line">109</span><br><span class="line">110</span><br><span class="line">111</span><br><span class="line">112</span><br><span class="line">113</span><br><span class="line">114</span><br><span class="line">115</span><br><span class="line">116</span><br><span class="line">117</span><br><span class="line">118</span><br><span class="line">119</span><br><span class="line">120</span><br><span class="line">121</span><br><span class="line">122</span><br><span class="line">123</span><br><span class="line">124</span><br><span class="line">125</span><br><span class="line">126</span><br><span class="line">127</span><br><span class="line">128</span><br><span class="line">129</span><br><span class="line">130</span><br><span class="line">131</span><br><span class="line">132</span><br><span class="line">133</span><br><span class="line">134</span><br><span class="line">135</span><br><span class="line">136</span><br><span class="line">137</span><br><span class="line">138</span><br><span class="line">139</span><br><span class="line">140</span><br><span class="line">141</span><br><span class="line">142</span><br><span class="line">143</span><br><span class="line">144</span><br><span class="line">145</span><br><span class="line">146</span><br><span class="line">147</span><br><span class="line">148</span><br><span class="line">149</span><br><span class="line">150</span><br><span class="line">151</span><br><span class="line">152</span><br></pre></td><td class="code"><pre><span class="line">&lt;configuration&gt;</span><br><span class="line">   &lt;property&gt;</span><br><span class="line">   &lt;name&gt;hbase.rpc.engine&lt;&#x2F;name&gt;</span><br><span class="line">   &lt;value&gt;org.apache.hadoop.hbase.ipc.WritableRpcEngine&lt;&#x2F;value&gt;</span><br><span class="line">&lt;&#x2F;property&gt;</span><br><span class="line">   &lt;property&gt;</span><br><span class="line">   &lt;name&gt;hbase.hregion.max.filesize&lt;&#x2F;name&gt;</span><br><span class="line">   &lt;value&gt;10737418240&lt;&#x2F;value&gt;</span><br><span class="line">&lt;!--默认值：256M:说明：在当前ReigonServer上单个Reigon的最大存储空间，单个Region超过该值时，这个Region会被自动split成更小的region。 --&gt;</span><br><span class="line">&lt;&#x2F;property&gt;</span><br><span class="line">   &lt;property&gt;</span><br><span class="line">   &lt;name&gt;hbase.rootdir&lt;&#x2F;name&gt;</span><br><span class="line">   &lt;value&gt;hdfs:&#x2F;&#x2F;hadoop01:8020&#x2F;apps&#x2F;hbase&#x2F;data&lt;&#x2F;value&gt;</span><br><span class="line">&lt;&#x2F;property&gt;</span><br><span class="line">   &lt;property&gt;</span><br><span class="line">   &lt;name&gt;hfile.block.cache.size&lt;&#x2F;name&gt;</span><br><span class="line">   &lt;value&gt;0.40&lt;&#x2F;value&gt;</span><br><span class="line">&lt;!--默认值：0.2:说明：storefile的读缓存占用Heap的大小百分比，0.2表示20%。该值直接影响数据读的性能</span><br><span class="line">调优：当然是越大越好，如果写比读少很多，开到0.4-0.5也没问题。如果读写较均衡，0.3左右。如果写比读多，果断默认吧。</span><br><span class="line">设置这个值的时，同时要参考 hbase.regionserver.global.memstore.upperLimit ，该值是memstore占heap的最大百分比，</span><br><span class="line">两个参数一个影响读，一个影响写。如果两值加起来超过80-90%，会有OOM的风险，谨慎设置。--&gt;</span><br><span class="line">&lt;&#x2F;property&gt;</span><br><span class="line">   &lt;property&gt;</span><br><span class="line">   &lt;name&gt;hbase.regionserver.global.memstore.upperLimit&lt;&#x2F;name&gt;</span><br><span class="line">   &lt;value&gt;0.4&lt;&#x2F;value&gt;</span><br><span class="line">&lt;!--默认值：0.4&#x2F;0.35 upperlimit说明：hbase.hregion.memstore.flush.size 这个参数的作用是当单个Region内所有的memstore大小总和超过指定值时，flush该region的所有memstore。</span><br><span class="line">RegionServer的flush是通过将请求添加一个队列，模拟生产消费模式来异步处理的。那这里就有一个问题，当队列来不及消费，产生大量积压请求时，可能会导致内存陡增，最坏的情况是触发OOM。</span><br><span class="line">  这个参数的作用是防止内存占用过大，当ReigonServer内所有region的memstores所占用内存总和达到heap的40%时，HBase会强制block所有的更新并flush这些region以释放所有memstore占用的内存。 --&gt;</span><br><span class="line">&lt;&#x2F;property&gt;</span><br><span class="line">   &lt;property&gt;</span><br><span class="line">   &lt;name&gt;hbase.regionserver.global.memstore.lowerLimit&lt;&#x2F;name&gt;</span><br><span class="line">   &lt;value&gt;0.38&lt;&#x2F;value&gt;</span><br><span class="line">&lt;!--lowerLimit说明： 同upperLimit，只不过lowerLimit在所有region的memstores所占用内存达到Heap的35%时，不flush所有的memstore。它会找一个memstore内存占用最大的region，做个别flush，此时写更新还是会被block。lowerLimit算是一个在所有region强制flush导致性能降低前的补救措施。</span><br><span class="line">在日志中，表现为 “** Flush thread woke up with memory above low water.”</span><br><span class="line">调优：这是一个Heap内存保护参数，默认值已经能适用大多数场景。</span><br><span class="line">   参数调整会影响读写，如果写的压力大导致经常超过这个阀值，则调小读缓存hfile.block.cache.size增大该阀值，或者Heap余量较多时，不修改读缓存大小。</span><br><span class="line">   如果在高压情况下，也没超过这个阀值，那么建议你适当调小这个阀值再做压测，确保触发次数不要太多，然后还有较多Heap余量的时候，调大hfile.block.cache.size提高读性能。--&gt;</span><br><span class="line">&lt;&#x2F;property&gt;</span><br><span class="line">&lt;property&gt;</span><br><span class="line">   &lt;name&gt;hbase.hregion.memstore.block.multiplier&lt;&#x2F;name&gt;</span><br><span class="line">   &lt;value&gt;2&lt;&#x2F;value&gt;</span><br><span class="line">&lt;!--默认值：2:说明：当一个region里的memstore占用内存大小超过hbase.hregion.memstore.flush.size两倍的大小时，block该region的所有请求，进行flush，释放内存。</span><br><span class="line">调优： 这个参数的默认值还是比较靠谱的。如果你预估你的正常应用场景（不包括异常）不会出现突发写或写的量可控，那么保持默认值即可。</span><br><span class="line">如果正常情况下，你的写请求量就会经常暴长到正常的几倍，那么你应该调大这个倍数并调整其他参数值，比如hfile.block.cache.size和hbase.regionserver.global.memstore.upperLimit&#x2F;lowerLimit，以预留更多内存，防止HBase server OOM。--&gt;</span><br><span class="line">&lt;&#x2F;property&gt;</span><br><span class="line">   &lt;property&gt;</span><br><span class="line">   &lt;name&gt;dfs.support.append&lt;&#x2F;name&gt;</span><br><span class="line">   &lt;value&gt;true&lt;&#x2F;value&gt;</span><br><span class="line">&lt;&#x2F;property&gt;</span><br><span class="line">   &lt;property&gt;</span><br><span class="line">   &lt;name&gt;hbase.zookeeper.quorum&lt;&#x2F;name&gt;</span><br><span class="line">   &lt;value&gt;hadoop04,hadoop05,hadoop06,hadoop07&lt;&#x2F;value&gt;</span><br><span class="line">&lt;&#x2F;property&gt;</span><br><span class="line">   &lt;property&gt;</span><br><span class="line">   &lt;name&gt;zookeeper.session.timeout&lt;&#x2F;name&gt;</span><br><span class="line">   &lt;value&gt;60000&lt;&#x2F;value&gt;</span><br><span class="line">&lt;!--默认: 180000 ：zookeeper 会话超时时间，单位是毫秒 --&gt;</span><br><span class="line">&lt;&#x2F;property&gt;</span><br><span class="line">   &lt;property&gt;</span><br><span class="line">   &lt;name&gt;hbase.superuser&lt;&#x2F;name&gt;</span><br><span class="line">   &lt;value&gt;hbase&lt;&#x2F;value&gt;</span><br><span class="line">&lt;&#x2F;property&gt;</span><br><span class="line">   &lt;property&gt;</span><br><span class="line">   &lt;name&gt;hbase.cluster.distributed&lt;&#x2F;name&gt;</span><br><span class="line">   &lt;value&gt;true&lt;&#x2F;value&gt;</span><br><span class="line">&lt;&#x2F;property&gt;</span><br><span class="line">   &lt;property&gt;</span><br><span class="line">   &lt;name&gt;hbase.client.keyvalue.maxsize&lt;&#x2F;name&gt;</span><br><span class="line">   &lt;value&gt;10485760&lt;&#x2F;value&gt;</span><br><span class="line">&lt;!--默认: 10485760 :一个KeyValue实例的最大size.这个是用来设置存储文件中的单个entry的大小上限。因为一个KeyValue是不能分割的，</span><br><span class="line">所以可以避免因为 数据过大导致region不可分割。明智的做法是把它设为可以被最大region  size整除的数。如果设置为0或者更小，就会禁用这个检查。默认10MB。  --&gt;</span><br><span class="line">&lt;&#x2F;property&gt;</span><br><span class="line">   &lt;property&gt;</span><br><span class="line">   &lt;name&gt;hbase.zookeeper.property.clientPort&lt;&#x2F;name&gt;</span><br><span class="line">   &lt;value&gt;2181&lt;&#x2F;value&gt;</span><br><span class="line">&lt;!--默认: 2181 :ZooKeeper的zoo.conf中的配置。 客户端连接的端口 --&gt;</span><br><span class="line">&lt;&#x2F;property&gt;</span><br><span class="line">   &lt;property&gt;</span><br><span class="line">   &lt;name&gt;hbase.hstore.blockingStoreFiles&lt;&#x2F;name&gt;</span><br><span class="line">   &lt;value&gt;7&lt;&#x2F;value&gt;</span><br><span class="line">&lt;!--默认: 7 : 当一个HStore含有多于这个值的HStoreFiles(每一个memstore flush产生一个HStoreFile)的时候，会执行一个合并操作，update会阻塞直到合并完成，直到超过了hbase.hstore.blockingWaitTime的值</span><br><span class="line">调优：block写请求会严重影响当前regionServer的响应时间，但过多的storefile也会影响读性能。从实际应用来看，为了获取较平滑的响应时间，可将值设为无限大。如果能容忍响应时间出现较大的波峰波谷，那么默认或根据自身场景调整即可。--&gt;</span><br><span class="line">&lt;&#x2F;property&gt;</span><br><span class="line">&lt;property&gt;</span><br><span class="line">   &lt;name&gt;hbase.hstore.blockingWaitTime&lt;&#x2F;name&gt;</span><br><span class="line">   &lt;value&gt;90000&lt;&#x2F;value&gt;</span><br><span class="line">&lt;!--20140314添加</span><br><span class="line">默认: 90000 :hbase.hstore.blockingStoreFiles所限制的StoreFile数量会导致update阻塞，这个时间是来限制阻塞时间的。当超过了这个时间，HRegion会停止阻塞update操作，不过合并还有没有完成。默认为90s.--&gt;</span><br><span class="line">&lt;&#x2F;property&gt;</span><br><span class="line">&lt;property&gt;</span><br><span class="line">   &lt;name&gt;hbase.hstore.compactionThreshold&lt;&#x2F;name&gt;</span><br><span class="line">   &lt;value&gt;3&lt;&#x2F;value&gt;</span><br><span class="line">&lt;!--默认: 3 ：当一个HStore含有多于这个值的HStoreFiles(每一个memstore flush产生一个HStoreFile)的时候，会执行一个合并操作，把这HStoreFiles写成一个。这个值越大，需要合并的时间就越长。--&gt;</span><br><span class="line">&lt;&#x2F;property&gt;</span><br><span class="line">   &lt;property&gt;</span><br><span class="line">   &lt;name&gt;hbase.hregion.majorcompaction&lt;&#x2F;name&gt;</span><br><span class="line">   &lt;value&gt;86400000&lt;&#x2F;value&gt;</span><br><span class="line">&lt;!--默认: 86400000 :一个Region中的所有HStoreFile的major compactions的时间间隔。默认是1天。设置为0就是禁用这个功能。--&gt;</span><br><span class="line">&lt;&#x2F;property&gt;</span><br><span class="line">   &lt;property&gt;</span><br><span class="line">   &lt;name&gt;hbase.security.authorization&lt;&#x2F;name&gt;</span><br><span class="line">   &lt;value&gt;false&lt;&#x2F;value&gt;</span><br><span class="line">&lt;&#x2F;property&gt;</span><br><span class="line">   &lt;property&gt;</span><br><span class="line">   &lt;name&gt;hbase.zookeeper.useMulti&lt;&#x2F;name&gt;</span><br><span class="line">   &lt;value&gt;true&lt;&#x2F;value&gt;</span><br><span class="line">&lt;&#x2F;property&gt;</span><br><span class="line">   &lt;property&gt;</span><br><span class="line">   &lt;name&gt;hbase.client.scanner.caching&lt;&#x2F;name&gt;</span><br><span class="line">   &lt;value&gt;100&lt;&#x2F;value&gt;</span><br><span class="line">&lt;!--默认: 1  :当调用Scanner的next方法，而值又不在缓存里的时候，从服务端一次获取的行数。越大的值意味着Scanner会快一些，但是会占用更多的内存。</span><br><span class="line">当缓冲被占满的时候，next方法调用会越来越慢。慢到一定程度，可能会导致超时。例如超过了 hbase.regionserver.lease.period。 --&gt;</span><br><span class="line">&lt;&#x2F;property&gt;</span><br><span class="line">   &lt;property&gt;</span><br><span class="line">   &lt;name&gt;hbase.defaults.for.version.skip&lt;&#x2F;name&gt;</span><br><span class="line">   &lt;value&gt;true&lt;&#x2F;value&gt;</span><br><span class="line">&lt;&#x2F;property&gt;</span><br><span class="line">   &lt;property&gt;</span><br><span class="line">   &lt;name&gt;zookeeper.znode.parent&lt;&#x2F;name&gt;</span><br><span class="line">   &lt;value&gt;&#x2F;hbase-unsecure&lt;&#x2F;value&gt;</span><br><span class="line">&lt;&#x2F;property&gt;</span><br><span class="line">   &lt;property&gt;</span><br><span class="line">   &lt;name&gt;hbase.hregion.memstore.flush.size&lt;&#x2F;name&gt;</span><br><span class="line">   &lt;value&gt;134217728&lt;&#x2F;value&gt;</span><br><span class="line">&lt;!--默认: 67108864 :当memstore的大小超过这个值的时候，会flush到磁盘。这个值被一个线程每隔hbase.server.thread.wakefrequency检查一下。--&gt;</span><br><span class="line">&lt;&#x2F;property&gt;</span><br><span class="line">   &lt;property&gt;</span><br><span class="line">   &lt;name&gt;hbase.regionserver.handler.count&lt;&#x2F;name&gt;</span><br><span class="line">   &lt;value&gt;60&lt;&#x2F;value&gt;</span><br><span class="line">&lt;!--默认: 10  :RegionServers受理的RPC Server实例数量。对于Master来说，这个属性是Master受理的handler数量.--&gt;</span><br><span class="line">&lt;&#x2F;property&gt;</span><br><span class="line">   &lt;property&gt;</span><br><span class="line">   &lt;name&gt;hbase.hregion.memstore.mslab.enabled&lt;&#x2F;name&gt;</span><br><span class="line">   &lt;value&gt;true&lt;&#x2F;value&gt;</span><br><span class="line">&lt;!--默认: false  :体验特性：启用memStore分配本地缓冲区。这个特性是为了防止在大量写负载的时候堆的碎片过多。这可以减少GC操作的频率。</span><br><span class="line">说明：减少因内存碎片导致的Full GC，提高整体性能。--&gt;</span><br><span class="line">&lt;&#x2F;property&gt;</span><br><span class="line">   &lt;property&gt;</span><br><span class="line">   &lt;name&gt;hbase.security.authentication&lt;&#x2F;name&gt;</span><br><span class="line">   &lt;value&gt;simple&lt;&#x2F;value&gt;</span><br><span class="line">&lt;&#x2F;property&gt;</span><br><span class="line">   &lt;property&gt;</span><br><span class="line">   &lt;name&gt;hbase.tmp.dir&lt;&#x2F;name&gt;</span><br><span class="line">   &lt;value&gt;&#x2F;var&#x2F;log&#x2F;hbase&lt;&#x2F;value&gt;</span><br><span class="line">&lt;&#x2F;property&gt;</span><br><span class="line">   &lt;property&gt;     </span><br><span class="line">   &lt;name&gt;hbase.master.info.bindAddress&lt;&#x2F;name&gt;     </span><br><span class="line">   &lt;value&gt;hadoop03&lt;&#x2F;value&gt; </span><br><span class="line">   &lt;description&gt;Enter the HBase Master server hostname&lt;&#x2F;description&gt;</span><br><span class="line">&lt;&#x2F;property&gt;</span><br><span class="line"> </span><br><span class="line">&lt;&#x2F;configuration&gt;</span><br></pre></td></tr></table></figure>
+    </div>
+
+    
+    
+    
+
+      <footer class="post-footer">
+          
+          <div class="post-tags">
+              <a href="/tags/hadoop/" rel="tag"><i class="fa fa-tag"></i> hadoop</a>
+              <a href="/tags/hbase/" rel="tag"><i class="fa fa-tag"></i> hbase</a>
+          </div>
+
+        
+
+
+        
+    <div class="post-nav">
+      <div class="post-nav-item">
+    <a href="/doop%E3%80%81hbase%E3%80%81hive%E8%81%94%E7%B3%BB%E4%B8%8E%E5%8C%BA%E5%88%AB/" rel="prev" title="hadoop、hbase、hive联系与区别">
+      <i class="fa fa-chevron-left"></i> hadoop、hbase、hive联系与区别
+    </a></div>
+      <div class="post-nav-item"></div>
+    </div>
+      </footer>
+    
+  </article>
+  
+  
+  
+
+
+
+          </div>
+          
+
+<script>
+  window.addEventListener('tabs:register', () => {
+    let { activeClass } = CONFIG.comments;
+    if (CONFIG.comments.storage) {
+      activeClass = localStorage.getItem('comments_active') || activeClass;
+    }
+    if (activeClass) {
+      let activeTab = document.querySelector(`a[href="#comment-${activeClass}"]`);
+      if (activeTab) {
+        activeTab.click();
+      }
+    }
+  });
+  if (CONFIG.comments.storage) {
+    window.addEventListener('tabs:click', event => {
+      if (!event.target.matches('.tabs-comment .tab-content .tab-pane')) return;
+      let commentClass = event.target.classList[1];
+      localStorage.setItem('comments_active', commentClass);
+    });
+  }
+</script>
+
+        </div>
+          
+  
+  <div class="toggle sidebar-toggle">
+    <span class="toggle-line toggle-line-first"></span>
+    <span class="toggle-line toggle-line-middle"></span>
+    <span class="toggle-line toggle-line-last"></span>
+  </div>
+
+  <aside class="sidebar">
+    <div class="sidebar-inner">
+
+      <ul class="sidebar-nav motion-element">
+        <li class="sidebar-nav-toc">
+          文章目录
+        </li>
+        <li class="sidebar-nav-overview">
+          站点概览
+        </li>
+      </ul>
+
+      <!--noindex-->
+      <div class="post-toc-wrap sidebar-panel">
+          <div class="post-toc motion-element"><ol class="nav"><li class="nav-item nav-level-4"><a class="nav-link" href="#%E6%91%98%E5%BD%95%E4%B8%80"><span class="nav-number">1.</span> <span class="nav-text">摘录一</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#%E6%91%98%E5%BD%95%E4%BA%8C"><span class="nav-number">2.</span> <span class="nav-text">摘录二</span></a></li></ol></div>
+      </div>
+      <!--/noindex-->
+
+      <div class="site-overview-wrap sidebar-panel">
+        <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+    <img class="site-author-image" itemprop="image" alt="Wtli"
+      src="/images/avatar.jpg">
+  <p class="site-author-name" itemprop="name">Wtli</p>
+  <div class="site-description" itemprop="description">本博客记录博主学习内容，所有均原创内容</div>
+</div>
+<div class="site-state-wrap motion-element">
+  <nav class="site-state">
+      <div class="site-state-item site-state-posts">
+          <a href="/archives">
+          <span class="site-state-item-count">56</span>
+          <span class="site-state-item-name">日志</span>
+        </a>
+      </div>
+      <div class="site-state-item site-state-categories">
+            <a href="/categories/">
+          
+        <span class="site-state-item-count">10</span>
+        <span class="site-state-item-name">分类</span></a>
+      </div>
+      <div class="site-state-item site-state-tags">
+            <a href="/tags/">
+          
+        <span class="site-state-item-count">35</span>
+        <span class="site-state-item-name">标签</span></a>
+      </div>
+  </nav>
+</div>
+
+
+
+      </div>
+
+    </div>
+  </aside>
+  <div id="sidebar-dimmer"></div>
+
+
+      </div>
+      <div class="cat-to-top cd-top faa-float animated"></div>
+
+
+    </main>
+
+    <footer class="footer">
+      <div class="footer-inner">
+        
+
+        
+
+<div class="copyright">
+  
+  &copy; 2020 – 
+  <span itemprop="copyrightYear">2021</span>
+  <span class="with-love">
+    <i class="fa fa-heart"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">Wtli</span>
+</div>
+
+        
+
+
+
+
+
+
+
+
+      </div>
+    </footer>
+  </div>
+
+  
+  <script src="/lib/anime.min.js"></script>
+  <script src="/lib/velocity/velocity.min.js"></script>
+  <script src="/lib/velocity/velocity.ui.min.js"></script>
+
+<script src="/js/utils.js"></script>
+
+<script src="/js/motion.js"></script>
+
+
+<script src="/js/schemes/muse.js"></script>
+
+
+<script src="/js/next-boot.js"></script>
+
+
+
+
+  
+
+
+
+
+  
+<script src="/js/local-search.js"></script>
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+
+  
+
+<script src="/live2dw/lib/L2Dwidget.min.js?094cbace49a39548bed64abff5988b05"></script><script>L2Dwidget.init({"pluginRootPath":"live2dw/","pluginJsPath":"lib/","pluginModelPath":"assets/","tagMode":false,"log":false,"model":{"jsonPath":"/live2dw/assets/wanko.model.json"},"display":{"position":"right","width":150,"height":300},"mobile":{"show":false},"react":{"opacity":0.7}});</script></body>
+</html>
