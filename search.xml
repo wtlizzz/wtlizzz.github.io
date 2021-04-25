@@ -2172,6 +2172,38 @@ align-content是相对于多行情况下，在单行情况下使用：
       </tags>
   </entry>
   <entry>
+    <title>idea查看JDK8源码</title>
+    <url>/idea%E6%9F%A5%E7%9C%8B%E6%BA%90%E7%A0%81/</url>
+    <content><![CDATA[<p>背景：idea运行Java项目，想查看jdk中.class文件的源码。</p>
+<p>本文介绍OpenJDK和在idea中配置源码。</p>
+<span id="more"></span>
+
+<h3 id="配置idea"><a href="#配置idea" class="headerlink" title="配置idea"></a>配置idea</h3><p>如果不配置，查看源码会如下图所示：</p>
+<p><img src="/images/pasted-60.png" alt="upload successful"></p>
+<p>会在顶部显示</p>
+<figure class="highlight plain"><table><tr><td class="code"><pre><span class="line">Decompiled .class file,bytecode version: 52.0(Java 8)</span><br></pre></td></tr></table></figure>
+
+<p>因为我们是打开的.class文件，是编译后的文件，所以看不到源码（网上看教程也有说使用工具反编译的）。</p>
+<p>设置步骤：</p>
+<ol>
+<li>在下方链接中下载自己jdk对应的版本并解压，我是Java8版本。<br><a href="https://www.injdk.cn/">下载链接</a></li>
+<li>打开idea  --&gt;  菜单 --&gt;  <strong>File</strong> --&gt; <strong>Project Structure</strong> --&gt; 选择<strong>SDKs</strong>目录 --&gt; <strong>Sourcepath</strong> --&gt;  将下载的openJDK中src.zip添加到目录中。</li>
+</ol>
+<p><img src="/images/pasted-10.png" alt="upload successful"></p>
+<p><img src="/images/pasted-11.png" alt="upload successful"></p>
+<p>添加完成之后就能够显示源代码，.class文件也变成.java文件：</p>
+<p><img src="/images/pasted-12.png" alt="upload successful"></p>
+<h3 id="OpenJDK"><a href="#OpenJDK" class="headerlink" title="OpenJDK"></a>OpenJDK</h3><p>除了学习之外，不推荐使用openJDK。</p>
+<p>历史上的原因是，OpenJDK是官方JDK的开放原始码版本，以GPL协议的形式放出。在JDK7的时候，openJDK已经成为jdk7的主干开 发，Oracle JDK 7是在open JDK 7的基础上发布的，其大部分原始码都相同，只有少部分原始码被替换掉。使用JRL(JavaResearch License，Java研究授权协议)发布。</p>
+<h4 id="授权协议的不同"><a href="#授权协议的不同" class="headerlink" title="授权协议的不同"></a>授权协议的不同</h4><p>openjdk采用GPL V2协议放出，而JDK则采用JRL放出。两者协议虽然都是开放源代码的，但是在使用上的不同在于GPL V2允许在商业上使用，而JRL只允许个人研究使用。</p>
+<h4 id="OpenJDK不包含Deployment（部署）功能"><a href="#OpenJDK不包含Deployment（部署）功能" class="headerlink" title="OpenJDK不包含Deployment（部署）功能"></a>OpenJDK不包含Deployment（部署）功能</h4><p>部署的功能包括：Browser Plugin、Java Web Start、以及Java控制面板，这些功能在Openjdk中是找不到的。</p>
+<h4 id="OpenJDK源代码不完整"><a href="#OpenJDK源代码不完整" class="headerlink" title="OpenJDK源代码不完整"></a>OpenJDK源代码不完整</h4><p>这个很容易想到，在采用GPL协议的Openjdk中，sun jdk的一部分源代码因为产权的问题无法开放openjdk使用，其中最主要的部份就是JMX中的可选元件SNMP部份的代码。因此这些不能开放的源代码 将它作成plug，以供OpenJDK编译时使用，你也可以选择不要使用plug。而Icedtea则为这些不完整的部分开发了相同功能的源代码 (OpenJDK6)，促使OpenJDK更加完整。</p>
+<h4 id="部分源代码用开源代码替换"><a href="#部分源代码用开源代码替换" class="headerlink" title="部分源代码用开源代码替换"></a>部分源代码用开源代码替换</h4><p>由于产权的问题，很多产权不是SUN的源代码被替换成一些功能相同的开源代码，比如说字体栅格化引擎，使用Free Type代替。</p>
+<h4 id="OpenJDK只包含最精简的JDK"><a href="#OpenJDK只包含最精简的JDK" class="headerlink" title="OpenJDK只包含最精简的JDK"></a>OpenJDK只包含最精简的JDK</h4><p>OpenJDK不包含其他的软件包，比如Rhino Java DB JAXP……，并且可以分离的软件包也都是尽量的分离，但是这大多数都是自由软件，你可以自己下载加入。</p>
+<h4 id="不能使用Java商标"><a href="#不能使用Java商标" class="headerlink" title="不能使用Java商标"></a>不能使用Java商标</h4><p>这个很容易理解，在安装openjdk的机器上，输入“java -version”显示的是openjdk，但是如果是使用Icedtea补丁的openjdk，显示的是java。</p>
+]]></content>
+  </entry>
+  <entry>
     <title>windows配置hbase</title>
     <url>/indows%E9%85%8D%E7%BD%AEhbase/</url>
     <content><![CDATA[<p>本文介绍如何在windows系统中配置hbase。</p>
@@ -2222,38 +2254,6 @@ align-content是相对于多行情况下，在单行情况下使用：
       <tags>
         <tag>hbase</tag>
       </tags>
-  </entry>
-  <entry>
-    <title>idea查看JDK8源码</title>
-    <url>/idea%E6%9F%A5%E7%9C%8B%E6%BA%90%E7%A0%81/</url>
-    <content><![CDATA[<p>背景：idea运行Java项目，想查看jdk中.class文件的源码。</p>
-<p>本文介绍OpenJDK和在idea中配置源码。</p>
-<span id="more"></span>
-
-<h3 id="配置idea"><a href="#配置idea" class="headerlink" title="配置idea"></a>配置idea</h3><p>如果不配置，查看源码会如下图所示：</p>
-<p><img src="/images/pasted-60.png" alt="upload successful"></p>
-<p>会在顶部显示</p>
-<figure class="highlight plain"><table><tr><td class="code"><pre><span class="line">Decompiled .class file,bytecode version: 52.0(Java 8)</span><br></pre></td></tr></table></figure>
-
-<p>因为我们是打开的.class文件，是编译后的文件，所以看不到源码（网上看教程也有说使用工具反编译的）。</p>
-<p>设置步骤：</p>
-<ol>
-<li>在下方链接中下载自己jdk对应的版本并解压，我是Java8版本。<br><a href="https://www.injdk.cn/">下载链接</a></li>
-<li>打开idea  --&gt;  菜单 --&gt;  <strong>File</strong> --&gt; <strong>Project Structure</strong> --&gt; 选择<strong>SDKs</strong>目录 --&gt; <strong>Sourcepath</strong> --&gt;  将下载的openJDK中src.zip添加到目录中。</li>
-</ol>
-<p><img src="/images/pasted-10.png" alt="upload successful"></p>
-<p><img src="/images/pasted-11.png" alt="upload successful"></p>
-<p>添加完成之后就能够显示源代码，.class文件也变成.java文件：</p>
-<p><img src="/images/pasted-12.png" alt="upload successful"></p>
-<h3 id="OpenJDK"><a href="#OpenJDK" class="headerlink" title="OpenJDK"></a>OpenJDK</h3><p>除了学习之外，不推荐使用openJDK。</p>
-<p>历史上的原因是，OpenJDK是官方JDK的开放原始码版本，以GPL协议的形式放出。在JDK7的时候，openJDK已经成为jdk7的主干开 发，Oracle JDK 7是在open JDK 7的基础上发布的，其大部分原始码都相同，只有少部分原始码被替换掉。使用JRL(JavaResearch License，Java研究授权协议)发布。</p>
-<h4 id="授权协议的不同"><a href="#授权协议的不同" class="headerlink" title="授权协议的不同"></a>授权协议的不同</h4><p>openjdk采用GPL V2协议放出，而JDK则采用JRL放出。两者协议虽然都是开放源代码的，但是在使用上的不同在于GPL V2允许在商业上使用，而JRL只允许个人研究使用。</p>
-<h4 id="OpenJDK不包含Deployment（部署）功能"><a href="#OpenJDK不包含Deployment（部署）功能" class="headerlink" title="OpenJDK不包含Deployment（部署）功能"></a>OpenJDK不包含Deployment（部署）功能</h4><p>部署的功能包括：Browser Plugin、Java Web Start、以及Java控制面板，这些功能在Openjdk中是找不到的。</p>
-<h4 id="OpenJDK源代码不完整"><a href="#OpenJDK源代码不完整" class="headerlink" title="OpenJDK源代码不完整"></a>OpenJDK源代码不完整</h4><p>这个很容易想到，在采用GPL协议的Openjdk中，sun jdk的一部分源代码因为产权的问题无法开放openjdk使用，其中最主要的部份就是JMX中的可选元件SNMP部份的代码。因此这些不能开放的源代码 将它作成plug，以供OpenJDK编译时使用，你也可以选择不要使用plug。而Icedtea则为这些不完整的部分开发了相同功能的源代码 (OpenJDK6)，促使OpenJDK更加完整。</p>
-<h4 id="部分源代码用开源代码替换"><a href="#部分源代码用开源代码替换" class="headerlink" title="部分源代码用开源代码替换"></a>部分源代码用开源代码替换</h4><p>由于产权的问题，很多产权不是SUN的源代码被替换成一些功能相同的开源代码，比如说字体栅格化引擎，使用Free Type代替。</p>
-<h4 id="OpenJDK只包含最精简的JDK"><a href="#OpenJDK只包含最精简的JDK" class="headerlink" title="OpenJDK只包含最精简的JDK"></a>OpenJDK只包含最精简的JDK</h4><p>OpenJDK不包含其他的软件包，比如Rhino Java DB JAXP……，并且可以分离的软件包也都是尽量的分离，但是这大多数都是自由软件，你可以自己下载加入。</p>
-<h4 id="不能使用Java商标"><a href="#不能使用Java商标" class="headerlink" title="不能使用Java商标"></a>不能使用Java商标</h4><p>这个很容易理解，在安装openjdk的机器上，输入“java -version”显示的是openjdk，但是如果是使用Icedtea补丁的openjdk，显示的是java。</p>
-]]></content>
   </entry>
   <entry>
     <title>network policy</title>
@@ -4038,9 +4038,9 @@ align-content是相对于多行情况下，在单行情况下使用：
 <p>hbase 做rpc server的调度管理类，实现自org.apache.hadoop.ipc.RpcServerEngine，默认是org.apache.hadoop.hbase.ipc.ProtobufRpcServerEngine<br>hbase.ipc.client.tcpnodelay</p>
 <p>默认是true，具体就是在tcp socket连接时设置 no delay<br>hbase.master.keytab.file</p>
 <p>HMaster server验证登录使用的kerberos keytab 文件路径。(译者注：HBase使用Kerberos实现安全)<br>默认:<br>hbase.master.kerberos.principal</p>
-<p>例如. “hbase/<a href="mailto:&#95;&#x48;&#x4f;&#83;&#84;&#64;&#69;&#x58;&#65;&#77;&#x50;&#x4c;&#x45;&#x2e;&#x43;&#x4f;&#77;">&#95;&#x48;&#x4f;&#83;&#84;&#64;&#69;&#x58;&#65;&#77;&#x50;&#x4c;&#x45;&#x2e;&#x43;&#x4f;&#77;</a>“. HMaster运行需要使用 kerberos principal name. principal name 可以在: user/hostname@DOMAIN 中获取. 如果 “_HOST” 被用做hostname portion，需要使用实际运行的hostname来替代它。<br>默认:<br>hbase.regionserver.keytab.file</p>
+<p>例如. “hbase/<a href="mailto:&#x5f;&#x48;&#x4f;&#83;&#84;&#x40;&#x45;&#x58;&#65;&#x4d;&#x50;&#x4c;&#x45;&#46;&#67;&#x4f;&#x4d;">&#x5f;&#x48;&#x4f;&#83;&#84;&#x40;&#x45;&#x58;&#65;&#x4d;&#x50;&#x4c;&#x45;&#46;&#67;&#x4f;&#x4d;</a>“. HMaster运行需要使用 kerberos principal name. principal name 可以在: user/hostname@DOMAIN 中获取. 如果 “_HOST” 被用做hostname portion，需要使用实际运行的hostname来替代它。<br>默认:<br>hbase.regionserver.keytab.file</p>
 <p>HRegionServer验证登录使用的kerberos keytab 文件路径。<br>默认:<br>hbase.regionserver.kerberos.principal</p>
-<p>例如. “hbase/<a href="mailto:&#95;&#72;&#x4f;&#x53;&#84;&#x40;&#69;&#88;&#x41;&#x4d;&#x50;&#x4c;&#69;&#x2e;&#67;&#79;&#77;">&#95;&#72;&#x4f;&#x53;&#84;&#x40;&#69;&#88;&#x41;&#x4d;&#x50;&#x4c;&#69;&#x2e;&#67;&#79;&#77;</a>“. HRegionServer运行需要使用 kerberos principal name. principal name 可以在: user/hostname@DOMAIN 中获取. 如果 “_HOST” 被用做hostname portion，需要使用实际运行的hostname来替代它。在这个文件中必须要有一个entry来描述 hbase.regionserver.keytab.file<br>默认:<br>hadoop.policy.file</p>
+<p>例如. “hbase/<a href="mailto:&#95;&#72;&#x4f;&#x53;&#x54;&#x40;&#69;&#x58;&#x41;&#x4d;&#x50;&#x4c;&#x45;&#46;&#x43;&#x4f;&#x4d;">&#95;&#72;&#x4f;&#x53;&#x54;&#x40;&#69;&#x58;&#x41;&#x4d;&#x50;&#x4c;&#x45;&#46;&#x43;&#x4f;&#x4d;</a>“. HRegionServer运行需要使用 kerberos principal name. principal name 可以在: user/hostname@DOMAIN 中获取. 如果 “_HOST” 被用做hostname portion，需要使用实际运行的hostname来替代它。在这个文件中必须要有一个entry来描述 hbase.regionserver.keytab.file<br>默认:<br>hadoop.policy.file</p>
 <p>RPC服务器做权限认证时需要的安全策略配置文件，在Hbase security开启后使用，默认是habse-policy.xml；<br>hbase.superuser<br>Hbase security 开启后的超级用户配置，一系列由逗号隔开的user或者group；<br>hbase.auth.key.update.interval<br>Hbase security开启后服务端更新认证key的间隔时间：默认是86400000毫秒；<br>hbase.auth.token.max.lifetime<br>Hbase security开启后，认证token下发后的生存周期，默认是604800000毫秒<br>zookeeper.session.timeout</p>
 <p>ZooKeeper 会话超时.HBase把这个值传递改zk集群，向他推荐一个会话的最大超时时间。详见<a href="http://hadoop.apache.org/zookeeper/docs/current/zookeeperProgrammers.html#ch_zkSessions">http://hadoop.apache.org/zookeeper/docs/current/zookeeperProgrammers.html#ch_zkSessions</a> “The client sends a requested timeout, the server responds with the timeout that it can give the client. “。 单位是毫秒<br>默认: 180000<br>zookeeper.znode.parent</p>
 <p>ZooKeeper中的HBase的根ZNode。所有的HBase的ZooKeeper会用这个目录配置相对路径。默认情况下，所有的HBase的ZooKeeper文件路径是用相对路径，所以他们会都去这个目录下面。<br>默认: /hbase<br>zookeeper.znode.rootserver</p>
