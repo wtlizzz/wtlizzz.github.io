@@ -1,0 +1,532 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=2">
+<meta name="theme-color" content="#222">
+<meta name="generator" content="Hexo 5.2.0">
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/my_boy.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/my_boy.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/my_boy.png">
+  <link rel="mask-icon" href="/images/my_boy.png" color="#222">
+
+<link rel="stylesheet" href="/css/main.css">
+
+
+<link rel="stylesheet" href="/lib/font-awesome/css/all.min.css">
+  <link rel="stylesheet" href="/lib/pace/pace-theme-minimal.min.css">
+  <script src="/lib/pace/pace.min.js"></script>
+
+<script id="hexo-configurations">
+    var NexT = window.NexT || {};
+    var CONFIG = {"hostname":"wtlizzz.github.io","root":"/","scheme":"Mist","version":"7.8.0","exturl":false,"sidebar":{"position":"left","display":"post","padding":18,"offset":12,"onmobile":false},"copycode":{"enable":true,"show_result":true,"style":"flat"},"back2top":{"enable":true,"sidebar":false,"scrollpercent":false},"bookmark":{"enable":false,"color":"#222","save":"auto"},"fancybox":false,"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"algolia":{"hits":{"per_page":10},"labels":{"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}},"localsearch":{"enable":true,"trigger":"auto","top_n_per_article":-1,"unescape":false,"preload":false},"motion":{"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}},"path":"search.xml"};
+  </script>
+
+  <meta name="description" content="java多线程。  线程的创建 Thread类和Object类   start()和run() sleep()和wait()">
+<meta property="og:type" content="article">
+<meta property="og:title" content="Java多线程1-多线程方法">
+<meta property="og:url" content="https://wtlizzz.github.io/Java%E5%A4%9A%E7%BA%BF%E7%A8%8B1-%E5%A4%9A%E7%BA%BF%E7%A8%8B%E6%96%B9%E6%B3%95/index.html">
+<meta property="og:site_name" content="文韬">
+<meta property="og:description" content="java多线程。  线程的创建 Thread类和Object类   start()和run() sleep()和wait()">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="https://wtlizzz.github.io/images/pasted-78.png">
+<meta property="og:image" content="https://wtlizzz.github.io/images/pasted-79.png">
+<meta property="article:published_time" content="2021-06-30T08:39:47.000Z">
+<meta property="article:modified_time" content="2021-07-13T07:27:21.905Z">
+<meta property="article:author" content="Wtli">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="https://wtlizzz.github.io/images/pasted-78.png">
+
+<link rel="canonical" href="https://wtlizzz.github.io/Java%E5%A4%9A%E7%BA%BF%E7%A8%8B1-%E5%A4%9A%E7%BA%BF%E7%A8%8B%E6%96%B9%E6%B3%95/">
+
+
+<script id="page-configurations">
+  // https://hexo.io/docs/variables.html
+  CONFIG.page = {
+    sidebar: "",
+    isHome : false,
+    isPost : true,
+    lang   : 'zh-CN'
+  };
+</script>
+
+  <title>Java多线程1-多线程方法 | 文韬</title>
+  
+
+
+  <script>
+    var _hmt = _hmt || [];
+    (function() {
+      var hm = document.createElement("script");
+      hm.src = "https://hm.baidu.com/hm.js?7f4b8b54f803186c40c333785b8aee31";
+      var s = document.getElementsByTagName("script")[0];
+      s.parentNode.insertBefore(hm, s);
+    })();
+  </script>
+
+
+
+
+  <noscript>
+  <style>
+  .use-motion .brand,
+  .use-motion .menu-item,
+  .sidebar-inner,
+  .use-motion .post-block,
+  .use-motion .pagination,
+  .use-motion .comments,
+  .use-motion .post-header,
+  .use-motion .post-body,
+  .use-motion .collection-header { opacity: initial; }
+
+  .use-motion .site-title,
+  .use-motion .site-subtitle {
+    opacity: initial;
+    top: initial;
+  }
+
+  .use-motion .logo-line-before i { left: initial; }
+  .use-motion .logo-line-after i { right: initial; }
+  </style>
+</noscript>
+
+  <script src="https://apps.bdimg.com/libs/jquery/2.1.4/jquery.min.js">
+  </script>
+</head>
+
+
+<body itemscope itemtype="http://schema.org/WebPage">
+  <div class="container use-motion">
+    <div class="headband"></div>
+
+    <header class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-container">
+  <div class="site-nav-toggle">
+    <div class="toggle" aria-label="切换导航栏">
+      <span class="toggle-line toggle-line-first"></span>
+      <span class="toggle-line toggle-line-middle"></span>
+      <span class="toggle-line toggle-line-last"></span>
+    </div>
+  </div>
+
+  <div class="site-meta">
+
+    <a href="/" class="brand" rel="start">
+      <span class="logo-line-before"><i></i></span>
+      <h1 class="site-title">文韬</h1>
+      <span class="logo-line-after"><i></i></span>
+    </a>
+      <p class="site-subtitle" itemprop="description">始终如一</p>
+  </div>
+
+  <div class="site-nav-right">
+    <div class="toggle popup-trigger">
+        <i class="fa fa-search fa-fw fa-lg"></i>
+    </div>
+  </div>
+</div>
+
+
+
+
+<nav class="site-nav">
+  <ul id="menu" class="main-menu menu">
+        <li class="menu-item menu-item-home">
+
+    <a href="/" rel="section"><i class="fa fa-home fa-fw"></i>首页</a>
+
+  </li>
+        <li class="menu-item menu-item-目录">
+
+    <a href="/archives/" rel="section"><i class="fa fa-archive fa-fw"></i>目录</a>
+
+  </li>
+        <li class="menu-item menu-item-tags">
+
+    <a href="/tags/" rel="section"><i class="fa fa-tags fa-fw"></i>标签</a>
+
+  </li>
+        <li class="menu-item menu-item-categories">
+
+    <a href="/categories/" rel="section"><i class="fa fa-th fa-fw"></i>分类</a>
+
+  </li>
+        <li class="menu-item menu-item-commonweal">
+
+    <a href="/404/" rel="section"><i class="fa fa-heartbeat fa-fw"></i>公益</a>
+
+  </li>
+        <li class="menu-item menu-item-about">
+
+    <a href="/about/" rel="section"><i class="fa fa-user fa-fw"></i>关于</a>
+
+  </li>
+      <li class="menu-item menu-item-search">
+        <a role="button" class="popup-trigger"><i class="fa fa-search fa-fw"></i>搜索
+        </a>
+      </li>
+  </ul>
+</nav>
+
+
+
+  <div class="search-pop-overlay">
+    <div class="popup search-popup">
+        <div class="search-header">
+  <span class="search-icon">
+    <i class="fa fa-search"></i>
+  </span>
+  <div class="search-input-container">
+    <input autocomplete="off" autocapitalize="off"
+           placeholder="搜索..." spellcheck="false"
+           type="search" class="search-input">
+  </div>
+  <span class="popup-btn-close">
+    <i class="fa fa-times-circle"></i>
+  </span>
+</div>
+<div id="search-result">
+  <div id="no-result">
+    <i class="fa fa-spinner fa-pulse fa-5x fa-fw"></i>
+  </div>
+</div>
+
+    </div>
+  </div>
+
+</div>
+    </header>
+
+    
+  <div class="back-to-top">
+    <i class="fa fa-arrow-up"></i>
+    <span>0%</span>
+  </div>
+
+
+    <main class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          
+
+          <div class="content post posts-expand">
+            
+
+    
+  
+  
+  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="zh-CN">
+    <link itemprop="mainEntityOfPage" href="https://wtlizzz.github.io/Java%E5%A4%9A%E7%BA%BF%E7%A8%8B1-%E5%A4%9A%E7%BA%BF%E7%A8%8B%E6%96%B9%E6%B3%95/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/avatar.jpg">
+      <meta itemprop="name" content="Wtli">
+      <meta itemprop="description" content="本博客记录博主学习内容">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="文韬">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          Java多线程1-多线程方法
+        </h1>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-calendar"></i>
+              </span>
+              <span class="post-meta-item-text">发表于</span>
+
+              <time title="创建时间：2021-06 16:39:47" itemprop="dateCreated datePublished" datetime="2021-06-30T16:39:47+08:00">2021-06</time>
+            </span>
+
+          
+            <span class="post-meta-item" title="本文字数">
+              <span class="post-meta-item-icon">
+                <i class="far fa-file-word"></i>
+              </span>
+                <span class="post-meta-item-text">本文字数：</span>
+              <span>4.6k</span>
+            </span>
+            <span class="post-meta-item" title="阅读时长">
+              <span class="post-meta-item-icon">
+                <i class="far fa-clock"></i>
+              </span>
+                <span class="post-meta-item-text">阅读时长 &asymp;</span>
+              <span>4 分钟</span>
+            </span>
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+        <p>java多线程。</p>
+<ul>
+<li>线程的创建</li>
+<li>Thread类和Object类  <ul>
+<li>start()和run()</li>
+<li>sleep()和wait()</li>
+</ul>
+</li>
+</ul>
+<a id="more"></a>
+
+<p>最近遇到一种场景：例如<br> <figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">List&lt;String&gt; dataList &#x3D; new ArrayList&lt;String&gt;();  </span><br></pre></td></tr></table></figure><br>数据列表dataList，有一个线程专门往list中写数据，另外如果有数据时新建线程读取数据。</p>
+<p>先看张图：详细的记录了Thread的几个状态和触发方法</p>
+<p><img src="/images/pasted-78.png" alt="upload successful"></p>
+<p>简单说，Thread有三种状态：Timed Waiting、Waiting、Blocked。</p>
+<h4 id="Thread类和Object类"><a href="#Thread类和Object类" class="headerlink" title="Thread类和Object类"></a>Thread类和Object类</h4><p>在多线程的使用中主要涉及两个类，Thread和Object类。</p>
+<p>Thread类中有多种操作线程的方法包括但不限于：start()、stop()、run()、join()。</p>
+<p>Object类中也有类似于Thread类中操作线程的方法：notify()和wait()方法。</p>
+<p>什么是Thread类，一个Runnable的实现类，有两种启动新线程的方法如下所示：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br></pre></td><td class="code"><pre><span class="line"> * There are two ways to create a new thread of execution. One is to</span><br><span class="line"> * declare a class to be a subclass of &lt;code&gt;Thread&lt;&#x2F;code&gt;. This</span><br><span class="line"> * subclass should override the &lt;code&gt;run&lt;&#x2F;code&gt; method of class</span><br><span class="line"> * &lt;code&gt;Thread&lt;&#x2F;code&gt;. An instance of the subclass can then be</span><br><span class="line"> * allocated and started. For example, a thread that computes primes</span><br><span class="line"> * larger than a stated value could be written as follows:</span><br><span class="line"> * &lt;hr&gt;&lt;blockquote&gt;&lt;pre&gt;</span><br><span class="line"> *     class PrimeThread extends Thread &#123;</span><br><span class="line"> *         long minPrime;</span><br><span class="line"> *         PrimeThread(long minPrime) &#123;</span><br><span class="line"> *             this.minPrime &#x3D; minPrime;</span><br><span class="line"> *         &#125;</span><br><span class="line"> *</span><br><span class="line"> *         public void run() &#123;</span><br><span class="line"> *             &#x2F;&#x2F; compute primes larger than minPrime</span><br><span class="line"> *             &amp;nbsp;.&amp;nbsp;.&amp;nbsp;.</span><br><span class="line"> *         &#125;</span><br><span class="line"> *     &#125;</span><br><span class="line"> * &lt;&#x2F;pre&gt;&lt;&#x2F;blockquote&gt;&lt;hr&gt;</span><br><span class="line"> * &lt;p&gt;</span><br><span class="line"> * The following code would then create a thread and start it running:</span><br><span class="line"> * &lt;blockquote&gt;&lt;pre&gt;</span><br><span class="line"> *     PrimeThread p &#x3D; new PrimeThread(143);</span><br><span class="line"> *     p.start();</span><br><span class="line"> * &lt;&#x2F;pre&gt;&lt;&#x2F;blockquote&gt;</span><br><span class="line"> * &lt;p&gt;</span><br><span class="line"> * The other way to create a thread is to declare a class that</span><br><span class="line"> * implements the &lt;code&gt;Runnable&lt;&#x2F;code&gt; interface. That class then</span><br><span class="line"> * implements the &lt;code&gt;run&lt;&#x2F;code&gt; method. An instance of the class can</span><br><span class="line"> * then be allocated, passed as an argument when creating</span><br><span class="line"> * &lt;code&gt;Thread&lt;&#x2F;code&gt;, and started. The same example in this other</span><br><span class="line"> * style looks like the following:</span><br><span class="line"> * &lt;hr&gt;&lt;blockquote&gt;&lt;pre&gt;</span><br><span class="line"> *     class PrimeRun implements Runnable &#123;</span><br><span class="line"> *         long minPrime;</span><br><span class="line"> *         PrimeRun(long minPrime) &#123;</span><br><span class="line"> *             this.minPrime &#x3D; minPrime;</span><br><span class="line"> *         &#125;</span><br><span class="line"> *</span><br><span class="line"> *         public void run() &#123;</span><br><span class="line"> *             &#x2F;&#x2F; compute primes larger than minPrime</span><br><span class="line"> *             &amp;nbsp;.&amp;nbsp;.&amp;nbsp;.</span><br><span class="line"> *         &#125;</span><br><span class="line"> *     &#125;</span><br><span class="line"> * &lt;&#x2F;pre&gt;&lt;&#x2F;blockquote&gt;&lt;hr&gt;</span><br><span class="line"> * &lt;p&gt;</span><br><span class="line"> * The following code would then create a thread and start it running:</span><br><span class="line"> * &lt;blockquote&gt;&lt;pre&gt;</span><br><span class="line"> *     PrimeRun p &#x3D; new PrimeRun(143);</span><br><span class="line"> *     new Thread(p).start();</span><br><span class="line"> * &lt;&#x2F;pre&gt;&lt;&#x2F;blockquote&gt;</span><br><span class="line"> * &lt;p&gt;</span><br><span class="line">public class Thread implements Runnable &#123;</span><br><span class="line"></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+
+<p>什么是Object类，看一下注释：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">&#x2F;**</span><br><span class="line"> * Class &#123;@code Object&#125; is the root of the class hierarchy.</span><br><span class="line"> * Every class has &#123;@code Object&#125; as a superclass. All objects,</span><br><span class="line"> * including arrays, implement the methods of this class.</span><br><span class="line"> *&#x2F;</span><br></pre></td></tr></table></figure>
+
+<p>理解成一个基础类就行了。</p>
+<h4 id="start-和run"><a href="#start-和run" class="headerlink" title="start()和run()"></a>start()和run()</h4><p>在Thread类中有两个方法，start()和run()方法。</p>
+<p><img src="/images/pasted-79.png" alt="upload successful"></p>
+<p>虽然run()方法现在不推荐使用，在这里也简单说明一下区别：</p>
+<p>start()方法：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">* The result is that two threads are running concurrently: the</span><br><span class="line">* current thread (which returns from the call to the</span><br><span class="line">* &lt;code&gt;start&lt;&#x2F;code&gt; method) and the other thread (which executes its</span><br><span class="line">* &lt;code&gt;run&lt;&#x2F;code&gt; method).</span><br></pre></td></tr></table></figure>
+<p>调用start()方法之后会有两个运行的线程：<br>Thread1：调用了Thread2.start()的父线程；<br>Thread2：被调用了start()，执行了自身的run()方法。</p>
+<p>run()方法：<br>调用了之后还是只有一个线程，除非使用了一个独立的Runnable。</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br></pre></td><td class="code"><pre><span class="line">&#x2F;**</span><br><span class="line"> * If this thread was constructed using a separate</span><br><span class="line"> * &lt;code&gt;Runnable&lt;&#x2F;code&gt; run object, then that</span><br><span class="line"> * &lt;code&gt;Runnable&lt;&#x2F;code&gt; object&#39;s &lt;code&gt;run&lt;&#x2F;code&gt; method is called;</span><br><span class="line"> * otherwise, this method does nothing and returns.</span><br><span class="line"> * &lt;p&gt;</span><br><span class="line"> * Subclasses of &lt;code&gt;Thread&lt;&#x2F;code&gt; should override this method.</span><br><span class="line"> *</span><br><span class="line"> * @see     #start()</span><br><span class="line"> * @see     #stop()</span><br><span class="line"> * @see     #Thread(ThreadGroup, Runnable, String)</span><br><span class="line"> *&#x2F;</span><br><span class="line">@Override</span><br><span class="line">public void run() &#123;</span><br><span class="line">    if (target !&#x3D; null) &#123;</span><br><span class="line">        target.run();</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+
+
+<h5 id="sleep-和wait"><a href="#sleep-和wait" class="headerlink" title="sleep()和wait()"></a>sleep()和wait()</h5><p>sleep()和wait()方法都有sleep(long millis)和wait(long timeout)方法，大致的含义都是延时timeout时间再执行。</p>
+<p>首先说一下区别：</p>
+<ol>
+<li>sleep()是Thread类中，wait()是Object类中的方法。</li>
+<li>wait()方法是和notify()方法对应的，都是Object类中。Object.wait()可以通过Object.notify()方法唤醒。Thread.sleep()不能通过notify()唤醒。</li>
+<li>wait()方法是放弃当前线程的monitor，sleep()不会释放，可以简单理解为资源和CPU的释放，wait()被激活后需要进入block，直至重新获取资源，才能够继续运行。</li>
+</ol>
+<p>sleep()：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">The thread does not lose ownership of any monitors.</span><br></pre></td></tr></table></figure>
+
+<p>wait()：     </p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line">* The current thread must own this object&#39;s monitor. The thread</span><br><span class="line">   * releases ownership of this monitor and waits until another thread</span><br><span class="line">   * notifies threads waiting on this object&#39;s monitor to wake up</span><br><span class="line">   * either through a call to the &#123;@code notify&#125; method or the</span><br><span class="line">   * &#123;@code notifyAll&#125; method. The thread then waits until it can</span><br><span class="line">   * re-obtain ownership of the monitor and resumes execution.</span><br></pre></td></tr></table></figure>
+
+<h4 id="wait-和notify-使用"><a href="#wait-和notify-使用" class="headerlink" title="wait()和notify()使用"></a>wait()和notify()使用</h4><p>尝试将一个正在运行的线程，调用wait()方法进入等待，然后调用notify()方法唤醒。</p>
+<p>新建线程thread，持续计数：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br></pre></td><td class="code"><pre><span class="line">thread &#x3D; new Thread(new Runnable() &#123;</span><br><span class="line">    @Override</span><br><span class="line">    public void run() &#123;</span><br><span class="line">        while (start) &#123;</span><br><span class="line">            System.out.println(count++);</span><br><span class="line">            try &#123;</span><br><span class="line">                Thread.sleep(2000);</span><br><span class="line">            &#125; catch (InterruptedException e) &#123;</span><br><span class="line">                e.printStackTrace();</span><br><span class="line">            &#125;</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;);</span><br></pre></td></tr></table></figure>
+
+<p>然后用户输入运行：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"></span><br></pre></td></tr></table></figure>
+
+
+
+
+
+
+    </div>
+
+    
+    
+    
+
+      <footer class="post-footer">
+
+        
+
+
+        
+    <div class="post-nav">
+      <div class="post-nav-item">
+    <a href="/Websocket-IllegalStateException/" rel="prev" title="Websocket IllegalStateException">
+      <i class="fa fa-chevron-left"></i> Websocket IllegalStateException
+    </a></div>
+      <div class="post-nav-item">
+    <a href="/Java%E5%A4%9A%E7%BA%BF%E7%A8%8B2-%E7%BA%BF%E7%A8%8B%E6%B1%A0%E5%88%9D%E8%AF%86/" rel="next" title="Java多线程2-线程池初识">
+      Java多线程2-线程池初识 <i class="fa fa-chevron-right"></i>
+    </a></div>
+    </div>
+      </footer>
+    
+  </article>
+  
+  
+  
+
+
+
+          </div>
+          
+
+<script>
+  window.addEventListener('tabs:register', () => {
+    let { activeClass } = CONFIG.comments;
+    if (CONFIG.comments.storage) {
+      activeClass = localStorage.getItem('comments_active') || activeClass;
+    }
+    if (activeClass) {
+      let activeTab = document.querySelector(`a[href="#comment-${activeClass}"]`);
+      if (activeTab) {
+        activeTab.click();
+      }
+    }
+  });
+  if (CONFIG.comments.storage) {
+    window.addEventListener('tabs:click', event => {
+      if (!event.target.matches('.tabs-comment .tab-content .tab-pane')) return;
+      let commentClass = event.target.classList[1];
+      localStorage.setItem('comments_active', commentClass);
+    });
+  }
+</script>
+
+        </div>
+          
+  
+  <div class="toggle sidebar-toggle">
+    <span class="toggle-line toggle-line-first"></span>
+    <span class="toggle-line toggle-line-middle"></span>
+    <span class="toggle-line toggle-line-last"></span>
+  </div>
+
+  <aside class="sidebar">
+    <div class="sidebar-inner">
+
+      <ul class="sidebar-nav motion-element">
+        <li class="sidebar-nav-toc">
+          文章目录
+        </li>
+        <li class="sidebar-nav-overview">
+          站点概览
+        </li>
+      </ul>
+
+      <!--noindex-->
+      <div class="post-toc-wrap sidebar-panel">
+          <div class="post-toc motion-element"><ol class="nav"><li class="nav-item nav-level-4"><a class="nav-link" href="#Thread%E7%B1%BB%E5%92%8CObject%E7%B1%BB"><span class="nav-number">1.</span> <span class="nav-text">Thread类和Object类</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#start-%E5%92%8Crun"><span class="nav-number">2.</span> <span class="nav-text">start()和run()</span></a><ol class="nav-child"><li class="nav-item nav-level-5"><a class="nav-link" href="#sleep-%E5%92%8Cwait"><span class="nav-number">2.1.</span> <span class="nav-text">sleep()和wait()</span></a></li></ol></li><li class="nav-item nav-level-4"><a class="nav-link" href="#wait-%E5%92%8Cnotify-%E4%BD%BF%E7%94%A8"><span class="nav-number">3.</span> <span class="nav-text">wait()和notify()使用</span></a></li></ol></div>
+      </div>
+      <!--/noindex-->
+
+      <div class="site-overview-wrap sidebar-panel">
+        <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+    <img class="site-author-image" itemprop="image" alt="Wtli"
+      src="/images/avatar.jpg">
+  <p class="site-author-name" itemprop="name">Wtli</p>
+  <div class="site-description" itemprop="description">本博客记录博主学习内容</div>
+</div>
+<div class="site-state-wrap motion-element">
+  <nav class="site-state">
+      <div class="site-state-item site-state-posts">
+          <a href="/archives">
+          <span class="site-state-item-count">52</span>
+          <span class="site-state-item-name">日志</span>
+        </a>
+      </div>
+      <div class="site-state-item site-state-categories">
+            <a href="/categories/">
+          
+        <span class="site-state-item-count">7</span>
+        <span class="site-state-item-name">分类</span></a>
+      </div>
+      <div class="site-state-item site-state-tags">
+            <a href="/tags/">
+          
+        <span class="site-state-item-count">32</span>
+        <span class="site-state-item-name">标签</span></a>
+      </div>
+  </nav>
+</div>
+
+
+
+      </div>
+
+    </div>
+  </aside>
+  <div id="sidebar-dimmer"></div>
+
+
+      </div>
+      <div class="cat-to-top cd-top faa-float animated"></div>
+
+
+    </main>
+
+    <footer class="footer">
+      <div class="footer-inner">
+        
+
+        
+
+<div class="copyright">
+  
+  &copy; 2020 – 
+  <span itemprop="copyrightYear">2021</span>
+  <span class="with-love">
+    <i class="fa fa-heart"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">Wtli</span>
+</div>
+
+        
+
+
+
+
+
+
+
+
+      </div>
+    </footer>
+  </div>
+
+  
+  <script src="/lib/anime.min.js"></script>
+  <script src="/lib/velocity/velocity.min.js"></script>
+  <script src="/lib/velocity/velocity.ui.min.js"></script>
+
+<script src="/js/utils.js"></script>
+
+<script src="/js/motion.js"></script>
+
+
+<script src="/js/schemes/muse.js"></script>
+
+
+<script src="/js/next-boot.js"></script>
+
+
+
+
+  
+
+
+
+
+  
+<script src="/js/local-search.js"></script>
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+
+  
+
+<script src="/live2dw/lib/L2Dwidget.min.js?094cbace49a39548bed64abff5988b05"></script><script>L2Dwidget.init({"pluginRootPath":"live2dw/","pluginJsPath":"lib/","pluginModelPath":"assets/","tagMode":false,"log":false,"model":{"jsonPath":"/live2dw/assets/wanko.model.json"},"display":{"position":"right","width":150,"height":300},"mobile":{"show":false},"react":{"opacity":0.7}});</script></body>
+</html>
