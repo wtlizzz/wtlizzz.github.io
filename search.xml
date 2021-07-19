@@ -243,6 +243,84 @@
       </tags>
   </entry>
   <entry>
+    <title>Docker部署SpringBoot服务</title>
+    <url>/Docker%E9%83%A8%E7%BD%B2SpringBoot%E6%9C%8D%E5%8A%A1/</url>
+    <content><![CDATA[<p>本文记录使用Docker来部署SpringBoot服务的实践过程。</p>
+<a id="more"></a>
+
+<h3 id="拉取镜像"><a href="#拉取镜像" class="headerlink" title="拉取镜像"></a>拉取镜像</h3><p>先拉取jdk的镜像。在这里选用的openjdk镜像。</p>
+<figure class="highlight plain"><table><tr><td class="code"><pre><span class="line">(base) LdeMacBook-Pro:~ lli$ docker image ls</span><br><span class="line">REPOSITORY           TAG                 IMAGE ID            CREATED             SIZE</span><br><span class="line">openjdk              latest              b2324c52d969        2 weeks ago         524MB</span><br></pre></td></tr></table></figure>
+
+<h3 id="运行容器"><a href="#运行容器" class="headerlink" title="运行容器"></a>运行容器</h3><figure class="highlight plain"><table><tr><td class="code"><pre><span class="line">$ docker run -itd --name javaServer b2324c52d969 bash</span><br></pre></td></tr></table></figure>
+
+
+<h3 id="进入容器"><a href="#进入容器" class="headerlink" title="进入容器"></a>进入容器</h3><figure class="highlight plain"><table><tr><td class="code"><pre><span class="line">$ docker exec -it 9dbb4dcfcdc6 bash</span><br></pre></td></tr></table></figure>
+<p>在根目录，创建java文件夹，用于存放jar包</p>
+<figure class="highlight plain"><table><tr><td class="code"><pre><span class="line">$ mkdir java</span><br></pre></td></tr></table></figure>
+
+
+<h3 id="放入jar包"><a href="#放入jar包" class="headerlink" title="放入jar包"></a>放入jar包</h3><p>在本主机运行docker cp命令，将jar包拷入docker。</p>
+<figure class="highlight plain"><table><tr><td class="code"><pre><span class="line">$ docker cp &#x2F;Users&#x2F;lli&#x2F;Desktop&#x2F;monitor-0.1.jar c327d43ac94d:&#x2F;java</span><br></pre></td></tr></table></figure>
+<p>命令详解：</p>
+<figure class="highlight plain"><table><tr><td class="code"><pre><span class="line">Copy files&#x2F;folders between a container and the local filesystem</span><br><span class="line"></span><br><span class="line">Usage:	docker cp [OPTIONS] CONTAINER:SRC_PATH DEST_PATH|-</span><br><span class="line">	    docker cp [OPTIONS] SRC_PATH|- CONTAINER:DEST_PATH</span><br></pre></td></tr></table></figure>
+
+<p>到现在为止，使用java -jar命令就能在本地运行了。</p>
+<h3 id="将容器打包成镜像"><a href="#将容器打包成镜像" class="headerlink" title="将容器打包成镜像"></a>将容器打包成镜像</h3><p>一下内容参考上一篇文章，部署mysql。</p>
+<figure class="highlight plain"><table><tr><td class="code"><pre><span class="line">$ docker export c327d43ac94d &gt; javaServer.tar</span><br></pre></td></tr></table></figure>
+
+<h3 id="将镜像上传到服务器"><a href="#将镜像上传到服务器" class="headerlink" title="将镜像上传到服务器"></a>将镜像上传到服务器</h3><p>在主机运行</p>
+<figure class="highlight plain"><table><tr><td class="code"><pre><span class="line">$ scp &#x2F;Users&#x2F;lli&#x2F;Desktop&#x2F;javaServer.tar root@x.x.x.x:&#x2F;mysql</span><br></pre></td></tr></table></figure>
+
+<h3 id="加载镜像"><a href="#加载镜像" class="headerlink" title="加载镜像"></a>加载镜像</h3><p>在服务端运行，服务要用到8081和8082端口，将宿主机的对应端口暴露给docker。</p>
+<figure class="highlight plain"><table><tr><td class="code"><pre><span class="line">$ docker import -itd -p 0.0.0.0:8081:8081 -p 0.0.0.0:8082:8082 --name javaServer javaServer.tar bash</span><br></pre></td></tr></table></figure>
+
+
+<h3 id="运行"><a href="#运行" class="headerlink" title="运行"></a>运行</h3><p>进入docker</p>
+<figure class="highlight plain"><table><tr><td class="code"><pre><span class="line">$ docker exec -it containerId bash</span><br></pre></td></tr></table></figure>
+<p>找到对应的jar包存放目录，也可以通过将jar包上传到宿主机，然后使用docker cp命令，将宿主机中的jar包拷贝到docker里。</p>
+<figure class="highlight plain"><table><tr><td class="code"><pre><span class="line">$ nohup java -jar aircas-monitor-0.1.jar log.out 2&gt;&amp;1 &amp;</span><br></pre></td></tr></table></figure>
+
+<p>运行springboot的jar包，由于springboot是自带tomcat的，所以可以直接运行。</p>
+<p>与正常运行命令不同的是，nohup可以让jar包后台运行，不会因为终端关闭而停止运行。<br>后边的log.outs是日志输出文件<br>2&gt;&amp;1 输出所有的日志文件<br>&amp; 不影响终端启动，但还是会跟随终端关闭</p>
+<figure class="highlight plain"><table><tr><td class="code"><pre><span class="line">$ java -jar </span><br></pre></td></tr></table></figure>
+<p>下一步就是将日志保存到宿主机中，而不是docker中。未完待续～</p>
+<h3 id="附Redis部署"><a href="#附Redis部署" class="headerlink" title="附Redis部署"></a>附Redis部署</h3><p>由于内网服务器，不能使用dockerhub中的镜像docker pull命令。所以需要在本地下载镜像，打包上传到服务器中。</p>
+<h4 id="拉取镜像-1"><a href="#拉取镜像-1" class="headerlink" title="拉取镜像"></a>拉取镜像</h4><figure class="highlight plain"><table><tr><td class="code"><pre><span class="line">$ docker pull redis</span><br></pre></td></tr></table></figure>
+
+<h4 id="运行镜像"><a href="#运行镜像" class="headerlink" title="运行镜像"></a>运行镜像</h4><p>由于我本机中已经占用了6379端口，先用6378端口。</p>
+<ol>
+<li>运行实例</li>
+</ol>
+<figure class="highlight plain"><table><tr><td class="code"><pre><span class="line">$ docker run --name some-redis -d -p 0.0.0.0:6378:6379 redis</span><br></pre></td></tr></table></figure>
+
+
+<ol start="2">
+<li>持久存储，存储在docker的volume中</li>
+</ol>
+<figure class="highlight plain"><table><tr><td class="code"><pre><span class="line">$ docker run --name redisServer -d -p 0.0.0.0:6378:6379 redis redis-server --appendonly yes</span><br></pre></td></tr></table></figure>
+
+<p>If persistence is enabled, data is stored in the VOLUME /data, which can be used with –volumes-from some-volume-container or -v /docker/host/dir:/data</p>
+<h4 id="保存镜像"><a href="#保存镜像" class="headerlink" title="保存镜像"></a>保存镜像</h4><p>因为redis我在这没有更改配置文件，只是运行了docker，所以在这里直接打包镜像。</p>
+<p><strong>docker save</strong></p>
+<figure class="highlight plain"><table><tr><td class="code"><pre><span class="line">Usage:	docker save [OPTIONS] IMAGE [IMAGE...]</span><br><span class="line">Save one or more images to a tar archive (streamed to STDOUT by default)</span><br><span class="line">Options:</span><br><span class="line">  -o, --output string   Write to a file, instead of STDOUT</span><br><span class="line">  </span><br><span class="line">$ docker save redis -o redisImage</span><br></pre></td></tr></table></figure>
+
+<h4 id="加载镜像-1"><a href="#加载镜像-1" class="headerlink" title="加载镜像"></a>加载镜像</h4><p><strong>docker load</strong></p>
+<p>将保存的镜像发送到服务器，然后在服务器中加载镜像文件。</p>
+<figure class="highlight plain"><table><tr><td class="code"><pre><span class="line"></span><br><span class="line">Usage:	docker load [OPTIONS]</span><br><span class="line"></span><br><span class="line">Load an image from a tar archive or STDIN</span><br><span class="line"></span><br><span class="line">Options:</span><br><span class="line">  -i, --input string   Read from tar archive file, instead of STDIN</span><br><span class="line">  -q, --quiet          Suppress the load output</span><br><span class="line"></span><br><span class="line">$ docker load -i redisImage</span><br></pre></td></tr></table></figure>
+
+<h3 id="附"><a href="#附" class="headerlink" title="附"></a>附</h3><h4 id="出错"><a href="#出错" class="headerlink" title="出错"></a>出错</h4><p>在部署服务的时候突然报错，redis服务也已经部署上。</p>
+<figure class="highlight plain"><table><tr><td class="code"><pre><span class="line">org.springframework.beans.factory.UnsatisfiedDependencyException: Error creating bean with name &#39;transformNetInfoImpl&#39;: Unsatisfied dependency expressed through field &#39;redisTemplate&#39;; nested exception is org.springframework.beans.factory.BeanCreationException: Error creating bean with name &#39;redisTemplate&#39; defined in class path resource [com&#x2F;aircas&#x2F;base&#x2F;redis&#x2F;config&#x2F;RedisConfig.class]: Invocation of init method failed; nested exception is java.lang.IllegalStateException: RedisConnectionFactory is required</span><br></pre></td></tr></table></figure>
+
+<p><strong>解决：</strong>由于自己知识不扎实，在打包的时候，不光把项目打包，还要把项目所依赖的项目，所依赖的辅助工程打包，在所有依赖工程中使用maven install一下，解决问题。</p>
+]]></content>
+      <categories>
+        <category>Docker</category>
+      </categories>
+      <tags>
+        <tag>Docker</tag>
+      </tags>
+  </entry>
+  <entry>
     <title>Docker容器</title>
     <url>/Docker%E5%AE%B9%E5%99%A8/</url>
     <content><![CDATA[<p>容器是 Docker又一核心概念。</p>
@@ -318,84 +396,6 @@
 <p>如果要删除一个运行中的容器，可以添加 -f 参数。Docker会发送SIGKILL信号给容器。</p>
 <h3 id="清理所有处于终止状态的容器"><a href="#清理所有处于终止状态的容器" class="headerlink" title="清理所有处于终止状态的容器"></a>清理所有处于终止状态的容器</h3><p>用 docker container ls -a 命令可以查看所有已经创建的包括终止状态的容器，如果数量太多要一个个删除可能会很麻烦，用下面的命令可以清理掉所有处于终止状态的容器。</p>
 <figure class="highlight plain"><table><tr><td class="code"><pre><span class="line">docker container prune</span><br></pre></td></tr></table></figure>]]></content>
-      <categories>
-        <category>Docker</category>
-      </categories>
-      <tags>
-        <tag>Docker</tag>
-      </tags>
-  </entry>
-  <entry>
-    <title>Docker部署SpringBoot服务</title>
-    <url>/Docker%E9%83%A8%E7%BD%B2SpringBoot%E6%9C%8D%E5%8A%A1/</url>
-    <content><![CDATA[<p>本文记录使用Docker来部署SpringBoot服务的实践过程。</p>
-<a id="more"></a>
-
-<h3 id="拉取镜像"><a href="#拉取镜像" class="headerlink" title="拉取镜像"></a>拉取镜像</h3><p>先拉取jdk的镜像。在这里选用的openjdk镜像。</p>
-<figure class="highlight plain"><table><tr><td class="code"><pre><span class="line">(base) LdeMacBook-Pro:~ lli$ docker image ls</span><br><span class="line">REPOSITORY           TAG                 IMAGE ID            CREATED             SIZE</span><br><span class="line">openjdk              latest              b2324c52d969        2 weeks ago         524MB</span><br></pre></td></tr></table></figure>
-
-<h3 id="运行容器"><a href="#运行容器" class="headerlink" title="运行容器"></a>运行容器</h3><figure class="highlight plain"><table><tr><td class="code"><pre><span class="line">$ docker run -itd --name javaServer b2324c52d969 bash</span><br></pre></td></tr></table></figure>
-
-
-<h3 id="进入容器"><a href="#进入容器" class="headerlink" title="进入容器"></a>进入容器</h3><figure class="highlight plain"><table><tr><td class="code"><pre><span class="line">$ docker exec -it 9dbb4dcfcdc6 bash</span><br></pre></td></tr></table></figure>
-<p>在根目录，创建java文件夹，用于存放jar包</p>
-<figure class="highlight plain"><table><tr><td class="code"><pre><span class="line">$ mkdir java</span><br></pre></td></tr></table></figure>
-
-
-<h3 id="放入jar包"><a href="#放入jar包" class="headerlink" title="放入jar包"></a>放入jar包</h3><p>在本主机运行docker cp命令，将jar包拷入docker。</p>
-<figure class="highlight plain"><table><tr><td class="code"><pre><span class="line">$ docker cp &#x2F;Users&#x2F;lli&#x2F;Desktop&#x2F;monitor-0.1.jar c327d43ac94d:&#x2F;java</span><br></pre></td></tr></table></figure>
-<p>命令详解：</p>
-<figure class="highlight plain"><table><tr><td class="code"><pre><span class="line">Copy files&#x2F;folders between a container and the local filesystem</span><br><span class="line"></span><br><span class="line">Usage:	docker cp [OPTIONS] CONTAINER:SRC_PATH DEST_PATH|-</span><br><span class="line">	    docker cp [OPTIONS] SRC_PATH|- CONTAINER:DEST_PATH</span><br></pre></td></tr></table></figure>
-
-<p>到现在为止，使用java -jar命令就能在本地运行了。</p>
-<h3 id="将容器打包成镜像"><a href="#将容器打包成镜像" class="headerlink" title="将容器打包成镜像"></a>将容器打包成镜像</h3><p>一下内容参考上一篇文章，部署mysql。</p>
-<figure class="highlight plain"><table><tr><td class="code"><pre><span class="line">$ docker export c327d43ac94d &gt; javaServer.tar</span><br></pre></td></tr></table></figure>
-
-<h3 id="将镜像上传到服务器"><a href="#将镜像上传到服务器" class="headerlink" title="将镜像上传到服务器"></a>将镜像上传到服务器</h3><p>在主机运行</p>
-<figure class="highlight plain"><table><tr><td class="code"><pre><span class="line">$ scp &#x2F;Users&#x2F;lli&#x2F;Desktop&#x2F;javaServer.tar root@x.x.x.x:&#x2F;mysql</span><br></pre></td></tr></table></figure>
-
-<h3 id="加载镜像"><a href="#加载镜像" class="headerlink" title="加载镜像"></a>加载镜像</h3><p>在服务端运行，服务要用到8081和8082端口，将宿主机的对应端口暴露给docker。</p>
-<figure class="highlight plain"><table><tr><td class="code"><pre><span class="line">$ docker import -itd -p 0.0.0.0:8081:8081 -p 0.0.0.0:8082:8082 --name javaServer javaServer.tar bash</span><br></pre></td></tr></table></figure>
-
-
-<h3 id="运行"><a href="#运行" class="headerlink" title="运行"></a>运行</h3><p>进入docker</p>
-<figure class="highlight plain"><table><tr><td class="code"><pre><span class="line">$ docker exec -it containerId bash</span><br></pre></td></tr></table></figure>
-<p>找到对应的jar包存放目录，也可以通过将jar包上传到宿主机，然后使用docker cp命令，将宿主机中的jar包拷贝到docker里。</p>
-<figure class="highlight plain"><table><tr><td class="code"><pre><span class="line">$ nohup java -jar aircas-monitor-0.1.jar log.out 2&gt;&amp;1 &amp;</span><br></pre></td></tr></table></figure>
-
-<p>运行springboot的jar包，由于springboot是自带tomcat的，所以可以直接运行。</p>
-<p>与正常运行命令不同的是，nohup可以让jar包后台运行，不会因为终端关闭而停止运行。<br>后边的log.outs是日志输出文件<br>2&gt;&amp;1 输出所有的日志文件<br>&amp; 不影响终端启动，但还是会跟随终端关闭</p>
-<figure class="highlight plain"><table><tr><td class="code"><pre><span class="line">$ java -jar </span><br></pre></td></tr></table></figure>
-<p>下一步就是将日志保存到宿主机中，而不是docker中。未完待续～</p>
-<h3 id="附Redis部署"><a href="#附Redis部署" class="headerlink" title="附Redis部署"></a>附Redis部署</h3><p>由于内网服务器，不能使用dockerhub中的镜像docker pull命令。所以需要在本地下载镜像，打包上传到服务器中。</p>
-<h4 id="拉取镜像-1"><a href="#拉取镜像-1" class="headerlink" title="拉取镜像"></a>拉取镜像</h4><figure class="highlight plain"><table><tr><td class="code"><pre><span class="line">$ docker pull redis</span><br></pre></td></tr></table></figure>
-
-<h4 id="运行镜像"><a href="#运行镜像" class="headerlink" title="运行镜像"></a>运行镜像</h4><p>由于我本机中已经占用了6379端口，先用6378端口。</p>
-<ol>
-<li>运行实例</li>
-</ol>
-<figure class="highlight plain"><table><tr><td class="code"><pre><span class="line">$ docker run --name some-redis -d -p 0.0.0.0:6378:6379 redis</span><br></pre></td></tr></table></figure>
-
-
-<ol start="2">
-<li>持久存储，存储在docker的volume中</li>
-</ol>
-<figure class="highlight plain"><table><tr><td class="code"><pre><span class="line">$ docker run --name redisServer -d -p 0.0.0.0:6378:6379 redis redis-server --appendonly yes</span><br></pre></td></tr></table></figure>
-
-<p>If persistence is enabled, data is stored in the VOLUME /data, which can be used with –volumes-from some-volume-container or -v /docker/host/dir:/data</p>
-<h4 id="保存镜像"><a href="#保存镜像" class="headerlink" title="保存镜像"></a>保存镜像</h4><p>因为redis我在这没有更改配置文件，只是运行了docker，所以在这里直接打包镜像。</p>
-<p><strong>docker save</strong></p>
-<figure class="highlight plain"><table><tr><td class="code"><pre><span class="line">Usage:	docker save [OPTIONS] IMAGE [IMAGE...]</span><br><span class="line">Save one or more images to a tar archive (streamed to STDOUT by default)</span><br><span class="line">Options:</span><br><span class="line">  -o, --output string   Write to a file, instead of STDOUT</span><br><span class="line">  </span><br><span class="line">$ docker save redis -o redisImage</span><br></pre></td></tr></table></figure>
-
-<h4 id="加载镜像-1"><a href="#加载镜像-1" class="headerlink" title="加载镜像"></a>加载镜像</h4><p><strong>docker load</strong></p>
-<p>将保存的镜像发送到服务器，然后在服务器中加载镜像文件。</p>
-<figure class="highlight plain"><table><tr><td class="code"><pre><span class="line"></span><br><span class="line">Usage:	docker load [OPTIONS]</span><br><span class="line"></span><br><span class="line">Load an image from a tar archive or STDIN</span><br><span class="line"></span><br><span class="line">Options:</span><br><span class="line">  -i, --input string   Read from tar archive file, instead of STDIN</span><br><span class="line">  -q, --quiet          Suppress the load output</span><br><span class="line"></span><br><span class="line">$ docker load -i redisImage</span><br></pre></td></tr></table></figure>
-
-<h3 id="附"><a href="#附" class="headerlink" title="附"></a>附</h3><h4 id="出错"><a href="#出错" class="headerlink" title="出错"></a>出错</h4><p>在部署服务的时候突然报错，redis服务也已经部署上。</p>
-<figure class="highlight plain"><table><tr><td class="code"><pre><span class="line">org.springframework.beans.factory.UnsatisfiedDependencyException: Error creating bean with name &#39;transformNetInfoImpl&#39;: Unsatisfied dependency expressed through field &#39;redisTemplate&#39;; nested exception is org.springframework.beans.factory.BeanCreationException: Error creating bean with name &#39;redisTemplate&#39; defined in class path resource [com&#x2F;aircas&#x2F;base&#x2F;redis&#x2F;config&#x2F;RedisConfig.class]: Invocation of init method failed; nested exception is java.lang.IllegalStateException: RedisConnectionFactory is required</span><br></pre></td></tr></table></figure>
-
-<p><strong>解决：</strong>由于自己知识不扎实，在打包的时候，不光把项目打包，还要把项目所依赖的项目，所依赖的辅助工程打包，在所有依赖工程中使用maven install一下，解决问题。</p>
-]]></content>
       <categories>
         <category>Docker</category>
       </categories>
@@ -1029,107 +1029,6 @@
 ]]></content>
   </entry>
   <entry>
-    <title>Java多线程2-线程池初识</title>
-    <url>/Java%E5%A4%9A%E7%BA%BF%E7%A8%8B2-%E7%BA%BF%E7%A8%8B%E6%B1%A0%E5%88%9D%E8%AF%86/</url>
-    <content><![CDATA[<p>初识Java线程池（JDK1.8）。</p>
-<a id="more"></a>
-
-<p>Alibaba开发手册：  </p>
-<ol>
-<li><font color="red"> 【强制】 </font>线程资源必须通过线程池提供，不允许在应用中自行显式创建线程。<br>说明：线程池的好处是减少在创建和销毁线程上所消耗的时间以及系统资源的开销，解决资源不足的问题。 如果不使用线程池，有可能造成系统创建大量同类线程而导致消耗完内存或者“过度切换”的问题。</li>
-</ol>
-<h3 id="Executors"><a href="#Executors" class="headerlink" title="Executors"></a>Executors</h3><p>使用Executors创建线程池，Executors类中共有4种线程池的创建方法。</p>
-<p>Executors</p>
-<ul>
-<li>newCachedThreadPool</li>
-<li>newFixedThreadPool</li>
-<li>newScheduledThreadPool</li>
-<li>newSingleThreadExecutor</li>
-<li>newWorkStealingPool</li>
-</ul>
-<p>使用Executors创建方式：</p>
-<figure class="highlight plain"><table><tr><td class="code"><pre><span class="line">&#x2F;**</span><br><span class="line"> * 1、单线程线程池</span><br><span class="line"> * 2、缓存线程池</span><br><span class="line"> * 3、固定大小线程池</span><br><span class="line"> * 4、定时线程池</span><br><span class="line"> *&#x2F;</span><br><span class="line">ExecutorService executorService1 &#x3D; Executors.newSingleThreadExecutor();</span><br><span class="line">ExecutorService executorService2 &#x3D; Executors.newCachedThreadPool();</span><br><span class="line">ExecutorService executorService3 &#x3D; Executors.newFixedThreadPool(4);</span><br><span class="line">ExecutorService executorService4 &#x3D; Executors.newScheduledThreadPool(4);</span><br><span class="line">ExecutorService executorService5 &#x3D; Executors.newWorkStealingPool();</span><br></pre></td></tr></table></figure>
-
-<h3 id="ThreadPoolExecutor"><a href="#ThreadPoolExecutor" class="headerlink" title="ThreadPoolExecutor"></a>ThreadPoolExecutor</h3><p>基础类</p>
-<p>newSingleThreadExecutor、newFixedThreadPool都是返回的此类。</p>
-<figure class="highlight plain"><table><tr><td class="code"><pre><span class="line">public ThreadPoolExecutor(int corePoolSize,</span><br><span class="line">                          int maximumPoolSize,</span><br><span class="line">                          long keepAliveTime,</span><br><span class="line">                          TimeUnit unit,</span><br><span class="line">                          BlockingQueue&lt;Runnable&gt; workQueue,</span><br><span class="line">                          ThreadFactory threadFactory,</span><br><span class="line">                          RejectedExecutionHandler handler) &#123;</span><br><span class="line">    if (corePoolSize &lt; 0 ||</span><br><span class="line">        maximumPoolSize &lt;&#x3D; 0 ||</span><br><span class="line">        maximumPoolSize &lt; corePoolSize ||</span><br><span class="line">        keepAliveTime &lt; 0)</span><br><span class="line">        throw new IllegalArgumentException();</span><br><span class="line">    if (workQueue &#x3D;&#x3D; null || threadFactory &#x3D;&#x3D; null || handler &#x3D;&#x3D; null)</span><br><span class="line">        throw new NullPointerException();</span><br><span class="line">    this.acc &#x3D; System.getSecurityManager() &#x3D;&#x3D; null ?</span><br><span class="line">            null :</span><br><span class="line">            AccessController.getContext();</span><br><span class="line">    this.corePoolSize &#x3D; corePoolSize;</span><br><span class="line">    this.maximumPoolSize &#x3D; maximumPoolSize;</span><br><span class="line">    this.workQueue &#x3D; workQueue;</span><br><span class="line">    this.keepAliveTime &#x3D; unit.toNanos(keepAliveTime);</span><br><span class="line">    this.threadFactory &#x3D; threadFactory;</span><br><span class="line">    this.handler &#x3D; handler;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
-
-<p>参数含义：</p>
-<p>corePoolSize：线程池的大小。</p>
-<figure class="highlight plain"><table><tr><td class="code"><pre><span class="line">* @param corePoolSize the number of threads to keep in the pool, even</span><br><span class="line">*        if they are idle, unless &#123;@code allowCoreThreadTimeOut&#125; is set</span><br></pre></td></tr></table></figure>
-<p>maximumPoolSize：线程池最大容量。</p>
-<figure class="highlight plain"><table><tr><td class="code"><pre><span class="line">* @param maximumPoolSize the maximum number of threads to allow in the</span><br><span class="line">*        pool</span><br></pre></td></tr></table></figure>
-<p>keepAliveTime：当线程数大于核心时，这是多余空闲线程的最长时间。</p>
-<figure class="highlight plain"><table><tr><td class="code"><pre><span class="line">* @param keepAliveTime when the number of threads is greater than</span><br><span class="line">*        the core, this is the maximum time that excess idle threads</span><br></pre></td></tr></table></figure>
-
-<p>unit：{@code keepAliveTime}参数的时间单位。</p>
-<figure class="highlight plain"><table><tr><td class="code"><pre><span class="line">* @param unit the time unit for the &#123;@code keepAliveTime&#125; argument</span><br></pre></td></tr></table></figure>
-<p>workQueue：用于在执行任务之前保存任务的队列。这个队列将只保存由{@code execute}方法提交的{@code Runnable}任务。</p>
-<figure class="highlight plain"><table><tr><td class="code"><pre><span class="line">* @param workQueue the queue to use for holding tasks before they are</span><br><span class="line">*        executed.  This queue will hold only the &#123;@code Runnable&#125;</span><br><span class="line">*        tasks submitted by the &#123;@code execute&#125; method.</span><br></pre></td></tr></table></figure>
-
-<p>threadFactory：执行器创建新线程时要使用的工厂。</p>
-<figure class="highlight plain"><table><tr><td class="code"><pre><span class="line">* @param threadFactory the factory to use when the executor</span><br><span class="line">*        creates a new thread</span><br></pre></td></tr></table></figure>
-
-<p>handler：由于达到线程边界和队列容量而阻止执行时要使用的处理程序。</p>
-<figure class="highlight plain"><table><tr><td class="code"><pre><span class="line">* @param handler the handler to use when execution is blocked</span><br><span class="line">*        because the thread bounds and queue capacities are reached</span><br></pre></td></tr></table></figure>
-
-<p><strong>实例：</strong></p>
-<figure class="highlight plain"><table><tr><td class="code"><pre><span class="line">public ThreadPoolExecutor(int corePoolSize,</span><br><span class="line">                          int maximumPoolSize,</span><br><span class="line">                          long keepAliveTime,</span><br><span class="line">                          TimeUnit unit,</span><br><span class="line">                          BlockingQueue&lt;Runnable&gt; workQueue) &#123;</span><br><span class="line">    this(corePoolSize, maximumPoolSize, keepAliveTime, unit, workQueue,</span><br><span class="line">         Executors.defaultThreadFactory(), defaultHandler);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
-
-<p><em>newSingleThreadExecutor</em></p>
-<figure class="highlight plain"><table><tr><td class="code"><pre><span class="line">public static ExecutorService newSingleThreadExecutor() &#123;</span><br><span class="line">    return new FinalizableDelegatedExecutorService</span><br><span class="line">        (new ThreadPoolExecutor(1, 1,</span><br><span class="line">                                0L, TimeUnit.MILLISECONDS,</span><br><span class="line">                                new LinkedBlockingQueue&lt;Runnable&gt;()));</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
-
-<p><em>newFixedThreadPool</em></p>
-<figure class="highlight plain"><table><tr><td class="code"><pre><span class="line">public static ExecutorService newFixedThreadPool(int nThreads) &#123;</span><br><span class="line">    return new ThreadPoolExecutor(nThreads, nThreads,</span><br><span class="line">                                  0L, TimeUnit.MILLISECONDS,</span><br><span class="line">                                  new LinkedBlockingQueue&lt;Runnable&gt;());</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
-
-
-
-
-<h3 id="newSingleThreadExecutor"><a href="#newSingleThreadExecutor" class="headerlink" title="newSingleThreadExecutor"></a>newSingleThreadExecutor</h3><p>说明：</p>
-<figure class="highlight plain"><table><tr><td class="code"><pre><span class="line">&#x2F;**</span><br><span class="line"> * Creates an Executor that uses a single worker thread operating</span><br><span class="line"> * off an unbounded queue. (Note however that if this single</span><br><span class="line"> * thread terminates due to a failure during execution prior to</span><br><span class="line"> * shutdown, a new one will take its place if needed to execute</span><br><span class="line"> * subsequent tasks.)  Tasks are guaranteed to execute</span><br><span class="line"> * sequentially, and no more than one task will be active at any</span><br><span class="line"> * given time. Unlike the otherwise equivalent</span><br><span class="line"> * &#123;@code newFixedThreadPool(1)&#125; the returned executor is</span><br><span class="line"> * guaranteed not to be reconfigurable to use additional threads.</span><br><span class="line"> **&#x2F;</span><br></pre></td></tr></table></figure>
-
-<p>说明：</p>
-<p>创建一个执行器，该执行器使用一个工作线程在无边界队列中进行操作(但是请注意，如果此单个线程在关机之前的执行过程中由于故障而终止，则在需要执行后续任务时，将替换一个新线程。）任务保证按顺序执行，并且在任何给定时间都不会有多个任务处于活动状态。与其他等价的{@code newFixedThreadPool（1）}不同，返回的执行器保证不可重新配置以使用其他线程。</p>
-<p>解释：</p>
-<p>使用new LinkedBlockingQueue&lt;Runnable&gt;()，一种不限制大小的queue来创建。</p>
-<figure class="highlight plain"><table><tr><td class="code"><pre><span class="line">public static ExecutorService newSingleThreadExecutor() &#123;</span><br><span class="line">    return new FinalizableDelegatedExecutorService</span><br><span class="line">        (new ThreadPoolExecutor(1, 1,</span><br><span class="line">                                0L, TimeUnit.MILLISECONDS,</span><br><span class="line">                                new LinkedBlockingQueue&lt;Runnable&gt;()));</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
-
-<p><strong>运行过程：</strong></p>
-<p>只运行一个Thread来执行任务，一个Thread结束时，会建立新的Thread来执行下一个任务，保证了任务执行的顺序。</p>
-<p>这是与newFixedThreadPool(1)不同的地方，newFixedThreadPool(1)执行任务时，有可能被其他操作进行重新配置，配置成多线程。</p>
-<h3 id="newCachedThreadPool"><a href="#newCachedThreadPool" class="headerlink" title="newCachedThreadPool"></a>newCachedThreadPool</h3><p>说明：</p>
-<figure class="highlight plain"><table><tr><td class="code"><pre><span class="line">&#x2F;**</span><br><span class="line"> * Creates a thread pool that creates new threads as needed, but</span><br><span class="line"> * will reuse previously constructed threads when they are</span><br><span class="line"> * available.  These pools will typically improve the performance</span><br><span class="line"> * of programs that execute many short-lived asynchronous tasks.</span><br><span class="line"> * Calls to &#123;@code execute&#125; will reuse previously constructed</span><br><span class="line"> * threads if available. If no existing thread is available, a new</span><br><span class="line"> * thread will be created and added to the pool. Threads that have</span><br><span class="line"> * not been used for sixty seconds are terminated and removed from</span><br><span class="line"> * the cache. Thus, a pool that remains idle for long enough will</span><br><span class="line"> * not consume any resources. Note that pools with similar</span><br><span class="line"> * properties but different details (for example, timeout parameters)</span><br><span class="line"> * may be created using &#123;@link ThreadPoolExecutor&#125; constructors.</span><br><span class="line"> *</span><br><span class="line"> * @return the newly created thread pool</span><br><span class="line"> *&#x2F;</span><br></pre></td></tr></table></figure>
-<p>翻译：</p>
-<p>创建一个线程池，该线程池根据需要创建新线程，但在以前构造的线程可用时将重用它们。这些池通常会提高执行许多短期异步任务的程序的性能。对{@code execute}的调用将重用先前构造的线程（如果可用）。如果没有可用的现有线程，将创建一个新线程并将其添加到池中。六十秒未使用的线程将被终止并从缓存中删除。因此，空闲时间足够长的池不会消耗任何资源。请注意，可以使用{@link ThreadPoolExecutor}构造函数创建属性相似但细节不同的池（例如，超时参数）。</p>
-<p>初始化：</p>
-<figure class="highlight plain"><table><tr><td class="code"><pre><span class="line">public static ExecutorService newCachedThreadPool() &#123;</span><br><span class="line">    return new ThreadPoolExecutor(0, Integer.MAX_VALUE,</span><br><span class="line">                                  60L, TimeUnit.SECONDS,</span><br><span class="line">                                  new SynchronousQueue&lt;Runnable&gt;());</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
-
-
-<h3 id="newFixedThreadPool"><a href="#newFixedThreadPool" class="headerlink" title="newFixedThreadPool"></a>newFixedThreadPool</h3><p>说明：</p>
-<figure class="highlight plain"><table><tr><td class="code"><pre><span class="line">&#x2F;**</span><br><span class="line"> * Creates a thread pool that reuses a fixed number of threads</span><br><span class="line"> * operating off a shared unbounded queue.  At any point, at most</span><br><span class="line"> * &#123;@code nThreads&#125; threads will be active processing tasks.</span><br><span class="line"> * If additional tasks are submitted when all threads are active,</span><br><span class="line"> * they will wait in the queue until a thread is available.</span><br><span class="line"> * If any thread terminates due to a failure during execution</span><br><span class="line"> * prior to shutdown, a new one will take its place if needed to</span><br><span class="line"> * execute subsequent tasks.  The threads in the pool will exist</span><br><span class="line"> * until it is explicitly &#123;@link ExecutorService#shutdown shutdown&#125;.</span><br><span class="line"> *</span><br><span class="line"> * @param nThreads the number of threads in the pool</span><br><span class="line"> * @return the newly created thread pool</span><br><span class="line"> * @throws IllegalArgumentException if &#123;@code nThreads &lt;&#x3D; 0&#125;</span><br><span class="line"> *&#x2F;</span><br></pre></td></tr></table></figure>
-
-<p>翻译：</p>
-<p>创建一个线程池，该线程池重用在共享无边界队列上运行的固定数量的线程。在任何时候，至多{@code nThreads}个线程都是活动的处理任务。如果在所有线程都处于活动状态时提交其他任务，它们将在队列中等待，直到有线程可用。如果任何线程在关机前的执行过程中由于失败而终止，那么如果需要执行后续任务，将有一个新线程代替它。池中的线程将一直存在，直到它显式地{@link ExecutorService#shutdown}。</p>
-<p>初始化：</p>
-<figure class="highlight plain"><table><tr><td class="code"><pre><span class="line">public static ExecutorService newFixedThreadPool(int nThreads) &#123;</span><br><span class="line">    return new ThreadPoolExecutor(nThreads, nThreads,</span><br><span class="line">                                  0L, TimeUnit.MILLISECONDS,</span><br><span class="line">                                  new LinkedBlockingQueue&lt;Runnable&gt;());</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
-
-<p><strong>运行过程：</strong></p>
-<p>和newSingleThreadExecutor一样，使用无容量限制的LinkedBlockingQueue进行初始化。</p>
-<h3 id="newScheduledThreadPool"><a href="#newScheduledThreadPool" class="headerlink" title="newScheduledThreadPool"></a>newScheduledThreadPool</h3><p>说明：</p>
-<figure class="highlight plain"><table><tr><td class="code"><pre><span class="line">&#x2F;**</span><br><span class="line"> * Creates a thread pool that can schedule commands to run after a</span><br><span class="line"> * given delay, or to execute periodically.</span><br><span class="line"> * @param corePoolSize the number of threads to keep in the pool,</span><br><span class="line"> * even if they are idle</span><br><span class="line"> * @return a newly created scheduled thread pool</span><br><span class="line"> * @throws IllegalArgumentException if &#123;@code corePoolSize &lt; 0&#125;</span><br><span class="line"> *&#x2F;</span><br><span class="line">public static ScheduledExecutorService newScheduledThreadPool(int corePoolSize) &#123;</span><br><span class="line">    return new ScheduledThreadPoolExecutor(corePoolSize);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
-
-<p>翻译：</p>
-<p>创建一个线程池，该线程池可以安排命令在给定延迟后运行，或定期执行。</p>
-<p>运行过程：</p>
-<p><img src="/images/pasted-80.png" alt="upload successful"></p>
-<p>可以看出就是使用了不同的queue来实现，在这里使用的是DelayedWorkQueue。</p>
-<h3 id="newWorkStealingPool"><a href="#newWorkStealingPool" class="headerlink" title="newWorkStealingPool"></a>newWorkStealingPool</h3><p>说明：</p>
-<figure class="highlight plain"><table><tr><td class="code"><pre><span class="line">&#x2F;**</span><br><span class="line"> * Creates a work-stealing thread pool using all</span><br><span class="line"> * &#123;@link Runtime#availableProcessors available processors&#125;</span><br><span class="line"> * as its target parallelism level.</span><br><span class="line"> * @return the newly created thread pool</span><br><span class="line"> * @see #newWorkStealingPool(int)</span><br><span class="line"> * @since 1.8</span><br><span class="line"> *&#x2F;</span><br><span class="line">public static ExecutorService newWorkStealingPool() &#123;</span><br><span class="line">    return new ForkJoinPool</span><br><span class="line">        (Runtime.getRuntime().availableProcessors(),</span><br><span class="line">         ForkJoinPool.defaultForkJoinWorkerThreadFactory,</span><br><span class="line">         null, true);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
-<p>翻译：</p>
-<p>创建一个线程池，该线程池维护足够的线程以支持给定的并行级别，并且可以使用多个队列来减少争用。并行级别对应于主动参与或可用于参与任务处理的最大线程数。线程的实际数量可能会动态地增长和收缩。偷工池不能保证提交任务的执行顺序。</p>
-]]></content>
-  </entry>
-  <entry>
     <title>Java多线程3-线程池使用</title>
     <url>/Java%E5%A4%9A%E7%BA%BF%E7%A8%8B3-%E7%BA%BF%E7%A8%8B%E6%B1%A0%E4%BD%BF%E7%94%A8/</url>
     <content><![CDATA[<p>Java线程池的使用（JDK1.8）。</p>
@@ -1272,6 +1171,107 @@
 <p><font color="grey">用起来貌似更方便，不用配置一些参数。</font></p>
 <p>结果：</p>
 <figure class="highlight plain"><table><tr><td class="code"><pre><span class="line">1 *** MyTask [name&#x3D;1] is running!</span><br><span class="line">2 *** MyTask [name&#x3D;2] is running!</span><br><span class="line">3 *** MyTask [name&#x3D;3] is running!</span><br><span class="line">4 *** MyTask [name&#x3D;4] is running!</span><br><span class="line">5 *** MyTask [name&#x3D;5] is running!</span><br><span class="line">6 *** MyTask [name&#x3D;6] is running!</span><br><span class="line">7 *** MyTask [name&#x3D;7] is running!</span><br><span class="line">8 *** MyTask [name&#x3D;8] is running!</span><br><span class="line">9 *** MyTask [name&#x3D;9] is running!</span><br><span class="line">10 *** MyTask [name&#x3D;10] is running!</span><br></pre></td></tr></table></figure>
+]]></content>
+  </entry>
+  <entry>
+    <title>Java多线程2-线程池初识</title>
+    <url>/Java%E5%A4%9A%E7%BA%BF%E7%A8%8B2-%E7%BA%BF%E7%A8%8B%E6%B1%A0%E5%88%9D%E8%AF%86/</url>
+    <content><![CDATA[<p>初识Java线程池（JDK1.8）。</p>
+<a id="more"></a>
+
+<p>Alibaba开发手册：  </p>
+<ol>
+<li><font color="red"> 【强制】 </font>线程资源必须通过线程池提供，不允许在应用中自行显式创建线程。<br>说明：线程池的好处是减少在创建和销毁线程上所消耗的时间以及系统资源的开销，解决资源不足的问题。 如果不使用线程池，有可能造成系统创建大量同类线程而导致消耗完内存或者“过度切换”的问题。</li>
+</ol>
+<h3 id="Executors"><a href="#Executors" class="headerlink" title="Executors"></a>Executors</h3><p>使用Executors创建线程池，Executors类中共有4种线程池的创建方法。</p>
+<p>Executors</p>
+<ul>
+<li>newCachedThreadPool</li>
+<li>newFixedThreadPool</li>
+<li>newScheduledThreadPool</li>
+<li>newSingleThreadExecutor</li>
+<li>newWorkStealingPool</li>
+</ul>
+<p>使用Executors创建方式：</p>
+<figure class="highlight plain"><table><tr><td class="code"><pre><span class="line">&#x2F;**</span><br><span class="line"> * 1、单线程线程池</span><br><span class="line"> * 2、缓存线程池</span><br><span class="line"> * 3、固定大小线程池</span><br><span class="line"> * 4、定时线程池</span><br><span class="line"> *&#x2F;</span><br><span class="line">ExecutorService executorService1 &#x3D; Executors.newSingleThreadExecutor();</span><br><span class="line">ExecutorService executorService2 &#x3D; Executors.newCachedThreadPool();</span><br><span class="line">ExecutorService executorService3 &#x3D; Executors.newFixedThreadPool(4);</span><br><span class="line">ExecutorService executorService4 &#x3D; Executors.newScheduledThreadPool(4);</span><br><span class="line">ExecutorService executorService5 &#x3D; Executors.newWorkStealingPool();</span><br></pre></td></tr></table></figure>
+
+<h3 id="ThreadPoolExecutor"><a href="#ThreadPoolExecutor" class="headerlink" title="ThreadPoolExecutor"></a>ThreadPoolExecutor</h3><p>基础类</p>
+<p>newSingleThreadExecutor、newFixedThreadPool都是返回的此类。</p>
+<figure class="highlight plain"><table><tr><td class="code"><pre><span class="line">public ThreadPoolExecutor(int corePoolSize,</span><br><span class="line">                          int maximumPoolSize,</span><br><span class="line">                          long keepAliveTime,</span><br><span class="line">                          TimeUnit unit,</span><br><span class="line">                          BlockingQueue&lt;Runnable&gt; workQueue,</span><br><span class="line">                          ThreadFactory threadFactory,</span><br><span class="line">                          RejectedExecutionHandler handler) &#123;</span><br><span class="line">    if (corePoolSize &lt; 0 ||</span><br><span class="line">        maximumPoolSize &lt;&#x3D; 0 ||</span><br><span class="line">        maximumPoolSize &lt; corePoolSize ||</span><br><span class="line">        keepAliveTime &lt; 0)</span><br><span class="line">        throw new IllegalArgumentException();</span><br><span class="line">    if (workQueue &#x3D;&#x3D; null || threadFactory &#x3D;&#x3D; null || handler &#x3D;&#x3D; null)</span><br><span class="line">        throw new NullPointerException();</span><br><span class="line">    this.acc &#x3D; System.getSecurityManager() &#x3D;&#x3D; null ?</span><br><span class="line">            null :</span><br><span class="line">            AccessController.getContext();</span><br><span class="line">    this.corePoolSize &#x3D; corePoolSize;</span><br><span class="line">    this.maximumPoolSize &#x3D; maximumPoolSize;</span><br><span class="line">    this.workQueue &#x3D; workQueue;</span><br><span class="line">    this.keepAliveTime &#x3D; unit.toNanos(keepAliveTime);</span><br><span class="line">    this.threadFactory &#x3D; threadFactory;</span><br><span class="line">    this.handler &#x3D; handler;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>参数含义：</p>
+<p>corePoolSize：线程池的大小。</p>
+<figure class="highlight plain"><table><tr><td class="code"><pre><span class="line">* @param corePoolSize the number of threads to keep in the pool, even</span><br><span class="line">*        if they are idle, unless &#123;@code allowCoreThreadTimeOut&#125; is set</span><br></pre></td></tr></table></figure>
+<p>maximumPoolSize：线程池最大容量。</p>
+<figure class="highlight plain"><table><tr><td class="code"><pre><span class="line">* @param maximumPoolSize the maximum number of threads to allow in the</span><br><span class="line">*        pool</span><br></pre></td></tr></table></figure>
+<p>keepAliveTime：当线程数大于核心时，这是多余空闲线程的最长时间。</p>
+<figure class="highlight plain"><table><tr><td class="code"><pre><span class="line">* @param keepAliveTime when the number of threads is greater than</span><br><span class="line">*        the core, this is the maximum time that excess idle threads</span><br></pre></td></tr></table></figure>
+
+<p>unit：{@code keepAliveTime}参数的时间单位。</p>
+<figure class="highlight plain"><table><tr><td class="code"><pre><span class="line">* @param unit the time unit for the &#123;@code keepAliveTime&#125; argument</span><br></pre></td></tr></table></figure>
+<p>workQueue：用于在执行任务之前保存任务的队列。这个队列将只保存由{@code execute}方法提交的{@code Runnable}任务。</p>
+<figure class="highlight plain"><table><tr><td class="code"><pre><span class="line">* @param workQueue the queue to use for holding tasks before they are</span><br><span class="line">*        executed.  This queue will hold only the &#123;@code Runnable&#125;</span><br><span class="line">*        tasks submitted by the &#123;@code execute&#125; method.</span><br></pre></td></tr></table></figure>
+
+<p>threadFactory：执行器创建新线程时要使用的工厂。</p>
+<figure class="highlight plain"><table><tr><td class="code"><pre><span class="line">* @param threadFactory the factory to use when the executor</span><br><span class="line">*        creates a new thread</span><br></pre></td></tr></table></figure>
+
+<p>handler：由于达到线程边界和队列容量而阻止执行时要使用的处理程序。</p>
+<figure class="highlight plain"><table><tr><td class="code"><pre><span class="line">* @param handler the handler to use when execution is blocked</span><br><span class="line">*        because the thread bounds and queue capacities are reached</span><br></pre></td></tr></table></figure>
+
+<p><strong>实例：</strong></p>
+<figure class="highlight plain"><table><tr><td class="code"><pre><span class="line">public ThreadPoolExecutor(int corePoolSize,</span><br><span class="line">                          int maximumPoolSize,</span><br><span class="line">                          long keepAliveTime,</span><br><span class="line">                          TimeUnit unit,</span><br><span class="line">                          BlockingQueue&lt;Runnable&gt; workQueue) &#123;</span><br><span class="line">    this(corePoolSize, maximumPoolSize, keepAliveTime, unit, workQueue,</span><br><span class="line">         Executors.defaultThreadFactory(), defaultHandler);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p><em>newSingleThreadExecutor</em></p>
+<figure class="highlight plain"><table><tr><td class="code"><pre><span class="line">public static ExecutorService newSingleThreadExecutor() &#123;</span><br><span class="line">    return new FinalizableDelegatedExecutorService</span><br><span class="line">        (new ThreadPoolExecutor(1, 1,</span><br><span class="line">                                0L, TimeUnit.MILLISECONDS,</span><br><span class="line">                                new LinkedBlockingQueue&lt;Runnable&gt;()));</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p><em>newFixedThreadPool</em></p>
+<figure class="highlight plain"><table><tr><td class="code"><pre><span class="line">public static ExecutorService newFixedThreadPool(int nThreads) &#123;</span><br><span class="line">    return new ThreadPoolExecutor(nThreads, nThreads,</span><br><span class="line">                                  0L, TimeUnit.MILLISECONDS,</span><br><span class="line">                                  new LinkedBlockingQueue&lt;Runnable&gt;());</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+
+
+
+<h3 id="newSingleThreadExecutor"><a href="#newSingleThreadExecutor" class="headerlink" title="newSingleThreadExecutor"></a>newSingleThreadExecutor</h3><p>说明：</p>
+<figure class="highlight plain"><table><tr><td class="code"><pre><span class="line">&#x2F;**</span><br><span class="line"> * Creates an Executor that uses a single worker thread operating</span><br><span class="line"> * off an unbounded queue. (Note however that if this single</span><br><span class="line"> * thread terminates due to a failure during execution prior to</span><br><span class="line"> * shutdown, a new one will take its place if needed to execute</span><br><span class="line"> * subsequent tasks.)  Tasks are guaranteed to execute</span><br><span class="line"> * sequentially, and no more than one task will be active at any</span><br><span class="line"> * given time. Unlike the otherwise equivalent</span><br><span class="line"> * &#123;@code newFixedThreadPool(1)&#125; the returned executor is</span><br><span class="line"> * guaranteed not to be reconfigurable to use additional threads.</span><br><span class="line"> **&#x2F;</span><br></pre></td></tr></table></figure>
+
+<p>说明：</p>
+<p>创建一个执行器，该执行器使用一个工作线程在无边界队列中进行操作(但是请注意，如果此单个线程在关机之前的执行过程中由于故障而终止，则在需要执行后续任务时，将替换一个新线程。）任务保证按顺序执行，并且在任何给定时间都不会有多个任务处于活动状态。与其他等价的{@code newFixedThreadPool（1）}不同，返回的执行器保证不可重新配置以使用其他线程。</p>
+<p>解释：</p>
+<p>使用new LinkedBlockingQueue&lt;Runnable&gt;()，一种不限制大小的queue来创建。</p>
+<figure class="highlight plain"><table><tr><td class="code"><pre><span class="line">public static ExecutorService newSingleThreadExecutor() &#123;</span><br><span class="line">    return new FinalizableDelegatedExecutorService</span><br><span class="line">        (new ThreadPoolExecutor(1, 1,</span><br><span class="line">                                0L, TimeUnit.MILLISECONDS,</span><br><span class="line">                                new LinkedBlockingQueue&lt;Runnable&gt;()));</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p><strong>运行过程：</strong></p>
+<p>只运行一个Thread来执行任务，一个Thread结束时，会建立新的Thread来执行下一个任务，保证了任务执行的顺序。</p>
+<p>这是与newFixedThreadPool(1)不同的地方，newFixedThreadPool(1)执行任务时，有可能被其他操作进行重新配置，配置成多线程。</p>
+<h3 id="newCachedThreadPool"><a href="#newCachedThreadPool" class="headerlink" title="newCachedThreadPool"></a>newCachedThreadPool</h3><p>说明：</p>
+<figure class="highlight plain"><table><tr><td class="code"><pre><span class="line">&#x2F;**</span><br><span class="line"> * Creates a thread pool that creates new threads as needed, but</span><br><span class="line"> * will reuse previously constructed threads when they are</span><br><span class="line"> * available.  These pools will typically improve the performance</span><br><span class="line"> * of programs that execute many short-lived asynchronous tasks.</span><br><span class="line"> * Calls to &#123;@code execute&#125; will reuse previously constructed</span><br><span class="line"> * threads if available. If no existing thread is available, a new</span><br><span class="line"> * thread will be created and added to the pool. Threads that have</span><br><span class="line"> * not been used for sixty seconds are terminated and removed from</span><br><span class="line"> * the cache. Thus, a pool that remains idle for long enough will</span><br><span class="line"> * not consume any resources. Note that pools with similar</span><br><span class="line"> * properties but different details (for example, timeout parameters)</span><br><span class="line"> * may be created using &#123;@link ThreadPoolExecutor&#125; constructors.</span><br><span class="line"> *</span><br><span class="line"> * @return the newly created thread pool</span><br><span class="line"> *&#x2F;</span><br></pre></td></tr></table></figure>
+<p>翻译：</p>
+<p>创建一个线程池，该线程池根据需要创建新线程，但在以前构造的线程可用时将重用它们。这些池通常会提高执行许多短期异步任务的程序的性能。对{@code execute}的调用将重用先前构造的线程（如果可用）。如果没有可用的现有线程，将创建一个新线程并将其添加到池中。六十秒未使用的线程将被终止并从缓存中删除。因此，空闲时间足够长的池不会消耗任何资源。请注意，可以使用{@link ThreadPoolExecutor}构造函数创建属性相似但细节不同的池（例如，超时参数）。</p>
+<p>初始化：</p>
+<figure class="highlight plain"><table><tr><td class="code"><pre><span class="line">public static ExecutorService newCachedThreadPool() &#123;</span><br><span class="line">    return new ThreadPoolExecutor(0, Integer.MAX_VALUE,</span><br><span class="line">                                  60L, TimeUnit.SECONDS,</span><br><span class="line">                                  new SynchronousQueue&lt;Runnable&gt;());</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+
+<h3 id="newFixedThreadPool"><a href="#newFixedThreadPool" class="headerlink" title="newFixedThreadPool"></a>newFixedThreadPool</h3><p>说明：</p>
+<figure class="highlight plain"><table><tr><td class="code"><pre><span class="line">&#x2F;**</span><br><span class="line"> * Creates a thread pool that reuses a fixed number of threads</span><br><span class="line"> * operating off a shared unbounded queue.  At any point, at most</span><br><span class="line"> * &#123;@code nThreads&#125; threads will be active processing tasks.</span><br><span class="line"> * If additional tasks are submitted when all threads are active,</span><br><span class="line"> * they will wait in the queue until a thread is available.</span><br><span class="line"> * If any thread terminates due to a failure during execution</span><br><span class="line"> * prior to shutdown, a new one will take its place if needed to</span><br><span class="line"> * execute subsequent tasks.  The threads in the pool will exist</span><br><span class="line"> * until it is explicitly &#123;@link ExecutorService#shutdown shutdown&#125;.</span><br><span class="line"> *</span><br><span class="line"> * @param nThreads the number of threads in the pool</span><br><span class="line"> * @return the newly created thread pool</span><br><span class="line"> * @throws IllegalArgumentException if &#123;@code nThreads &lt;&#x3D; 0&#125;</span><br><span class="line"> *&#x2F;</span><br></pre></td></tr></table></figure>
+
+<p>翻译：</p>
+<p>创建一个线程池，该线程池重用在共享无边界队列上运行的固定数量的线程。在任何时候，至多{@code nThreads}个线程都是活动的处理任务。如果在所有线程都处于活动状态时提交其他任务，它们将在队列中等待，直到有线程可用。如果任何线程在关机前的执行过程中由于失败而终止，那么如果需要执行后续任务，将有一个新线程代替它。池中的线程将一直存在，直到它显式地{@link ExecutorService#shutdown}。</p>
+<p>初始化：</p>
+<figure class="highlight plain"><table><tr><td class="code"><pre><span class="line">public static ExecutorService newFixedThreadPool(int nThreads) &#123;</span><br><span class="line">    return new ThreadPoolExecutor(nThreads, nThreads,</span><br><span class="line">                                  0L, TimeUnit.MILLISECONDS,</span><br><span class="line">                                  new LinkedBlockingQueue&lt;Runnable&gt;());</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p><strong>运行过程：</strong></p>
+<p>和newSingleThreadExecutor一样，使用无容量限制的LinkedBlockingQueue进行初始化。</p>
+<h3 id="newScheduledThreadPool"><a href="#newScheduledThreadPool" class="headerlink" title="newScheduledThreadPool"></a>newScheduledThreadPool</h3><p>说明：</p>
+<figure class="highlight plain"><table><tr><td class="code"><pre><span class="line">&#x2F;**</span><br><span class="line"> * Creates a thread pool that can schedule commands to run after a</span><br><span class="line"> * given delay, or to execute periodically.</span><br><span class="line"> * @param corePoolSize the number of threads to keep in the pool,</span><br><span class="line"> * even if they are idle</span><br><span class="line"> * @return a newly created scheduled thread pool</span><br><span class="line"> * @throws IllegalArgumentException if &#123;@code corePoolSize &lt; 0&#125;</span><br><span class="line"> *&#x2F;</span><br><span class="line">public static ScheduledExecutorService newScheduledThreadPool(int corePoolSize) &#123;</span><br><span class="line">    return new ScheduledThreadPoolExecutor(corePoolSize);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>翻译：</p>
+<p>创建一个线程池，该线程池可以安排命令在给定延迟后运行，或定期执行。</p>
+<p>运行过程：</p>
+<p><img src="/images/pasted-80.png" alt="upload successful"></p>
+<p>可以看出就是使用了不同的queue来实现，在这里使用的是DelayedWorkQueue。</p>
+<h3 id="newWorkStealingPool"><a href="#newWorkStealingPool" class="headerlink" title="newWorkStealingPool"></a>newWorkStealingPool</h3><p>说明：</p>
+<figure class="highlight plain"><table><tr><td class="code"><pre><span class="line">&#x2F;**</span><br><span class="line"> * Creates a work-stealing thread pool using all</span><br><span class="line"> * &#123;@link Runtime#availableProcessors available processors&#125;</span><br><span class="line"> * as its target parallelism level.</span><br><span class="line"> * @return the newly created thread pool</span><br><span class="line"> * @see #newWorkStealingPool(int)</span><br><span class="line"> * @since 1.8</span><br><span class="line"> *&#x2F;</span><br><span class="line">public static ExecutorService newWorkStealingPool() &#123;</span><br><span class="line">    return new ForkJoinPool</span><br><span class="line">        (Runtime.getRuntime().availableProcessors(),</span><br><span class="line">         ForkJoinPool.defaultForkJoinWorkerThreadFactory,</span><br><span class="line">         null, true);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>翻译：</p>
+<p>创建一个线程池，该线程池维护足够的线程以支持给定的并行级别，并且可以使用多个队列来减少争用。并行级别对应于主动参与或可用于参与任务处理的最大线程数。线程的实际数量可能会动态地增长和收缩。偷工池不能保证提交任务的执行顺序。</p>
 ]]></content>
   </entry>
   <entry>
@@ -1529,30 +1529,6 @@
       </tags>
   </entry>
   <entry>
-    <title>Shell脚本基本写法</title>
-    <url>/Shell%E8%84%9A%E6%9C%AC%E5%9F%BA%E6%9C%AC%E5%86%99%E6%B3%95/</url>
-    <content><![CDATA[<p>学习Shell脚本，用来写Dockerfile。</p>
-<a id="more"></a>
-
-<p>Shell 是一个用 C 语言编写的程序，它是用户使用 Linux 的桥梁。Shell 既是一种命令语言，又是一种程序设计语言。</p>
-<p>Shell 是指一种应用程序，这个应用程序提供了一个界面，用户通过这个界面访问操作系统内核的服务。</p>
-<h3 id="echo"><a href="#echo" class="headerlink" title="echo"></a>echo</h3><p><strong>echo 命令用于向窗口输出文本。</strong></p>
-<p>新建一个test.sh文件,并进行添加 echo “Hello World !”，</p>
-<figure class="highlight plain"><table><tr><td class="code"><pre><span class="line"># touch test.sh</span><br></pre></td></tr></table></figure>
-
-<p>更改mac权限，否则不能正常运行</p>
-<figure class="highlight plain"><table><tr><td class="code"><pre><span class="line"># chmod 777 test.sh</span><br></pre></td></tr></table></figure>
-
-<p>运行脚本文件</p>
-<figure class="highlight plain"><table><tr><td class="code"><pre><span class="line">(base) LdeMacBook-Pro:docker lli$ .&#x2F;test.sh</span><br><span class="line">Hello World!</span><br></pre></td></tr></table></figure>]]></content>
-      <categories>
-        <category>Docker</category>
-      </categories>
-      <tags>
-        <tag>Shell</tag>
-      </tags>
-  </entry>
-  <entry>
     <title>SpringBoot AOP集成监听日志</title>
     <url>/SpringBoot-AOP%E9%9B%86%E6%88%90/</url>
     <content><![CDATA[<h3 id="什么是AOP"><a href="#什么是AOP" class="headerlink" title="什么是AOP"></a>什么是AOP</h3><pre><code>AOP（Aspect Oriented Programming），即面向切面编程。</code></pre>
@@ -1594,6 +1570,30 @@
         <tag>SpringBoot</tag>
         <tag>AOP</tag>
         <tag>日志</tag>
+      </tags>
+  </entry>
+  <entry>
+    <title>Shell脚本基本写法</title>
+    <url>/Shell%E8%84%9A%E6%9C%AC%E5%9F%BA%E6%9C%AC%E5%86%99%E6%B3%95/</url>
+    <content><![CDATA[<p>学习Shell脚本，用来写Dockerfile。</p>
+<a id="more"></a>
+
+<p>Shell 是一个用 C 语言编写的程序，它是用户使用 Linux 的桥梁。Shell 既是一种命令语言，又是一种程序设计语言。</p>
+<p>Shell 是指一种应用程序，这个应用程序提供了一个界面，用户通过这个界面访问操作系统内核的服务。</p>
+<h3 id="echo"><a href="#echo" class="headerlink" title="echo"></a>echo</h3><p><strong>echo 命令用于向窗口输出文本。</strong></p>
+<p>新建一个test.sh文件,并进行添加 echo “Hello World !”，</p>
+<figure class="highlight plain"><table><tr><td class="code"><pre><span class="line"># touch test.sh</span><br></pre></td></tr></table></figure>
+
+<p>更改mac权限，否则不能正常运行</p>
+<figure class="highlight plain"><table><tr><td class="code"><pre><span class="line"># chmod 777 test.sh</span><br></pre></td></tr></table></figure>
+
+<p>运行脚本文件</p>
+<figure class="highlight plain"><table><tr><td class="code"><pre><span class="line">(base) LdeMacBook-Pro:docker lli$ .&#x2F;test.sh</span><br><span class="line">Hello World!</span><br></pre></td></tr></table></figure>]]></content>
+      <categories>
+        <category>Docker</category>
+      </categories>
+      <tags>
+        <tag>Shell</tag>
       </tags>
   </entry>
   <entry>
@@ -1824,6 +1824,43 @@
       </tags>
   </entry>
   <entry>
+    <title>SpringBoot集成jwt验证</title>
+    <url>/SpringBoot%E9%9B%86%E6%88%90jwt%E9%AA%8C%E8%AF%81/</url>
+    <content><![CDATA[<p>本文介绍</p>
+<ul>
+<li>SpringBoot集成Jwt的过程</li>
+<li>Token生成与有效时间的刷新与使用</li>
+<li>随项目启动加载用户权限数据</li>
+<li>数据库建立相应数据表<a id="more"></a>
+
+</li>
+</ul>
+<h3 id="Token使用"><a href="#Token使用" class="headerlink" title="Token使用"></a>Token使用</h3><h4 id="Token生成"><a href="#Token生成" class="headerlink" title="Token生成"></a>Token生成</h4><figure class="highlight plain"><table><tr><td class="code"><pre><span class="line">public String generateToken(AircasBaseUser userDetails) &#123;</span><br><span class="line">    Map&lt;String, Object&gt; claims &#x3D; new HashMap&lt;&gt;();</span><br><span class="line">    return doGenerateToken(claims, userDetails.getUsername());</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line">private String doGenerateToken(Map&lt;String, Object&gt; claims, String subject) &#123;</span><br><span class="line">    final Date createdDate &#x3D; clock.now();</span><br><span class="line">    final Date expirationDate &#x3D; calculateExpirationDate(createdDate);</span><br><span class="line">    return Jwts.builder()</span><br><span class="line">            .setHeaderParam(&quot;type&quot;, &quot;JWT&quot;)</span><br><span class="line">            .setClaims(claims)&#x2F;&#x2F;声明，作为荷载</span><br><span class="line">            .setSubject(subject) &#x2F;&#x2F;代表这个JWT的主体，即它的所有人，这个是一个json格式的字符串，可以存放什么userid，roldid之类的，作为什么用户的唯一标志</span><br><span class="line">            .setIssuedAt(createdDate)</span><br><span class="line">            .setExpiration(expirationDate)</span><br><span class="line">            .signWith(SignatureAlgorithm.HS512, secret)&#x2F;&#x2F;signWith() 签名方法。两个参数分别是签名算法和自定义的签名Key（盐）。签名key可以byte[] 、String及Key的形式传入。前两种形式均存入builder的keyBytes属性，后一种形式存入builder的key属性。如果是第二种（及String类型）的key，则将其进行base64解码获得byte[] 。</span><br><span class="line">            .compact();</span><br><span class="line">    &#125;</span><br></pre></td></tr></table></figure>
+
+
+<h3 id="SpringBoot集成jwt"><a href="#SpringBoot集成jwt" class="headerlink" title="SpringBoot集成jwt"></a>SpringBoot集成jwt</h3><p>pom引入</p>
+<figure class="highlight plain"><table><tr><td class="code"><pre><span class="line">&lt;!--jwt--&gt;</span><br><span class="line">&lt;dependency&gt;</span><br><span class="line">   &lt;groupId&gt;io.jsonwebtoken&lt;&#x2F;groupId&gt;</span><br><span class="line">   &lt;artifactId&gt;jjwt&lt;&#x2F;artifactId&gt;</span><br><span class="line">   &lt;version&gt;0.9.1&lt;&#x2F;version&gt;</span><br><span class="line">&lt;&#x2F;dependency&gt;</span><br></pre></td></tr></table></figure>
+
+<p>WebSecurityConfigurerAdapter添加配置，添加过滤器</p>
+<figure class="highlight plain"><table><tr><td class="code"><pre><span class="line">private void configureForDefault(HttpSecurity httpSecurity) throws Exception &#123;</span><br><span class="line">    httpSecurity</span><br><span class="line">           &#x2F;&#x2F; 禁用 CSRF</span><br><span class="line">           .csrf().disable()</span><br><span class="line">           &#x2F;&#x2F; 授权异常</span><br><span class="line">           .exceptionHandling().authenticationEntryPoint(unauthorizedHandler).and()</span><br><span class="line">           &#x2F;&#x2F; 不创建会话</span><br><span class="line">           .sessionManagement().sessionCreationPolicy(SessionCreationPolicy.STATELESS).and()</span><br><span class="line">           &#x2F;&#x2F; 过滤请求</span><br><span class="line">           .authorizeRequests().antMatchers(HttpMethod.GET, &quot;&#x2F;*.html&quot;, &quot;&#x2F;**&#x2F;*.html&quot;, &quot;&#x2F;**&#x2F;*.css&quot;, &quot;&#x2F;**&#x2F;*.js&quot;, &quot;&#x2F;*.gif&quot;, &quot;&#x2F;*.gif*&quot;, &quot;&#x2F;*.ico&quot;).anonymous()</span><br><span class="line">           .antMatchers(HttpMethod.POST, &quot;&#x2F;auth&#x2F;login&quot;).anonymous()</span><br><span class="line">           .antMatchers(HttpMethod.POST, &quot;&#x2F;auth&#x2F;userRegister&quot;).anonymous()</span><br><span class="line">           .antMatchers(&quot;&#x2F;auth&#x2F;getVCode&quot;).anonymous()</span><br><span class="line">           &#x2F;&#x2F; swagger start</span><br><span class="line">           .antMatchers(&quot;&#x2F;swagger-ui.html&quot;).anonymous().antMatchers(&quot;&#x2F;swagger-resources&#x2F;**&quot;).anonymous()</span><br><span class="line">           .antMatchers(&quot;&#x2F;webjars&#x2F;**&quot;).anonymous().antMatchers(&quot;&#x2F;*&#x2F;api-docs&quot;).anonymous()</span><br><span class="line">           &#x2F;&#x2F; 接口限流测试</span><br><span class="line">           .antMatchers(&quot;&#x2F;test&#x2F;**&quot;).anonymous().antMatchers(HttpMethod.OPTIONS, &quot;&#x2F;**&quot;).anonymous()</span><br><span class="line">           .antMatchers(&quot;&#x2F;static&#x2F;**&quot;).permitAll()</span><br><span class="line">           .antMatchers(&quot;&#x2F;favicon.ico&quot;).permitAll()</span><br><span class="line">           &#x2F;&#x2F; 所有请求都需要认证</span><br><span class="line">           .anyRequest().authenticated()</span><br><span class="line">           &#x2F;&#x2F; 防止iframe 造成跨域</span><br><span class="line">           .and().headers().frameOptions().disable();</span><br><span class="line">        httpSecurity.addFilterBefore(jwtAuthorizationTokenFilter, UsernamePasswordAuthenticationFilter.class);</span><br><span class="line">    &#125;</span><br></pre></td></tr></table></figure>
+<p>请求拦截器处理。</p>
+<ul>
+<li>所有请求都会到这个拦截器中，验证头部数据是否有token。</li>
+<li>如果没有token则会没有权限访问其他请求接口。</li>
+<li>如果有token数据，验证Token的有效性，如果有效就在SecurityContextHolder添加权限，就能够访问其他请求。</li>
+<li>在拦截器中需要获取用户权限信息，所以在项目中添加用户信息的缓存，伴随服务的启动而加载。</li>
+</ul>
+<figure class="highlight plain"><table><tr><td class="code"><pre><span class="line">@Override</span><br><span class="line">protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain chain) throws ServletException, IOException &#123;</span><br><span class="line">    String requestHeader &#x3D; request.getHeader(this.tokenHeader);</span><br><span class="line">    if (requestHeader !&#x3D; null &amp;&amp; requestHeader.startsWith(&quot;Bearer &quot;)) &#123;</span><br><span class="line">        String authToken &#x3D; requestHeader.substring(7);</span><br><span class="line">        if (StringUtils.isNotBlank(authToken) &amp;&amp; jwtTokenUtil.validateToken(authToken)) &#123;</span><br><span class="line">            &#x2F;&#x2F;如果token有效则会添加请求的权限</span><br><span class="line">            String userName &#x3D; jwtTokenUtil.getUsernameFromToken(authToken);</span><br><span class="line">            logger.info(&quot;checking authentication &#123;&#125;&quot; + userName);</span><br><span class="line">            if (userName !&#x3D; null &amp;&amp; SecurityContextHolder.getContext().getAuthentication() &#x3D;&#x3D; null) &#123;</span><br><span class="line">                UsernamePasswordAuthenticationToken authenticationToken &#x3D; new UsernamePasswordAuthenticationToken(userName, null, jwtUserDetailsService.getAuthorities(userName));</span><br><span class="line">                authenticationToken.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));</span><br><span class="line">                logger.info(&quot;authenticated user &#123;&#125;, setting security context&quot; + userName);</span><br><span class="line">                SecurityContextHolder.getContext().setAuthentication(authenticationToken);</span><br><span class="line">            &#125;</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line">    chain.doFilter(request, response);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>]]></content>
+      <categories>
+        <category>后端</category>
+      </categories>
+      <tags>
+        <tag>SpringBoot</tag>
+        <tag>Jwt</tag>
+        <tag>SpringSecurity</tag>
+      </tags>
+  </entry>
+  <entry>
     <title>SpringBoot集成Redis+Lettuce</title>
     <url>/SpringBoot%E9%9B%86%E6%88%90Redis/</url>
     <content><![CDATA[<p>SpringBoot对Redis的集成，包括在gRPC双向流传输中使用Redis存储。</p>
@@ -1876,43 +1913,6 @@
       <tags>
         <tag>SpringBoot</tag>
         <tag>Redis</tag>
-      </tags>
-  </entry>
-  <entry>
-    <title>SpringBoot集成jwt验证</title>
-    <url>/SpringBoot%E9%9B%86%E6%88%90jwt%E9%AA%8C%E8%AF%81/</url>
-    <content><![CDATA[<p>本文介绍</p>
-<ul>
-<li>SpringBoot集成Jwt的过程</li>
-<li>Token生成与有效时间的刷新与使用</li>
-<li>随项目启动加载用户权限数据</li>
-<li>数据库建立相应数据表<a id="more"></a>
-
-</li>
-</ul>
-<h3 id="Token使用"><a href="#Token使用" class="headerlink" title="Token使用"></a>Token使用</h3><h4 id="Token生成"><a href="#Token生成" class="headerlink" title="Token生成"></a>Token生成</h4><figure class="highlight plain"><table><tr><td class="code"><pre><span class="line">public String generateToken(AircasBaseUser userDetails) &#123;</span><br><span class="line">    Map&lt;String, Object&gt; claims &#x3D; new HashMap&lt;&gt;();</span><br><span class="line">    return doGenerateToken(claims, userDetails.getUsername());</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line">private String doGenerateToken(Map&lt;String, Object&gt; claims, String subject) &#123;</span><br><span class="line">    final Date createdDate &#x3D; clock.now();</span><br><span class="line">    final Date expirationDate &#x3D; calculateExpirationDate(createdDate);</span><br><span class="line">    return Jwts.builder()</span><br><span class="line">            .setHeaderParam(&quot;type&quot;, &quot;JWT&quot;)</span><br><span class="line">            .setClaims(claims)&#x2F;&#x2F;声明，作为荷载</span><br><span class="line">            .setSubject(subject) &#x2F;&#x2F;代表这个JWT的主体，即它的所有人，这个是一个json格式的字符串，可以存放什么userid，roldid之类的，作为什么用户的唯一标志</span><br><span class="line">            .setIssuedAt(createdDate)</span><br><span class="line">            .setExpiration(expirationDate)</span><br><span class="line">            .signWith(SignatureAlgorithm.HS512, secret)&#x2F;&#x2F;signWith() 签名方法。两个参数分别是签名算法和自定义的签名Key（盐）。签名key可以byte[] 、String及Key的形式传入。前两种形式均存入builder的keyBytes属性，后一种形式存入builder的key属性。如果是第二种（及String类型）的key，则将其进行base64解码获得byte[] 。</span><br><span class="line">            .compact();</span><br><span class="line">    &#125;</span><br></pre></td></tr></table></figure>
-
-
-<h3 id="SpringBoot集成jwt"><a href="#SpringBoot集成jwt" class="headerlink" title="SpringBoot集成jwt"></a>SpringBoot集成jwt</h3><p>pom引入</p>
-<figure class="highlight plain"><table><tr><td class="code"><pre><span class="line">&lt;!--jwt--&gt;</span><br><span class="line">&lt;dependency&gt;</span><br><span class="line">   &lt;groupId&gt;io.jsonwebtoken&lt;&#x2F;groupId&gt;</span><br><span class="line">   &lt;artifactId&gt;jjwt&lt;&#x2F;artifactId&gt;</span><br><span class="line">   &lt;version&gt;0.9.1&lt;&#x2F;version&gt;</span><br><span class="line">&lt;&#x2F;dependency&gt;</span><br></pre></td></tr></table></figure>
-
-<p>WebSecurityConfigurerAdapter添加配置，添加过滤器</p>
-<figure class="highlight plain"><table><tr><td class="code"><pre><span class="line">private void configureForDefault(HttpSecurity httpSecurity) throws Exception &#123;</span><br><span class="line">    httpSecurity</span><br><span class="line">           &#x2F;&#x2F; 禁用 CSRF</span><br><span class="line">           .csrf().disable()</span><br><span class="line">           &#x2F;&#x2F; 授权异常</span><br><span class="line">           .exceptionHandling().authenticationEntryPoint(unauthorizedHandler).and()</span><br><span class="line">           &#x2F;&#x2F; 不创建会话</span><br><span class="line">           .sessionManagement().sessionCreationPolicy(SessionCreationPolicy.STATELESS).and()</span><br><span class="line">           &#x2F;&#x2F; 过滤请求</span><br><span class="line">           .authorizeRequests().antMatchers(HttpMethod.GET, &quot;&#x2F;*.html&quot;, &quot;&#x2F;**&#x2F;*.html&quot;, &quot;&#x2F;**&#x2F;*.css&quot;, &quot;&#x2F;**&#x2F;*.js&quot;, &quot;&#x2F;*.gif&quot;, &quot;&#x2F;*.gif*&quot;, &quot;&#x2F;*.ico&quot;).anonymous()</span><br><span class="line">           .antMatchers(HttpMethod.POST, &quot;&#x2F;auth&#x2F;login&quot;).anonymous()</span><br><span class="line">           .antMatchers(HttpMethod.POST, &quot;&#x2F;auth&#x2F;userRegister&quot;).anonymous()</span><br><span class="line">           .antMatchers(&quot;&#x2F;auth&#x2F;getVCode&quot;).anonymous()</span><br><span class="line">           &#x2F;&#x2F; swagger start</span><br><span class="line">           .antMatchers(&quot;&#x2F;swagger-ui.html&quot;).anonymous().antMatchers(&quot;&#x2F;swagger-resources&#x2F;**&quot;).anonymous()</span><br><span class="line">           .antMatchers(&quot;&#x2F;webjars&#x2F;**&quot;).anonymous().antMatchers(&quot;&#x2F;*&#x2F;api-docs&quot;).anonymous()</span><br><span class="line">           &#x2F;&#x2F; 接口限流测试</span><br><span class="line">           .antMatchers(&quot;&#x2F;test&#x2F;**&quot;).anonymous().antMatchers(HttpMethod.OPTIONS, &quot;&#x2F;**&quot;).anonymous()</span><br><span class="line">           .antMatchers(&quot;&#x2F;static&#x2F;**&quot;).permitAll()</span><br><span class="line">           .antMatchers(&quot;&#x2F;favicon.ico&quot;).permitAll()</span><br><span class="line">           &#x2F;&#x2F; 所有请求都需要认证</span><br><span class="line">           .anyRequest().authenticated()</span><br><span class="line">           &#x2F;&#x2F; 防止iframe 造成跨域</span><br><span class="line">           .and().headers().frameOptions().disable();</span><br><span class="line">        httpSecurity.addFilterBefore(jwtAuthorizationTokenFilter, UsernamePasswordAuthenticationFilter.class);</span><br><span class="line">    &#125;</span><br></pre></td></tr></table></figure>
-<p>请求拦截器处理。</p>
-<ul>
-<li>所有请求都会到这个拦截器中，验证头部数据是否有token。</li>
-<li>如果没有token则会没有权限访问其他请求接口。</li>
-<li>如果有token数据，验证Token的有效性，如果有效就在SecurityContextHolder添加权限，就能够访问其他请求。</li>
-<li>在拦截器中需要获取用户权限信息，所以在项目中添加用户信息的缓存，伴随服务的启动而加载。</li>
-</ul>
-<figure class="highlight plain"><table><tr><td class="code"><pre><span class="line">@Override</span><br><span class="line">protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain chain) throws ServletException, IOException &#123;</span><br><span class="line">    String requestHeader &#x3D; request.getHeader(this.tokenHeader);</span><br><span class="line">    if (requestHeader !&#x3D; null &amp;&amp; requestHeader.startsWith(&quot;Bearer &quot;)) &#123;</span><br><span class="line">        String authToken &#x3D; requestHeader.substring(7);</span><br><span class="line">        if (StringUtils.isNotBlank(authToken) &amp;&amp; jwtTokenUtil.validateToken(authToken)) &#123;</span><br><span class="line">            &#x2F;&#x2F;如果token有效则会添加请求的权限</span><br><span class="line">            String userName &#x3D; jwtTokenUtil.getUsernameFromToken(authToken);</span><br><span class="line">            logger.info(&quot;checking authentication &#123;&#125;&quot; + userName);</span><br><span class="line">            if (userName !&#x3D; null &amp;&amp; SecurityContextHolder.getContext().getAuthentication() &#x3D;&#x3D; null) &#123;</span><br><span class="line">                UsernamePasswordAuthenticationToken authenticationToken &#x3D; new UsernamePasswordAuthenticationToken(userName, null, jwtUserDetailsService.getAuthorities(userName));</span><br><span class="line">                authenticationToken.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));</span><br><span class="line">                logger.info(&quot;authenticated user &#123;&#125;, setting security context&quot; + userName);</span><br><span class="line">                SecurityContextHolder.getContext().setAuthentication(authenticationToken);</span><br><span class="line">            &#125;</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line">    chain.doFilter(request, response);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>]]></content>
-      <categories>
-        <category>后端</category>
-      </categories>
-      <tags>
-        <tag>SpringBoot</tag>
-        <tag>Jwt</tag>
-        <tag>SpringSecurity</tag>
       </tags>
   </entry>
   <entry>
